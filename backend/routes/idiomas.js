@@ -7,7 +7,7 @@ const router = express.Router();
 // Obtener todos los idiomas
 router.get("/", async (req, res) => {
   try {
-    const [rows] = await pool.query("SELECT * FROM Idiomas ORDER BY nombre_idioma");
+    const [rows] = await pool.query("SELECT * FROM idiomas ORDER BY nombre_idioma");
     res.json(rows);
   } catch (error) {
     console.error(error);
@@ -21,7 +21,7 @@ router.post("/", async (req, res) => {
     const { nombre_idioma } = req.body;
     
     const [result] = await pool.query(
-      "INSERT INTO Idiomas (nombre_idioma) VALUES (?)",
+      "INSERT INTO idiomas (nombre_idioma) VALUES (?)",
       [nombre_idioma]
     );
     
@@ -45,7 +45,7 @@ router.put("/:id", async (req, res) => {
     const { nombre_idioma } = req.body;
     
     await pool.query(
-      "UPDATE Idiomas SET nombre_idioma = ? WHERE id_idioma = ?",
+      "UPDATE idiomas SET nombre_idioma = ? WHERE id_idioma = ?",
       [nombre_idioma, req.params.id]
     );
     

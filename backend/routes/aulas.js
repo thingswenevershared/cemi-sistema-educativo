@@ -7,7 +7,7 @@ const router = express.Router();
 // Obtener todas las aulas
 router.get("/", async (req, res) => {
   try {
-    const [rows] = await pool.query("SELECT * FROM Aulas ORDER BY nombre_aula");
+    const [rows] = await pool.query("SELECT * FROM aulas ORDER BY nombre_aula");
     res.json(rows);
   } catch (error) {
     console.error(error);
@@ -21,7 +21,7 @@ router.post("/", async (req, res) => {
     const { nombre_aula, capacidad } = req.body;
     
     const [result] = await pool.query(
-      "INSERT INTO Aulas (nombre_aula, capacidad) VALUES (?, ?)",
+      "INSERT INTO aulas (nombre_aula, capacidad) VALUES (?, ?)",
       [nombre_aula, capacidad]
     );
     
@@ -45,7 +45,7 @@ router.put("/:id", async (req, res) => {
     const { nombre_aula, capacidad } = req.body;
     
     await pool.query(
-      "UPDATE Aulas SET nombre_aula = ?, capacidad = ? WHERE id_aula = ?",
+      "UPDATE aulas SET nombre_aula = ?, capacidad = ? WHERE id_aula = ?",
       [nombre_aula, capacidad, req.params.id]
     );
     
