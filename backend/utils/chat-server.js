@@ -124,23 +124,75 @@ class ChatServer {
     let { tipo, id_usuario, nombre, id_conversacion } = data;
     
     // FIX: Si no tiene id_usuario pero tiene nombre, buscarlo en la BD
-    if (!id_usuario && nombre && tipo !== 'invitado') {
+    if ((!id_usuario || id_usuario === 'null' || id_usuario === 'undefined') && nombre && tipo !== 'invitado') {
       try {
-        const [usuarioBuscado] = await pool.query(`
-          SELECT u.id_usuario
-          FROM usuarios u
-          JOIN personas p ON u.id_persona = p.id_persona
-          WHERE CONCAT(p.nombre, ' ', p.apellido) = ?
-          LIMIT 1
-        `, [nombre]);
+        let query, params;
+        
+        if (tipo === 'admin') {
+          // Buscar en tabla de administradores
+          query = `
+            SELECT u.id_usuario
+            FROM usuarios u
+            JOIN administradores adm ON u.id_administrador = adm.id_administrador
+            JOIN personas p ON adm.id_persona = p.id_persona
+            WHERE CONCAT(p.nombre, ' ', p.apellido) = ? AND u.tipo_usuario = 'administrador'
+            LIMIT 1
+          `;
+          params = [nombre];
+        } else if (tipo === 'profesor') {
+          // Buscar en tabla de profesores
+          query = `
+            SELECT u.id_usuario
+            FROM usuarios u
+            JOIN profesores prof ON u.id_profesor = prof.id_profesor
+            JOIN personas p ON prof.id_persona = p.id_persona
+            WHERE CONCAT(p.nombre, ' ', p.apellido) = ? AND u.tipo_usuario = 'profesor'
+            LIMIT 1
+          `;
+          params = [nombre];
+        } else if (tipo === 'alumno') {
+          // Buscar en tabla de alumnos
+          query = `
+            SELECT u.id_usuario
+            FROM usuarios u
+            JOIN alumnos al ON u.id_alumno = al.id_alumno
+            JOIN personas p ON al.id_persona = p.id_persona
+            WHERE CONCAT(p.nombre, ' ', p.apellido) = ? AND u.tipo_usuario = 'alumno'
+            LIMIT 1
+          `;
+          params = [nombre];
+        } else {
+          // Búsqueda genérica como fallback
+          query = `
+            SELECT u.id_usuario
+            FROM usuarios u
+            JOIN personas p ON u.id_persona = p.id_persona
+            WHERE CONCAT(p.nombre, ' ', p.apellido) = ?
+            LIMIT 1
+          `;
+          params = [nombre];
+        }
+        
+        const [usuarioBuscado] = await pool.query(query, params);
         
         if (usuarioBuscado.length > 0) {
           id_usuario = usuarioBuscado[0].id_usuario;
-          console.log(`✅ id_usuario encontrado automáticamente en auth: ${id_usuario} para ${nombre}`);
+          console.log(`✅ id_usuario encontrado automáticamente en auth: ${id_usuario} para ${nombre} (${tipo})`);
+        } else {
+          console.warn(`⚠️ No se encontró id_usuario para ${nombre} (${tipo})`);
         }
       } catch (err) {
-        console.warn('⚠️ No se pudo buscar id_usuario en auth:', err.message);
+        console.warn('⚠️ Error al buscar id_usuario en auth:', err.message);
       }
+    }
+    
+    // Limpiar id_usuario para asegurar que no sea string 'null' o 'undefined'
+    if (id_usuario === 'null' || id_usuario === 'undefined' || id_usuario === '') {
+      id_usuario = null;
+    } else if (id_usuario !== null && id_usuario !== undefined) {
+      // Convertir a número si es posible
+      const numericId = parseInt(id_usuario, 10);
+      id_usuario = isNaN(numericId) ? null : numericId;
     }
     
     ws.userInfo = {
@@ -227,6 +279,26 @@ class ChatServer {
     
     try {
       // Guardar mensaje en la base de datos
+      // Validar y limpiar id_remitente antes de insertar
+      let id_remitente = userInfo.id_usuario;
+      
+      // Convertir string 'null', 'undefined' o valores inválidos a NULL real
+      if (id_remitente === null || 
+          id_remitente === undefined || 
+          id_remitente === 'null' || 
+          id_remitente === 'undefined' || 
+          id_remitente === '') {
+        id_remitente = null;
+      } else {
+        // Si tiene valor, convertir a número entero
+        id_remitente = parseInt(id_remitente, 10);
+        if (isNaN(id_remitente)) {
+          id_remitente = null;
+        }
+      }
+      
+      console.log(`💾 Insertando mensaje: conversacion=${id_conversacion}, tipo=${userInfo.tipo}, id_remitente=${id_remitente}, nombre=${userInfo.nombre}`);
+      
       const [result] = await pool.query(`
         INSERT INTO chat_mensajes (
           id_conversacion, 
@@ -238,7 +310,7 @@ class ChatServer {
       `, [
         id_conversacion,
         userInfo.tipo,
-        userInfo.id_usuario,
+        id_remitente,
         userInfo.nombre,
         mensaje
       ]);

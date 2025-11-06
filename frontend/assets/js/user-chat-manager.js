@@ -130,16 +130,26 @@ class UserChatManager {
     
     // Obtener id_usuario y asegurar que no sea string 'null'
     let id_usuario = localStorage.getItem('id_usuario');
-    if (id_usuario === 'null' || id_usuario === 'undefined' || !id_usuario) {
+    
+    // Convertir a null si es string 'null', 'undefined', vacío, o realmente null/undefined
+    if (!id_usuario || id_usuario === 'null' || id_usuario === 'undefined') {
+      console.warn('⚠️ id_usuario no encontrado o inválido en localStorage');
       id_usuario = null;
-      
-      // FIX: Si no tiene id_usuario, forzar re-login para obtenerlo
-      console.warn('⚠️ id_usuario no encontrado - Actualizando desde servidor...');
       this.actualizarIdUsuario();
+    } else {
+      // Asegurarse de que sea un número válido
+      const numericId = parseInt(id_usuario, 10);
+      if (isNaN(numericId)) {
+        console.warn('⚠️ id_usuario no es un número válido:', id_usuario);
+        id_usuario = null;
+        this.actualizarIdUsuario();
+      } else {
+        id_usuario = numericId;
+      }
     }
     
     this.userInfo = {
-      id_usuario: id_usuario, // ID de la tabla Usuarios
+      id_usuario: id_usuario, // ID de la tabla Usuarios (puede ser null temporalmente)
       id_especifico: localStorage.getItem(idKey), // id_profesor o id_alumno
       nombre: localStorage.getItem('nombre') || 'Usuario',
       avatar: localStorage.getItem('avatar') || null, // Avatar del usuario
@@ -156,25 +166,61 @@ class UserChatManager {
   async actualizarIdUsuario() {
     try {
       const username = localStorage.getItem('username');
-      if (!username) return;
+      const nombre = localStorage.getItem('nombre');
+      
+      if (!username && !nombre) {
+        console.error('❌ No hay username ni nombre en localStorage');
+        return;
+      }
       
       const API_URL = window.API_URL || 'http://localhost:3000/api';
-      const response = await fetch(`${API_URL}/auth/verify`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username })
-      });
       
-      if (response.ok) {
-        const data = await response.json();
-        if (data.id_usuario) {
-          localStorage.setItem('id_usuario', data.id_usuario);
-          this.userInfo.id_usuario = data.id_usuario;
-          console.log('✅ id_usuario actualizado:', data.id_usuario);
+      // Intentar con el endpoint verify primero
+      try {
+        const response = await fetch(`${API_URL}/auth/verify`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username })
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.id_usuario) {
+            localStorage.setItem('id_usuario', data.id_usuario);
+            this.userInfo.id_usuario = parseInt(data.id_usuario, 10);
+            console.log('✅ id_usuario actualizado desde /auth/verify:', data.id_usuario);
+            
+            // Re-autenticar con el nuevo id_usuario
+            if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+              this.authenticate();
+            }
+            return;
+          }
         }
+      } catch (verifyError) {
+        console.warn('⚠️ Endpoint /auth/verify no disponible, intentando método alternativo');
       }
+      
+      // Método alternativo: buscar por nombre a través del chat API
+      try {
+        const idKey = this.userType === 'profesor' ? 'id_profesor' : 'id_alumno';
+        const idValue = localStorage.getItem(idKey);
+        
+        if (idValue) {
+          // Cargar la conversación del usuario para obtener su id_usuario
+          const response = await fetch(`${API_URL}/chat/mi-conversacion?tipo_usuario=${this.userType}&id_usuario=${idValue}`);
+          if (response.ok) {
+            const result = await response.json();
+            // El backend debería resolver el id_usuario
+            console.log('✅ Conversación cargada, id_usuario debería estar disponible en el contexto');
+          }
+        }
+      } catch (altError) {
+        console.error('❌ Error en método alternativo:', altError);
+      }
+      
     } catch (err) {
-      console.error('Error actualizando id_usuario:', err);
+      console.error('❌ Error actualizando id_usuario:', err);
     }
   }
   
