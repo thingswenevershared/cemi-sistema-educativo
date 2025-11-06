@@ -858,5 +858,42 @@ router.post("/classroom-login", async (req, res) => {
   }
 });
 
+// -------------------------
+// POST /api/auth/verify
+// Verificar y obtener id_usuario sin re-login
+// -------------------------
+router.post("/verify", async (req, res) => {
+  try {
+    const { username } = req.body;
+    
+    if (!username) {
+      return res.status(400).json({ success: false, message: "Username requerido" });
+    }
+    
+    // Buscar el usuario en cualquiera de las tablas
+    let [rows] = await pool.query(`
+      SELECT u.id_usuario, p.nombre, p.apellido
+      FROM usuarios u
+      JOIN personas p ON u.id_persona = p.id_persona
+      WHERE u.username = ?
+      LIMIT 1
+    `, [username]);
+    
+    if (rows.length === 0) {
+      return res.status(404).json({ success: false, message: "Usuario no encontrado" });
+    }
+    
+    res.json({
+      success: true,
+      id_usuario: rows[0].id_usuario,
+      nombre: `${rows[0].nombre} ${rows[0].apellido}`.trim()
+    });
+    
+  } catch (error) {
+    console.error("Error en /auth/verify:", error);
+    res.status(500).json({ success: false, message: "Error del servidor" });
+  }
+});
+
 export default router;
 

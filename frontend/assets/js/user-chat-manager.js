@@ -132,6 +132,10 @@ class UserChatManager {
     let id_usuario = localStorage.getItem('id_usuario');
     if (id_usuario === 'null' || id_usuario === 'undefined' || !id_usuario) {
       id_usuario = null;
+      
+      // FIX: Si no tiene id_usuario, forzar re-login para obtenerlo
+      console.warn('⚠️ id_usuario no encontrado - Actualizando desde servidor...');
+      this.actualizarIdUsuario();
     }
     
     this.userInfo = {
@@ -142,14 +146,36 @@ class UserChatManager {
       tipo: this.userType
     };
     
-    if (!this.userInfo.id_usuario) {
-      console.warn('⚠️ No se encontró id_usuario en localStorage - Por favor cierra sesión y vuelve a iniciar sesión');
-    }
     if (!this.userInfo.id_especifico) {
       console.error(`No se encontró ${idKey} en localStorage`);
     }
     
     console.log('👤 Usuario cargado:', this.userInfo);
+  }
+  
+  async actualizarIdUsuario() {
+    try {
+      const username = localStorage.getItem('username');
+      if (!username) return;
+      
+      const API_URL = window.API_URL || 'http://localhost:3000/api';
+      const response = await fetch(`${API_URL}/auth/verify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.id_usuario) {
+          localStorage.setItem('id_usuario', data.id_usuario);
+          this.userInfo.id_usuario = data.id_usuario;
+          console.log('✅ id_usuario actualizado:', data.id_usuario);
+        }
+      }
+    } catch (err) {
+      console.error('Error actualizando id_usuario:', err);
+    }
   }
   
   connectWebSocket() {
