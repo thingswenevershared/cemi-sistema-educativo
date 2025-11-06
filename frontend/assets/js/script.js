@@ -1612,6 +1612,16 @@ async function openEditarCursoModal(curso) {
 
 
 // =====================================================
+// 2️⃣ DASHBOARD ADMIN
+// =====================================================
+async function initAdminDashboard() {
+  console.log("👑 Dashboard ADMIN cargado");
+  // El dashboard admin ya está implementado en dashboard_admin.html
+  // Esta función es solo para evitar el error de referencia
+}
+
+
+// =====================================================
 // 3️⃣ DASHBOARD PROFESOR
 // =====================================================
 async function initProfesorDashboard() {

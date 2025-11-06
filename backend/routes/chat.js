@@ -124,8 +124,8 @@ router.get("/conversacion/:id", async (req, res) => {
                ELSE NULL
              END as nombre_admin
       FROM chat_conversaciones c
-      LEFT JOIN Usuarios u ON c.atendido_por = u.id_usuario
-      LEFT JOIN Personas p ON u.id_persona = p.id_persona
+      LEFT JOIN usuarios u ON c.atendido_por = u.id_usuario
+      LEFT JOIN personas p ON u.id_persona = p.id_persona
       WHERE c.id_conversacion = ?
     `, [id]);
     
@@ -210,10 +210,10 @@ router.get("/conversaciones", async (req, res) => {
         END as nombre_completo_usuario
       FROM chat_conversaciones c
       LEFT JOIN chat_mensajes m ON c.id_conversacion = m.id_conversacion
-      LEFT JOIN Usuarios u_admin ON c.atendido_por = u_admin.id_usuario
-      LEFT JOIN Personas p_admin ON u_admin.id_persona = p_admin.id_persona
-      LEFT JOIN Usuarios u_usuario ON c.id_usuario = u_usuario.id_usuario
-      LEFT JOIN Personas p_usuario ON u_usuario.id_persona = p_usuario.id_persona
+      LEFT JOIN usuarios u_admin ON c.atendido_por = u_admin.id_usuario
+      LEFT JOIN personas p_admin ON u_admin.id_persona = p_admin.id_persona
+      LEFT JOIN usuarios u_usuario ON c.id_usuario = u_usuario.id_usuario
+      LEFT JOIN personas p_usuario ON u_usuario.id_persona = p_usuario.id_persona
       WHERE 1=1
     `;
     
@@ -619,3 +619,4 @@ router.delete("/conversacion/:id", async (req, res) => {
 });
 
 export default router;
+
