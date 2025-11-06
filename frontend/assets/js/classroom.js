@@ -47,7 +47,8 @@ async function cargarAvatarUsuario() {
       const userInitialsElement = document.getElementById('userInitials');
       if (userInitialsElement) {
         if (data.perfil.avatar) {
-          const avatarUrl = `http://localhost:3000${data.perfil.avatar}`;
+          const BASE_URL = window.BASE_URL || 'http://localhost:3000';
+          const avatarUrl = `${BASE_URL}${data.perfil.avatar}`;
           userInitialsElement.innerHTML = `<img src="${avatarUrl}" alt="Avatar">`;
           console.log('✅ Avatar cargado en header:', avatarUrl);
         } else {
@@ -70,7 +71,8 @@ async function cargarAvatarUsuario() {
 
 function renderAvatarHTML(avatar, nombre, apellido = '', gradiente = 'linear-gradient(135deg, #667eea, #764ba2)') {
   if (avatar) {
-    const avatarUrl = `http://localhost:3000${avatar}`;
+    const BASE_URL = window.BASE_URL || 'http://localhost:3000';
+    const avatarUrl = `${BASE_URL}${avatar}`;
     return `
       <div class="avatar-circle" style="background: none !important; padding: 0; border: none;">
         <img src="${avatarUrl}" alt="Avatar">
@@ -1382,7 +1384,8 @@ function renderPanelCurso(curso, alumnos, tareas) {
             // Generar avatar o iniciales para alumnos
             let avatarAlumno = '';
             if (alumno.avatar) {
-              const avatarUrl = `http://localhost:3000${alumno.avatar}`;
+              const BASE_URL = window.BASE_URL || 'http://localhost:3000';
+              const avatarUrl = `${BASE_URL}${alumno.avatar}`;
               avatarAlumno = `
                 <div class="student-avatar" style="background: none; padding: 0; overflow: hidden;">
                   <img src="${avatarUrl}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
@@ -1507,7 +1510,8 @@ async function abrirPerfilEspectador(idPersona, tipoUsuario) {
     // Generar avatar o iniciales
     let avatarHTML = '';
     if (perfil.avatar) {
-      const avatarUrl = `http://localhost:3000${perfil.avatar}`;
+      const BASE_URL = window.BASE_URL || 'http://localhost:3000';
+      const avatarUrl = `${BASE_URL}${perfil.avatar}`;
       avatarHTML = `
         <div class="profile-avatar-modal" style="background: none; padding: 0; overflow: hidden;">
           <img src="${avatarUrl}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
@@ -3576,7 +3580,8 @@ window.abrirAnuncio = async function(idAnuncio) {
     // Generar avatar o iniciales para el modal
     let avatarElement = '';
     if (anuncio.profesor_avatar) {
-      const avatarUrl = `http://localhost:3000${anuncio.profesor_avatar}`;
+      const BASE_URL = window.BASE_URL || 'http://localhost:3000';
+      const avatarUrl = `${BASE_URL}${anuncio.profesor_avatar}`;
       avatarElement = `
         <div class="avatar-circle" style="width: 48px; height: 48px; min-width: 48px; background: none; padding: 0; overflow: hidden;">
           <img src="${avatarUrl}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;">
@@ -3645,7 +3650,8 @@ window.abrirAnuncio = async function(idAnuncio) {
               // Generar avatar o iniciales para comentarios
               let avatarComentario = '';
               if (com.avatar_usuario) {
-                const avatarUrl = `http://localhost:3000${com.avatar_usuario}`;
+                const BASE_URL = window.BASE_URL || 'http://localhost:3000';
+                const avatarUrl = `${BASE_URL}${com.avatar_usuario}`;
                 avatarComentario = `
                   <div class="avatar-circle" style="width: 36px; height: 36px; min-width: 36px; background: none !important; padding: 0; border: none; overflow: hidden;">
                     <img src="${avatarUrl}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;">
@@ -5459,7 +5465,8 @@ async function cambiarPasswordClassroom(event) {
   }
 
   try {
-    const response = await fetch('http://localhost:3000/api/auth/cambiar-password-classroom', {
+    const API_URL = window.API_URL || 'http://localhost:3000/api';
+    const response = await fetch(`${API_URL}/auth/cambiar-password-classroom`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -5560,7 +5567,8 @@ async function exportarTareasPDF() {
     console.log('Exportando tareas para idAlumno:', idAlumno);
     
     // Usar el puerto correcto del backend (3000) en lugar del dev-server (8080)
-    const apiUrl = `http://localhost:3000/api/classroom/tareas-lista/alumno/${idAlumno}`;
+    const API_URL = window.API_URL || 'http://localhost:3000/api';
+    const apiUrl = `${API_URL}/classroom/tareas-lista/alumno/${idAlumno}`;
     console.log('URL completa:', apiUrl);
     
     // Usar la ruta correcta para obtener tareas del alumno
@@ -5705,7 +5713,8 @@ async function exportarCalificacionesPDF() {
     console.log('Exportando calificaciones para idAlumno:', idAlumno);
     
     // Usar el puerto correcto del backend (3000) en lugar del dev-server (8080)
-    const apiUrl = `http://localhost:3000/api/classroom/calificaciones/alumno/${idAlumno}`;
+    const API_URL = window.API_URL || 'http://localhost:3000/api';
+    const apiUrl = `${API_URL}/classroom/calificaciones/alumno/${idAlumno}`;
     console.log('URL completa:', apiUrl);
     
     // Usar la ruta correcta para obtener calificaciones del alumno

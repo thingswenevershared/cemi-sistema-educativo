@@ -271,7 +271,8 @@ class AdminChatManager {
   
   async loadConversations() {
     try {
-      const response = await fetch('http://localhost:3000/api/chat/conversaciones');
+      const API_URL = window.API_URL || 'http://localhost:3000/api';
+      const response = await fetch(`${API_URL}/chat/conversaciones`);
       const result = await response.json();
       
       if (result.success) {
@@ -403,7 +404,8 @@ class AdminChatManager {
   
   async loadMessages(id) {
     try {
-      const response = await fetch(`http://localhost:3000/api/chat/conversacion/${id}`);
+      const API_URL = window.API_URL || 'http://localhost:3000/api';
+      const response = await fetch(`${API_URL}/chat/conversacion/${id}`);
       const result = await response.json();
       
       if (result.success) {
@@ -578,7 +580,8 @@ class AdminChatManager {
   
   async markAsRead(id) {
     try {
-      await fetch(`http://localhost:3000/api/chat/conversacion/${id}/leer`, {
+      const API_URL = window.API_URL || 'http://localhost:3000/api';
+      await fetch(`${API_URL}/chat/conversacion/${id}/leer`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tipo_lector: 'admin' })
@@ -631,7 +634,8 @@ class AdminChatManager {
       const idUsuario = this.activeConversation.id_usuario;
       
       // Llamar al endpoint para eliminar
-      const response = await fetch(`http://localhost:3000/api/chat/conversacion/${idConversacion}`, {
+      const API_URL = window.API_URL || 'http://localhost:3000/api';
+      const response = await fetch(`${API_URL}/chat/conversacion/${idConversacion}`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 

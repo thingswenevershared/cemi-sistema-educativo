@@ -289,7 +289,8 @@ class UserChatManager {
       
       console.log('🔍 Cargando conversaciones para:', this.userType, 'id_usuario:', idValue);
       
-      const response = await fetch(`http://localhost:3000/api/chat/mi-conversacion?tipo_usuario=${this.userType}&id_usuario=${idValue}`);
+      const API_URL = window.API_URL || 'http://localhost:3000/api';
+      const response = await fetch(`${API_URL}/chat/mi-conversacion?tipo_usuario=${this.userType}&id_usuario=${idValue}`);
       
       if (response.ok) {
         const result = await response.json();
@@ -443,7 +444,8 @@ class UserChatManager {
     if (!this.activeConversation) return;
     
     try {
-      const response = await fetch(`http://localhost:3000/api/chat/conversacion/${this.activeConversation.id_conversacion}`);
+      const API_URL = window.API_URL || 'http://localhost:3000/api';
+      const response = await fetch(`${API_URL}/chat/conversacion/${this.activeConversation.id_conversacion}`);
       const result = await response.json();
       
       if (result.success) {
@@ -624,7 +626,8 @@ class UserChatManager {
     try {
       const idKey = this.userType === 'profesor' ? 'id_profesor' : 'id_alumno';
       
-      const response = await fetch('http://localhost:3000/api/chat/iniciar', {
+      const API_URL = window.API_URL || 'http://localhost:3000/api';
+      const response = await fetch(`${API_URL}/chat/iniciar`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -722,7 +725,8 @@ class UserChatManager {
   
   async markAsRead(id) {
     try {
-      await fetch(`http://localhost:3000/api/chat/conversacion/${id}/leer`, {
+      const API_URL = window.API_URL || 'http://localhost:3000/api';
+      await fetch(`${API_URL}/chat/conversacion/${id}/leer`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tipo_lector: 'usuario' })
@@ -771,11 +775,12 @@ class UserChatManager {
     const iniciales = nombre ? nombre.charAt(0).toUpperCase() : 'U';
     
     if (avatar && avatar.trim()) {
+      const BASE_URL = window.BASE_URL || 'http://localhost:3000';
       // Si el avatar ya incluye la ruta completa (/uploads/...), usar directamente el servidor
       // Si no, es solo el nombre del archivo, agregar la ruta completa
       const avatarUrl = avatar.startsWith('/uploads/') 
-        ? `http://localhost:3000${avatar}` 
-        : `http://localhost:3000/uploads/avatars/${avatar}`;
+        ? `${BASE_URL}${avatar}` 
+        : `${BASE_URL}/uploads/avatars/${avatar}`;
       
       console.log(`🖼️ Renderizando avatar:`, { 
         avatar, 

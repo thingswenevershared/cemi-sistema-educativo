@@ -233,7 +233,8 @@ function mostrarDatosEnUI(perfil) {
   // Mostrar avatar o iniciales
   if (perfil.avatar) {
     // Si tiene avatar, mostrar la imagen
-    const avatarUrl = `http://localhost:3000${perfil.avatar}`;
+    const BASE_URL = window.BASE_URL || 'http://localhost:3000';
+    const avatarUrl = `${BASE_URL}${perfil.avatar}`;
     
     if (avatarContainer) {
       avatarContainer.style.backgroundImage = `url(${avatarUrl})`;
@@ -607,7 +608,8 @@ async function cambiarAvatar(event) {
       // Actualizar el avatar en la UI inmediatamente
       const avatarContainer = document.getElementById('profileAvatar');
       const avatarInitials = document.getElementById('avatarInitials');
-      const avatarUrl = `http://localhost:3000${data.avatar}`;
+      const BASE_URL = window.BASE_URL || 'http://localhost:3000';
+      const avatarUrl = `${BASE_URL}${data.avatar}`;
       
       if (avatarContainer) {
         avatarContainer.style.backgroundImage = `url(${avatarUrl})`;

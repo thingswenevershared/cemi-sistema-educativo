@@ -745,7 +745,8 @@
       }
       
       connectWebSocket() {
-        this.ws = new WebSocket('ws://localhost:3000/chat');
+        const WS_URL = window.WS_URL || 'ws://localhost:3000';
+        this.ws = new WebSocket(`${WS_URL}/chat`);
         
         this.ws.onopen = () => {
           console.log('✅ Admin Chat WebSocket conectado');
@@ -860,7 +861,8 @@
       
       async loadConversations() {
         try {
-          const response = await fetch('http://localhost:3000/api/chat/conversaciones');
+          const API_URL = window.API_URL || 'http://localhost:3000/api';
+          const response = await fetch(`${API_URL}/chat/conversaciones`);
           const result = await response.json();
           
           if (result.success) {
@@ -971,7 +973,8 @@
       
       async selectConversation(id) {
         try {
-          const response = await fetch(`http://localhost:3000/api/chat/conversacion/${id}`);
+          const API_URL = window.API_URL || 'http://localhost:3000/api';
+          const response = await fetch(`${API_URL}/chat/conversacion/${id}`);
           const result = await response.json();
           
           if (result.success) {
@@ -1069,7 +1072,8 @@
       
       async takeConversation(id) {
         try {
-          await fetch(`http://localhost:3000/api/chat/conversacion/${id}/tomar`, {
+          const API_URL = window.API_URL || 'http://localhost:3000/api';
+          await fetch(`${API_URL}/chat/conversacion/${id}/tomar`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id_admin: this.adminInfo.id_usuario })
@@ -1097,7 +1101,8 @@
         if (!result.isConfirmed) return;
         
         try {
-          await fetch(`http://localhost:3000/api/chat/conversacion/${this.activeConversation.id_conversacion}/cerrar`, {
+          const API_URL = window.API_URL || 'http://localhost:3000/api';
+          await fetch(`${API_URL}/chat/conversacion/${this.activeConversation.id_conversacion}/cerrar`, {
             method: 'PUT'
           });
           
@@ -1113,7 +1118,8 @@
       
       async markAsRead(id) {
         try {
-          await fetch(`http://localhost:3000/api/chat/conversacion/${id}/leer`, {
+          const API_URL = window.API_URL || 'http://localhost:3000/api';
+          await fetch(`${API_URL}/chat/conversacion/${id}/leer`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ tipo_lector: 'admin' })

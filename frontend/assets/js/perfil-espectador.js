@@ -81,7 +81,8 @@ function mostrarDatosEnUI() {
   
   // Mostrar avatar o iniciales
   if (perfilData.avatar) {
-    const avatarUrl = `http://localhost:3000${perfilData.avatar}`;
+    const BASE_URL = window.BASE_URL || 'http://localhost:3000';
+    const avatarUrl = `${BASE_URL}${perfilData.avatar}`;
     if (avatarContainer) {
       avatarContainer.style.backgroundImage = `url(${avatarUrl})`;
       avatarContainer.style.backgroundSize = 'cover';

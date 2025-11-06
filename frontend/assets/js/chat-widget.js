@@ -325,7 +325,8 @@ class ChatWidget {
     button.textContent = 'Iniciando...';
     
     try {
-      const response = await fetch('http://localhost:3000/api/chat/iniciar', {
+      const API_URL = window.API_URL || 'http://localhost:3000/api';
+      const response = await fetch(`${API_URL}/chat/iniciar`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -376,8 +377,9 @@ class ChatWidget {
     if (!this.userInfo || this.userInfo.tipo === 'invitado') return;
     
     try {
+      const API_URL = window.API_URL || 'http://localhost:3000/api';
       const response = await fetch(
-        `http://localhost:3000/api/chat/mi-conversacion?tipo_usuario=${this.userInfo.tipo}&id_usuario=${this.userInfo.id_usuario}`
+        `${API_URL}/chat/mi-conversacion?tipo_usuario=${this.userInfo.tipo}&id_usuario=${this.userInfo.id_usuario}`
       );
       
       const result = await response.json();
@@ -400,7 +402,8 @@ class ChatWidget {
     if (!this.conversationId) return;
     
     try {
-      const response = await fetch(`http://localhost:3000/api/chat/conversacion/${this.conversationId}`);
+      const API_URL = window.API_URL || 'http://localhost:3000/api';
+      const response = await fetch(`${API_URL}/chat/conversacion/${this.conversationId}`);
       const result = await response.json();
       
       if (result.success) {
