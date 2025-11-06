@@ -20,6 +20,26 @@ router.post("/iniciar", async (req, res) => {
       id_usuario = null;
     }
     
+    // FIX: Si no tiene id_usuario pero tiene nombre, intentar buscarlo en la BD
+    if (!id_usuario && nombre && tipo_usuario !== 'invitado') {
+      try {
+        const [usuarioBuscado] = await pool.query(`
+          SELECT u.id_usuario
+          FROM usuarios u
+          JOIN personas p ON u.id_persona = p.id_persona
+          WHERE CONCAT(p.nombre, ' ', p.apellido) = ?
+          LIMIT 1
+        `, [nombre]);
+        
+        if (usuarioBuscado.length > 0) {
+          id_usuario = usuarioBuscado[0].id_usuario;
+          console.log(`✅ id_usuario encontrado automáticamente: ${id_usuario} para ${nombre}`);
+        }
+      } catch (err) {
+        console.warn('⚠️ No se pudo buscar id_usuario automáticamente:', err.message);
+      }
+    }
+    
     // Validaciones
     if (!tipo_usuario || !nombre || !mensaje_inicial) {
       return res.status(400).json({ 

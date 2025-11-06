@@ -121,7 +121,27 @@ class ChatServer {
   // =====================================================
   
   async handleAuth(ws, data) {
-    const { tipo, id_usuario, nombre, id_conversacion } = data;
+    let { tipo, id_usuario, nombre, id_conversacion } = data;
+    
+    // FIX: Si no tiene id_usuario pero tiene nombre, buscarlo en la BD
+    if (!id_usuario && nombre && tipo !== 'invitado') {
+      try {
+        const [usuarioBuscado] = await pool.query(`
+          SELECT u.id_usuario
+          FROM usuarios u
+          JOIN personas p ON u.id_persona = p.id_persona
+          WHERE CONCAT(p.nombre, ' ', p.apellido) = ?
+          LIMIT 1
+        `, [nombre]);
+        
+        if (usuarioBuscado.length > 0) {
+          id_usuario = usuarioBuscado[0].id_usuario;
+          console.log(`✅ id_usuario encontrado automáticamente en auth: ${id_usuario} para ${nombre}`);
+        }
+      } catch (err) {
+        console.warn('⚠️ No se pudo buscar id_usuario en auth:', err.message);
+      }
+    }
     
     ws.userInfo = {
       tipo, // 'admin', 'alumno', 'profesor', 'invitado'
