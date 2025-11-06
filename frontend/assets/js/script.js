@@ -3225,15 +3225,29 @@ async function openPagoPanel(idAlumno) {
   panel.classList.add('active');
 
   try {
-    const resp = await fetch(`${API_URL}/pagos/alumno/${idAlumno}`);
-    const data = await resp.json();
+    // Obtener info del alumno y pagos en paralelo
+    const [alumnoResp, pagosResp] = await Promise.all([
+      fetch(`${API_URL}/alumnos/${idAlumno}`),
+      fetch(`${API_URL}/pagos/alumno/${idAlumno}`)
+    ]);
+    
+    const alumno = await alumnoResp.json();
+    const pagosData = await pagosResp.json();
 
-    const { alumno, historial, estado_cuenta } = data;
+    // Adaptar estructura de datos
+    const historial = pagosData.pagos_realizados || [];
+    const estado_cuenta = {
+      total_pagado: pagosData.estadisticas?.total_pagado || 0,
+      total_pagos: pagosData.estadisticas?.cantidad_pagos || 0,
+      pagos_vencidos: pagosData.pagos_pendientes?.filter(p => p.estado === 'vencido').length || 0,
+      ultimo_pago: historial.length > 0 ? historial[0].fecha_pago : null
+    };
 
     // Actualizar header
-    const iniciales = alumno.nombre_completo.split(' ').map(n => n.charAt(0)).join('').substring(0, 2).toUpperCase();
+    const nombreCompleto = `${alumno.nombre} ${alumno.apellido}`;
+    const iniciales = nombreCompleto.split(' ').map(n => n.charAt(0)).join('').substring(0, 2).toUpperCase();
     document.getElementById('pagoPanelAvatar').textContent = iniciales;
-    document.getElementById('pagoPanelNombre').textContent = alumno.nombre_completo;
+    document.getElementById('pagoPanelNombre').textContent = nombreCompleto;
     document.getElementById('pagoPanelLegajo').textContent = `Legajo: ${alumno.legajo} • ${alumno.mail}`;
 
     // Renderizar contenido
