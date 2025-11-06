@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Centro de Ayuda - CEMI</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/terminos.css">
+  <link rel="stylesheet" href="assets/css/chat-widget.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="logo" onclick="window.location.href='index.html'" style="cursor: pointer;">
+        <img src="images/logo.png" alt="Logo CEMI">
+        <span>CEMI</span>
+      </div>
+      <ul class="nav-links">
+        <li><a href="index.html">Inicio</a></li>
+        <li><a href="index.html#classroom">Classroom</a></li>
+        <li><a href="index.html#dashboard">Dashboard</a></li>
+        <li><a href="index.html#soporte">Soporte</a></li>
+      </ul>
+      <button class="login-btn" onclick="window.location.href='login.html'">Iniciar Sesión</button>
+    </div>
+  </nav>
+
+  <!-- Contenedor Principal -->
+  <div class="terms-container">
+    
+    <!-- Sidebar de Navegación -->
+    <aside class="terms-sidebar">
+      <div class="sidebar-sticky">
+        <h3>Contenido</h3>
+        <nav class="terms-nav">
+          <a href="#inicio" class="nav-link active">Inicio Rápido</a>
+          <a href="#cuenta" class="nav-link">Gestión de Cuenta</a>
+          <a href="#classroom-ayuda" class="nav-link">Usar Classroom</a>
+          <a href="#dashboard-ayuda" class="nav-link">Usar Dashboard</a>
+          <a href="#tareas" class="nav-link">Tareas y Entregas</a>
+          <a href="#calificaciones" class="nav-link">Calificaciones</a>
+          <a href="#pagos-ayuda" class="nav-link">Pagos e Inscripciones</a>
+          <a href="#problemas" class="nav-link">Solución de Problemas</a>
+          <a href="#faq-ayuda" class="nav-link">Preguntas Frecuentes</a>
+          <a href="#contacto" class="nav-link">Contactar Soporte</a>
+        </nav>
+        <button class="back-btn" onclick="window.location.href='index.html'">
+          <i data-lucide="arrow-left"></i>
+          Volver al Inicio
+        </button>
+      </div>
+    </aside>
+
+    <!-- Contenido Principal -->
+    <main class="terms-content">
+      
+      <!-- Header -->
+      <header class="terms-header">
+        <h1>Centro de Ayuda</h1>
+        <p class="last-update">Última actualización: 3 de noviembre de 2025</p>
+      </header>
+
+      <!-- Búsqueda Rápida -->
+      <div class="search-box">
+        <i data-lucide="search"></i>
+        <input type="text" placeholder="Buscar en la ayuda..." id="searchInput">
+      </div>
+
+      <!-- Sección: Inicio Rápido -->
+      <section id="inicio" class="term-section">
+        <h2>1. Inicio Rápido</h2>
+        <p>Bienvenido al Centro de Ayuda de CEMI. Aquí encontrarás guías paso a paso, tutoriales y respuestas a las preguntas más frecuentes sobre nuestra plataforma.</p>
+      </section>
+
+      <!-- Sección: Gestión de Cuenta -->
+      <section id="cuenta" class="term-section">
+        <h2>2. Gestión de Cuenta</h2>
+        
+        <h3>2.1 Crear una Cuenta Nueva</h3>
+        <div class="step-list">
+          <div class="step-item">
+            <span class="step-number">1</span>
+            <div>
+              <h4>Accede al Registro</h4>
+              <p>Haz clic en "Empezar ahora" o "Iniciar Sesión" → "Registrarse"</p>
+            </div>
+          </div>
+          
+          <div class="step-item">
+            <span class="step-number">2</span>
+            <div>
+              <h4>Completa tus Datos</h4>
+              <p>Ingresa nombre, email, teléfono y crea una contraseña segura</p>
+            </div>
+          </div>
+          
+          <div class="step-item">
+            <span class="step-number">3</span>
+            <div>
+              <h4>Verifica tu Email</h4>
+              <p>Revisa tu correo y confirma tu dirección de email</p>
+            </div>
+          </div>
+          
+          <div class="step-item">
+            <span class="step-number">4</span>
+            <div>
+              <h4>Completa tu Perfil</h4>
+              <p>Agrega información adicional como dirección, DNI, fecha de nacimiento</p>
+            </div>
+          </div>
+        </div>
+
+        <h3>2.2 Iniciar Sesión</h3>
+        <p>Para acceder a tu cuenta:</p>
+        <ul>
+          <li>Haz clic en "Iniciar Sesión" en la parte superior derecha</li>
+          <li>Ingresa tu email y contraseña</li>
+          <li>Selecciona tu rol (Administrador, Profesor o Alumno)</li>
+          <li>Serás redirigido a tu dashboard correspondiente</li>
+        </ul>
+
+        <h3>2.3 Recuperar Contraseña</h3>
+        <p>Si olvidaste tu contraseña:</p>
+        <ul>
+          <li>Haz clic en "¿Olvidaste tu contraseña?" en la página de login</li>
+          <li>Ingresa tu email registrado</li>
+          <li>Recibirás un enlace de recuperación por email</li>
+          <li>Crea una nueva contraseña segura</li>
+        </ul>
+
+        <h3>2.4 Actualizar tu Perfil</h3>
+        <p>Para modificar tu información personal:</p>
+        <ul>
+          <li>Accede a tu Dashboard</li>
+          <li>Haz clic en tu avatar o nombre en la esquina superior derecha</li>
+          <li>Selecciona "Mi Perfil" o "Configuración"</li>
+          <li>Edita la información que desees actualizar</li>
+          <li>Guarda los cambios</li>
+        </ul>
+      </section>
+
+      <!-- Sección: Usar Classroom -->
+      <section id="classroom-ayuda" class="term-section">
+        <h2>3. Usar Classroom</h2>
+        
+        <h3>3.1 Acceder a tus Cursos</h3>
+        <p>Una vez inscrito en un curso:</p>
+        <ul>
+          <li>Desde el Dashboard, haz clic en "Acceder al Classroom"</li>
+          <li>Verás todos los cursos en los que estás inscrito</li>
+          <li>Haz clic en cualquier curso para ver su contenido</li>
+        </ul>
+
+        <h3>3.2 Navegación en Classroom</h3>
+        <ul>
+          <li><strong>Inicio:</strong> Vista general del curso, anuncios recientes y próximas tareas.</li>
+          <li><strong>Tareas:</strong> Lista de todas las tareas asignadas, pendientes y completadas.</li>
+          <li><strong>Alumnos:</strong> Directorio de compañeros de clase y profesores.</li>
+          <li><strong>Calificaciones:</strong> Consulta tus notas, promedio y retroalimentación del profesor.</li>
+        </ul>
+
+        <h3>3.3 Visualizar Anuncios</h3>
+        <p>Los profesores publican anuncios importantes sobre el curso:</p>
+        <ul>
+          <li>Los anuncios aparecen en la sección "Inicio" del curso</li>
+          <li>Recibirás notificaciones por cada nuevo anuncio</li>
+          <li>Puedes comentar y hacer preguntas en los anuncios</li>
+        </ul>
+      </section>
+
+      <!-- Sección: Usar Dashboard -->
+      <section id="dashboard-ayuda" class="term-section">
+        <h2>4. Usar el Dashboard</h2>
+        
+        <h3>4.1 Dashboard de Alumno</h3>
+        <p>El dashboard de alumno te permite:</p>
+        <ul>
+          <li><strong>Ver tus Cursos:</strong> Lista de cursos actuales con acceso rápido</li>
+          <li><strong>Consultar Calificaciones:</strong> Notas de todas tus materias</li>
+          <li><strong>Revisar Asistencias:</strong> Historial de asistencia a clases</li>
+          <li><strong>Gestionar Pagos:</strong> Ver estado de pagos y realizar nuevos pagos</li>
+          <li><strong>Calendario:</strong> Eventos, exámenes y fechas importantes</li>
+          <li><strong>Notificaciones:</strong> Alertas de tareas, anuncios y mensajes</li>
+        </ul>
+
+        <h3>4.2 Dashboard de Profesor</h3>
+        <p>Como profesor, puedes:</p>
+        <ul>
+          <li><strong>Gestionar Cursos:</strong> Crear y administrar tus materias</li>
+          <li><strong>Calificar Tareas:</strong> Revisar entregas y asignar notas</li>
+          <li><strong>Tomar Asistencia:</strong> Registrar presencia de alumnos</li>
+          <li><strong>Publicar Anuncios:</strong> Comunicarte con tu clase</li>
+          <li><strong>Ver Estadísticas:</strong> Rendimiento general de alumnos</li>
+        </ul>
+
+        <h3>4.3 Dashboard de Administrador</h3>
+        <p>El administrador tiene control total:</p>
+        <ul>
+          <li><strong>Gestión de Usuarios:</strong> Crear, editar y eliminar cuentas</li>
+          <li><strong>Gestión de Cursos:</strong> Crear materias y asignar profesores</li>
+          <li><strong>Inscripciones:</strong> Inscribir alumnos a cursos</li>
+          <li><strong>Gestión de Pagos:</strong> Procesar pagos y generar reportes</li>
+          <li><strong>Reportes y Estadísticas:</strong> Analytics completos del sistema</li>
+        </ul>
+      </section>
+
+      <!-- Sección: Tareas y Entregas -->
+      <section id="tareas" class="term-section">
+        <h2>5. Tareas y Entregas</h2>
+        
+        <h3>5.1 Ver Tareas Asignadas</h3>
+        <p>Para ver tus tareas pendientes:</p>
+        <div class="step-list">
+          <div class="step-item">
+            <span class="step-number">1</span>
+            <div>
+              <h4>Accede a Classroom</h4>
+              <p>Ingresa al curso correspondiente</p>
+            </div>
+          </div>
+          
+          <div class="step-item">
+            <span class="step-number">2</span>
+            <div>
+              <h4>Haz clic en "Tareas"</h4>
+              <p>Verás la lista completa de tareas del curso</p>
+            </div>
+          </div>
+          
+          <div class="step-item">
+            <span class="step-number">3</span>
+            <div>
+              <h4>Filtra por Estado</h4>
+              <p>Pendientes, Completadas, Próximas a vencer</p>
+            </div>
+          </div>
+        </div>
+
+        <h3>5.2 Entregar una Tarea</h3>
+        <p>Para enviar tu trabajo:</p>
+        <ul>
+          <li>Haz clic en la tarea que deseas entregar</li>
+          <li>Lee cuidadosamente las instrucciones y fecha límite</li>
+          <li>Haz clic en "Agregar archivo" o "Subir entrega"</li>
+          <li>Selecciona el archivo desde tu computadora</li>
+          <li>Opcionalmente, agrega un comentario para el profesor</li>
+          <li>Haz clic en "Entregar" para enviar</li>
+        </ul>
+
+        <div class="warning-box">
+          <i data-lucide="clock"></i>
+          <p><strong>Importante:</strong> Las tareas entregadas después de la fecha límite pueden recibir penalización. Asegúrate de enviar tus trabajos con tiempo suficiente.</p>
+        </div>
+
+        <h3>5.3 Editar una Entrega</h3>
+        <p>Si necesitas modificar tu entrega antes de la fecha límite:</p>
+        <ul>
+          <li>Accede a la tarea ya entregada</li>
+          <li>Haz clic en "Cancelar entrega" o "Editar"</li>
+          <li>Realiza los cambios necesarios</li>
+          <li>Vuelve a entregar la tarea actualizada</li>
+        </ul>
+
+        <h3>5.4 Consultar Retroalimentación</h3>
+        <p>Una vez que el profesor califique tu trabajo:</p>
+        <ul>
+          <li>Recibirás una notificación</li>
+          <li>Accede a la tarea para ver tu calificación</li>
+          <li>Lee los comentarios y sugerencias del profesor</li>
+          <li>Si tienes dudas, puedes consultar al profesor</li>
+        </ul>
+      </section>
+
+      <!-- Sección: Calificaciones -->
+      <section id="calificaciones" class="term-section">
+        <h2>6. Consultar Calificaciones</h2>
+        
+        <h3>6.1 Ver Calificaciones por Curso</h3>
+        <p>Para revisar tus notas de un curso específico:</p>
+        <ul>
+          <li>Ingresa al curso en Classroom</li>
+          <li>Haz clic en la sección "Calificaciones"</li>
+          <li>Verás todas tus notas de tareas, exámenes y trabajos</li>
+          <li>Consulta tu promedio actual del curso</li>
+        </ul>
+
+        <h3>6.2 Ver Todas tus Calificaciones</h3>
+        <p>Desde tu Dashboard de Alumno:</p>
+        <ul>
+          <li>Haz clic en "Mis Calificaciones" o "Notas"</li>
+          <li>Verás un resumen de todos tus cursos</li>
+          <li>Consulta promedios por materia y promedio general</li>
+          <li>Filtra por período académico si es necesario</li>
+        </ul>
+
+        <h3>6.3 Entender el Sistema de Calificación</h3>
+        <div class="info-box">
+          <p><strong>Escala de Calificación:</strong> CEMI utiliza una escala del 1 al 10, donde:</p>
+          <p>• 10-9: Excelente</p>
+          <p>• 8-7: Muy Bien</p>
+          <p>• 6-5: Aprobado</p>
+          <p>• 4-1: Desaprobado</p>
+          <p><strong>Nota mínima de aprobación:</strong> 6 (seis)</p>
+        </div>
+      </section>
+
+      <!-- Sección: Pagos e Inscripciones -->
+      <section id="pagos-ayuda" class="term-section">
+        <h2>7. Pagos e Inscripciones</h2>
+        
+        <h3>7.1 Inscribirse a un Curso</h3>
+        <p>Para inscribirte en un nuevo curso:</p>
+        <div class="step-list">
+          <div class="step-item">
+            <span class="step-number">1</span>
+            <div>
+              <h4>Explora Cursos Disponibles</h4>
+              <p>En tu Dashboard, ve a "Cursos Disponibles" o "Inscripciones"</p>
+            </div>
+          </div>
+          
+          <div class="step-item">
+            <span class="step-number">2</span>
+            <div>
+              <h4>Selecciona el Curso</h4>
+              <p>Revisa horarios, profesores y requisitos</p>
+            </div>
+          </div>
+          
+          <div class="step-item">
+            <span class="step-number">3</span>
+            <div>
+              <h4>Completa la Inscripción</h4>
+              <p>Haz clic en "Inscribirme" y confirma los datos</p>
+            </div>
+          </div>
+          
+          <div class="step-item">
+            <span class="step-number">4</span>
+            <div>
+              <h4>Realiza el Pago</h4>
+              <p>Selecciona método de pago y completa la transacción</p>
+            </div>
+          </div>
+        </div>
+
+        <h3>7.2 Métodos de Pago</h3>
+        <p>CEMI acepta los siguientes métodos de pago:</p>
+        <ul>
+          <li><strong>Tarjeta de Crédito/Débito:</strong> Visa, Mastercard, American Express</li>
+          <li><strong>Transferencia Bancaria:</strong> Desde tu banco online</li>
+          <li><strong>MercadoPago:</strong> Pago en efectivo o digital</li>
+          <li><strong>Pago en Efectivo:</strong> En nuestras oficinas</li>
+        </ul>
+
+        <h3>7.3 Ver Historial de Pagos</h3>
+        <p>Para consultar tus pagos:</p>
+        <ul>
+          <li>Ve a tu Dashboard → "Pagos" o "Facturación"</li>
+          <li>Verás el historial completo de transacciones</li>
+          <li>Descarga comprobantes y recibos en PDF</li>
+          <li>Consulta el estado de pagos pendientes</li>
+        </ul>
+
+        <h3>7.4 Solicitar Reembolso</h3>
+        <p>Para solicitar un reembolso:</p>
+        <ul>
+          <li>Contacta a soporte dentro del período de reembolso (ver Términos de Servicio)</li>
+          <li>Proporciona número de transacción y motivo</li>
+          <li>El equipo revisará tu solicitud en 5-7 días hábiles</li>
+          <li>Los reembolsos se procesan en 15-30 días hábiles</li>
+        </ul>
+      </section>
+
+      <!-- Sección: Problemas Comunes -->
+      <section id="problemas" class="term-section">
+        <h2>8. Solución de Problemas Comunes</h2>
+        
+        <h3>8.1 No puedo Iniciar Sesión</h3>
+        <div class="troubleshooting-box">
+          <p><strong>Problema:</strong> Mensaje de "Email o contraseña incorrectos"</p>
+          <p><strong>Soluciones:</strong></p>
+          <ul>
+            <li>Verifica que estés usando el email correcto (sin espacios)</li>
+            <li>Asegúrate de que Caps Lock esté desactivado</li>
+            <li>Usa la función "Recuperar contraseña" si no la recuerdas</li>
+            <li>Verifica que tu cuenta esté activada (revisa tu email de confirmación)</li>
+            <li>Intenta desde otro navegador o dispositivo</li>
+          </ul>
+        </div>
+
+        <h3>8.2 No puedo Subir Archivos</h3>
+        <div class="troubleshooting-box">
+          <p><strong>Problema:</strong> Error al subir tarea o archivo adjunto</p>
+          <p><strong>Soluciones:</strong></p>
+          <ul>
+            <li>Verifica que el archivo no supere el tamaño máximo (50 MB)</li>
+            <li>Asegúrate de que el formato sea compatible (PDF, DOC, DOCX, JPG, PNG)</li>
+            <li>Revisa tu conexión a internet</li>
+            <li>Intenta con un archivo más pequeño primero</li>
+            <li>Limpia la caché de tu navegador</li>
+          </ul>
+        </div>
+
+        <h3>8.3 No veo mis Cursos</h3>
+        <div class="troubleshooting-box">
+          <p><strong>Problema:</strong> Classroom muestra vacío o sin cursos</p>
+          <p><strong>Soluciones:</strong></p>
+          <ul>
+            <li>Verifica que estés inscrito en al menos un curso</li>
+            <li>Asegúrate de haber completado el pago de inscripción</li>
+            <li>Refresca la página (F5 o Ctrl+R)</li>
+            <li>Cierra sesión e inicia sesión nuevamente</li>
+            <li>Contacta a administración para verificar tu inscripción</li>
+          </ul>
+        </div>
+
+        <h3>8.4 No recibo Notificaciones</h3>
+        <div class="troubleshooting-box">
+          <p><strong>Problema:</strong> No llegan emails de anuncios o tareas</p>
+          <p><strong>Soluciones:</strong></p>
+          <ul>
+            <li>Revisa tu carpeta de Spam/Correo no deseado</li>
+            <li>Agrega @cemi.edu a tu lista de contactos seguros</li>
+            <li>Verifica tu email en tu perfil (Configuración → Mi Perfil)</li>
+            <li>Revisa la configuración de notificaciones en la plataforma</li>
+            <li>Asegúrate de que tu casilla de correo no esté llena</li>
+          </ul>
+        </div>
+
+        <h3>8.5 Problemas de Rendimiento</h3>
+        <div class="troubleshooting-box">
+          <p><strong>Problema:</strong> La plataforma va lenta o se congela</p>
+          <p><strong>Soluciones:</strong></p>
+          <ul>
+            <li>Cierra pestañas innecesarias del navegador</li>
+            <li>Limpia caché y cookies del navegador</li>
+            <li>Actualiza tu navegador a la última versión</li>
+            <li>Desactiva extensiones que puedan interferir</li>
+            <li>Verifica tu conexión a internet</li>
+            <li>Prueba en modo incógnito/privado</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Sección: FAQ -->
+      <section id="faq-ayuda" class="term-section">
+        <h2>9. Preguntas Frecuentes</h2>
+        
+        <div class="faq-list">
+          <div class="faq-item-help">
+            <h4>¿Puedo acceder a CEMI desde mi celular?</h4>
+            <p>Sí, CEMI es completamente responsive y funciona en cualquier dispositivo: computadora, tablet o smartphone.</p>
+          </div>
+          
+          <div class="faq-item-help">
+            <h4>¿Qué navegadores son compatibles?</h4>
+            <p>CEMI funciona mejor en las últimas versiones de Chrome, Firefox, Safari y Edge. Para una experiencia óptima, mantén tu navegador actualizado.</p>
+          </div>
+          
+          <div class="faq-item-help">
+            <h4>¿Puedo cambiarme de curso después de inscribirme?</h4>
+            <p>Sí, dentro de los primeros 7 días de iniciado el curso. Contacta a administración para gestionar el cambio.</p>
+          </div>
+          
+          <div class="faq-item-help">
+            <h4>¿Cómo descargo mis certificados?</h4>
+            <p>Una vez completado el curso, ve a tu Dashboard → "Certificados". Podrás descargar tus certificados en formato PDF.</p>
+          </div>
+          
+          <div class="faq-item-help">
+            <h4>¿Puedo recuperar una tarea no entregada?</h4>
+            <p>Las tareas se cierran automáticamente después de la fecha límite. Contacta a tu profesor para solicitar una excepción en casos justificados.</p>
+          </div>
+          
+          <div class="faq-item-help">
+            <h4>¿Cómo cambio mi contraseña?</h4>
+            <p>Ve a tu perfil → Configuración → Seguridad → Cambiar Contraseña. Necesitarás ingresar tu contraseña actual.</p>
+          </div>
+          
+          <div class="faq-item-help">
+            <h4>¿CEMI guarda mis archivos de forma segura?</h4>
+            <p>Sí, todos los archivos se almacenan en servidores seguros con encriptación. Ver nuestra Política de Privacidad para más detalles.</p>
+          </div>
+          
+          <div class="faq-item-help">
+            <h4>¿Puedo descargar mis tareas después de entregarlas?</h4>
+            <p>Sí, puedes descargar tus entregas en cualquier momento desde la sección de Tareas.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Sección: Contacto -->
+      <section id="contacto" class="term-section">
+        <h2>10. Contactar Soporte</h2>
+        <p>Si no encontraste la respuesta que buscabas, nuestro equipo de soporte está listo para ayudarte:</p>
+        
+        <div class="contact-grid">
+          <div class="contact-card">
+            <i data-lucide="message-circle"></i>
+            <h4>Chat en Vivo</h4>
+            <p>Disponible 24/7</p>
+            <p class="small">Respuesta inmediata</p>
+            <button class="help-contact-btn" onclick="alert('Chat en vivo - Próximamente')">Iniciar Chat</button>
+          </div>
+          
+          <div class="contact-card">
+            <i data-lucide="mail"></i>
+            <h4>Email</h4>
+            <p>soporte@cemi.edu</p>
+            <p class="small">Respuesta en 24-48h</p>
+            <button class="help-contact-btn" onclick="window.location.href='mailto:soporte@cemi.edu'">Enviar Email</button>
+          </div>
+          
+          <div class="contact-card">
+            <i data-lucide="phone"></i>
+            <h4>Teléfono</h4>
+            <p>+54 11 4567-8900</p>
+            <p class="small">Lun-Vie: 9:00-18:00</p>
+            <button class="help-contact-btn" onclick="window.location.href='tel:+541145678900'">Llamar</button>
+          </div>
+          
+          <div class="contact-card">
+            <i data-lucide="help-circle"></i>
+            <h4>Ticket de Soporte</h4>
+            <p>Para consultas complejas</p>
+            <p class="small">Seguimiento garantizado</p>
+            <button class="help-contact-btn" onclick="alert('Sistema de tickets - Próximamente')">Abrir Ticket</button>
+          </div>
+        </div>
+
+        <div class="info-box">
+          <p><strong>Horarios de Atención:</strong></p>
+          <p>Lunes a Viernes: 9:00 AM - 6:00 PM (ART)</p>
+          <p>Sábados: 10:00 AM - 2:00 PM (ART)</p>
+          <p>Domingos y Feriados: Chat en vivo disponible para emergencias</p>
+        </div>
+      </section>
+
+      <!-- Footer del Documento -->
+      <footer class="terms-footer">
+        <div class="footer-info">
+          <p><strong>CEMI - Centro de Enseñanza de Múltiples Idiomas</strong></p>
+          <p>¿No encontraste lo que buscabas? Contáctanos directamente y con gusto te ayudaremos.</p>
+          <p class="mt-20">Documentos relacionados:</p>
+          <div class="related-links">
+            <a href="terminos.html">Términos de Servicio</a>
+            <a href="privacidad.html">Política de Privacidad</a>
+            <a href="index.html#faq">Preguntas Frecuentes</a>
+            <a href="index.html#soporte">Soporte Técnico</a>
+          </div>
+        </div>
+      </footer>
+
+    </main>
+  </div>
+
+  <!-- Footer Global -->
+  <footer class="footer-global">
+    <div class="footer-bottom">
+      <p>&copy; 2025 CEMI - Sistema de Gestión Académica. Todos los derechos reservados.</p>
+      <div class="footer-links">
+        <a href="terminos.html">Términos de Servicio</a>
+        <a href="privacidad.html">Privacidad</a>
+        <a href="ayuda.html">Ayuda</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Inicializar Lucide icons
+    lucide.createIcons();
+
+    // Navegación lateral activa basada en scroll
+    const sections = document.querySelectorAll('.term-section');
+    const navLinks = document.querySelectorAll('.terms-nav .nav-link');
+
+    window.addEventListener('scroll', () => {
+      let current = '';
+      
+      sections.forEach(section => {
+        const sectionTop = section.offsetTop;
+        const sectionHeight = section.clientHeight;
+        if (window.scrollY >= (sectionTop - 100)) {
+          current = section.getAttribute('id');
+        }
+      });
+
+      navLinks.forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href').slice(1) === current) {
+          link.classList.add('active');
+        }
+      });
+    });
+
+    // Smooth scroll para los enlaces internos
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+        }
+      });
+    });
+
+    // Búsqueda simple
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+      searchInput.addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase();
+        // Aquí podrías implementar la lógica de búsqueda real
+        console.log('Buscando:', searchTerm);
+      });
+    }
+
+    // Inicializar íconos de Lucide
+    lucide.createIcons();
+  </script>
+  
+  <!-- Widget de Chat -->
+  <script src="assets/js/chat-widget.js"></script>
+
+</body>
+</html>

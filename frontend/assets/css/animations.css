@@ -1,0 +1,264 @@
+/* ===== ANIMACIONES Y EFECTOS PROFESIONALES ===== */
+
+/* Smooth scroll mejorado */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Efecto hover en las cards con transform 3D */
+.role-card,
+.module-card,
+.team-card {
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transform-style: preserve-3d;
+}
+
+.role-card:hover,
+.module-card:hover,
+.team-card:hover {
+  transform: translateY(-12px) scale(1.03);
+  box-shadow: 0 20px 40px rgba(30, 60, 114, 0.3);
+}
+
+/* Efecto de brillo en iconos */
+.role-card i,
+.module-card i,
+.team-card i {
+  transition: all 0.3s ease;
+}
+
+.role-card:hover i,
+.module-card:hover i,
+.team-card:hover i {
+  transform: scale(1.2) rotate(5deg);
+  filter: drop-shadow(0 0 8px rgba(30, 60, 114, 0.5));
+}
+
+/* Botón con efecto ripple */
+.cta-btn,
+.login-btn {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.cta-btn::before,
+.login-btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.cta-btn:hover::before,
+.login-btn:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.cta-btn:hover,
+.login-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 24px rgba(30, 60, 114, 0.4);
+}
+
+/* Efecto parallax suave en hero */
+.hero-image img {
+  transition: transform 0.3s ease;
+}
+
+.hero:hover .hero-image img {
+  transform: scale(1.05);
+}
+
+/* Animación de entrada para el navbar */
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.navbar {
+  animation: slideDown 0.5s ease-out;
+}
+
+/* Efecto de texto gradiente animado */
+@keyframes gradientText {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.hero-text h2 {
+  background: linear-gradient(135deg, #1e3c72, #2a5298, #7e9ac8);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradientText 3s ease infinite;
+}
+
+/* Loading skeleton para imágenes */
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* Efecto glitch sutil en hover del logo */
+@keyframes glitch {
+  0% {
+    transform: translate(0);
+  }
+  20% {
+    transform: translate(-2px, 2px);
+  }
+  40% {
+    transform: translate(-2px, -2px);
+  }
+  60% {
+    transform: translate(2px, 2px);
+  }
+  80% {
+    transform: translate(2px, -2px);
+  }
+  100% {
+    transform: translate(0);
+  }
+}
+
+.logo:active {
+  animation: glitch 0.3s;
+}
+
+/* Scroll indicator */
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-10px);
+  }
+  60% {
+    transform: translateY(-5px);
+  }
+}
+
+.scroll-indicator {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  animation: bounce 2s infinite;
+  cursor: pointer;
+  color: var(--color-primary);
+  font-size: 2em;
+}
+
+/* Efecto de partículas flotantes (opcional) */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-20px) rotate(180deg);
+  }
+}
+
+.floating-particle {
+  position: absolute;
+  opacity: 0.1;
+  animation: float 6s ease-in-out infinite;
+}
+
+/* Transición suave para AOS */
+[data-aos] {
+  transition-property: transform, opacity;
+}
+
+/* Efecto de typing para títulos (opcional) */
+@keyframes typing {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+@keyframes blink {
+  50% {
+    border-color: transparent;
+  }
+}
+
+.typing-effect {
+  overflow: hidden;
+  border-right: 3px solid var(--color-primary);
+  white-space: nowrap;
+  animation: typing 3.5s steps(40, end), blink 0.75s step-end infinite;
+}
+
+/* Mejora de accesibilidad - reduce animaciones si está configurado */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Efecto counter animado para números */
+@keyframes countUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.counter {
+  animation: countUp 0.6s ease-out;
+}
+
+/* Background pattern sutil */
+.pattern-bg {
+  background-image: 
+    linear-gradient(30deg, rgba(30, 60, 114, 0.05) 12%, transparent 12.5%, transparent 87%, rgba(30, 60, 114, 0.05) 87.5%, rgba(30, 60, 114, 0.05)),
+    linear-gradient(150deg, rgba(30, 60, 114, 0.05) 12%, transparent 12.5%, transparent 87%, rgba(30, 60, 114, 0.05) 87.5%, rgba(30, 60, 114, 0.05)),
+    linear-gradient(30deg, rgba(30, 60, 114, 0.05) 12%, transparent 12.5%, transparent 87%, rgba(30, 60, 114, 0.05) 87.5%, rgba(30, 60, 114, 0.05)),
+    linear-gradient(150deg, rgba(30, 60, 114, 0.05) 12%, transparent 12.5%, transparent 87%, rgba(30, 60, 114, 0.05) 87.5%, rgba(30, 60, 114, 0.05));
+  background-size: 80px 140px;
+  background-position: 0 0, 0 0, 40px 70px, 40px 70px;
+}

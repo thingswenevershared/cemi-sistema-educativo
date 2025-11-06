@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CEMI Classroom - Plataforma Educativa</title>
+  <link rel="stylesheet" href="assets/css/classroom.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+  <!-- Header -->
+  <header class="classroom-header">
+    <div class="header-content">
+      <div class="header-left">
+        <button id="menuToggle" class="menu-toggle">
+          <i data-lucide="menu"></i>
+        </button>
+        <div class="logo-section">
+          <i data-lucide="graduation-cap" class="logo-icon"></i>
+          <h1>CEMI Classroom</h1>
+        </div>
+        
+        <!-- Selector de Curso -->
+        <div id="courseSelectorContainer" style="margin-left: 24px; display: none; position: relative;">
+          <button id="btnCourseSelector" style="display: flex; align-items: center; gap: 10px; padding: 8px 16px; background: rgba(102, 126, 234, 0.1); border: 2px solid rgba(102, 126, 234, 0.3); border-radius: 10px; color: #667eea; cursor: pointer; transition: all 0.3s; font-size: 14px; font-weight: 600; min-width: 200px; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <i data-lucide="book-open" style="width: 18px; height: 18px;"></i>
+              <span id="currentCourseName">Todos los cursos</span>
+            </div>
+            <i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i>
+          </button>
+          <div id="courseDropdown" style="display: none; position: absolute; top: calc(100% + 8px); left: 0; background: white; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.15); min-width: 280px; max-height: 400px; overflow-y: auto; z-index: 1000;">
+            <!-- Las opciones se cargarán dinámicamente -->
+          </div>
+        </div>
+      </div>
+      
+      <div class="header-right">
+        <button class="header-icon-btn" id="btnNotifications">
+          <i data-lucide="bell"></i>
+          <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
+        </button>
+        
+        <!-- Dropdown de Notificaciones -->
+        <div class="notifications-dropdown" id="notificationsDropdown">
+          <div class="notifications-header">
+            <h3>Notificaciones</h3>
+            <button class="mark-all-read-btn" id="btnMarkAllRead">
+              <i data-lucide="check-double"></i>
+              Marcar todas como leídas
+            </button>
+          </div>
+          <div class="notifications-list" id="notificationsList">
+            <div class="empty-notifications">
+              <i data-lucide="inbox"></i>
+              <p>No tienes notificaciones</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="user-menu">
+          <button class="user-avatar" id="userMenuBtn">
+            <span id="userInitials">ED</span>
+          </button>
+          <div class="user-dropdown" id="userDropdown">
+            <div class="user-info">
+              <div class="user-name" id="userName">Eduardo</div>
+              <div class="user-role" id="userRole">Profesor</div>
+            </div>
+            <div class="dropdown-divider"></div>
+            <a href="dashboard_profesor.html" class="dropdown-item">
+              <i data-lucide="layout-dashboard"></i>
+              Mi Dashboard
+            </a>
+            <a href="perfil-classroom.html" class="dropdown-item">
+              <i data-lucide="user"></i>
+              Mi Perfil
+            </a>
+            <a href="#" class="dropdown-item" id="openConfiguracion">
+              <i data-lucide="settings"></i>
+              Configuración
+            </a>
+            <div class="dropdown-divider"></div>
+            <a href="#" class="dropdown-item" id="logoutClassroom">
+              <i data-lucide="log-out"></i>
+              Cerrar Sesión
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <div class="classroom-container">
+    <!-- Sidebar -->
+    <aside class="classroom-sidebar" id="sidebar">
+      <nav class="sidebar-nav">
+        <a href="#" class="nav-item active" data-view="home">
+          <i data-lucide="home"></i>
+          <span>Inicio</span>
+        </a>
+        <a href="#" class="nav-item" data-view="classes">
+          <i data-lucide="book-open"></i>
+          <span>Mis Clases</span>
+        </a>
+        <a href="#" class="nav-item" data-view="tasks">
+          <i data-lucide="clipboard-list"></i>
+          <span>Tareas</span>
+        </a>
+        <a href="#" class="nav-item" data-view="calendar">
+          <i data-lucide="calendar"></i>
+          <span>Calendario</span>
+        </a>
+        
+        <div class="nav-divider"></div>
+        
+        <!-- Solo para profesores -->
+        <div id="profesorMenu" style="display: none;">
+          <a href="#" class="nav-item" data-view="create-task">
+            <i data-lucide="plus-circle"></i>
+            <span>Crear Tarea</span>
+          </a>
+          <a href="#" class="nav-item" data-view="announcements">
+            <i data-lucide="megaphone"></i>
+            <span>Anuncios</span>
+          </a>
+        </div>
+        
+        <!-- Solo para admin -->
+        <div id="adminMenu" style="display: none;">
+          <a href="#" class="nav-item" data-view="analytics">
+            <i data-lucide="bar-chart"></i>
+            <span>Estadísticas</span>
+          </a>
+          <a href="#" class="nav-item" data-view="all-classes">
+            <i data-lucide="layers"></i>
+            <span>Todas las Clases</span>
+          </a>
+        </div>
+        
+        <div class="nav-divider"></div>
+        
+        <a href="#" class="nav-item nav-item-dashboard" id="btnBackToDashboard">
+          <i data-lucide="layout-dashboard"></i>
+          <span>Volver al Dashboard</span>
+        </a>
+      </nav>
+      
+      <div class="sidebar-footer">
+        <div class="storage-info">
+          <div class="storage-header">
+            <i data-lucide="hard-drive"></i>
+            <span>Almacenamiento</span>
+          </div>
+          <div class="storage-bar">
+            <div class="storage-fill" style="width: 45%"></div>
+          </div>
+          <div class="storage-text">4.5 GB de 10 GB</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="classroom-main" id="mainContent">
+      <!-- Vista Home por defecto -->
+      <div class="content-view" id="viewHome">
+        <div class="welcome-section">
+          <h2>Bienvenido a CEMI Classroom</h2>
+          <p>Tu espacio de aprendizaje colaborativo</p>
+        </div>
+
+        <!-- Stream / Feed de actividades -->
+        <div class="activity-stream">
+          <div class="stream-header">
+            <h3>Actividad Reciente</h3>
+            <select class="filter-select" id="filterCurso">
+              <option value="">Todas las clases</option>
+            </select>
+          </div>
+
+          <!-- Contenedor dinámico de anuncios -->
+          <div id="activityContainer">
+            <p style="text-align: center; color: #666; padding: 40px;">Cargando actividades...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vista Mis Clases -->
+      <div class="content-view" id="viewClasses" style="display: none;">
+        <div class="view-header">
+          <h2 style="display: flex; align-items: center; gap: 12px;">
+            <i data-lucide="book-open" style="color: #667eea;"></i>
+            Mis Clases
+          </h2>
+          <button class="btn-primary" id="btnCreateClass" style="display: none;">
+            <i data-lucide="plus"></i>
+            Crear Clase
+          </button>
+        </div>
+
+        <div id="classesGrid" class="classes-grid">
+          <!-- Las cards se generarán dinámicamente -->
+          <div style="grid-column: 1/-1; text-align: center; padding: 60px 20px; color: #999;">
+            <i data-lucide="loader" style="width: 48px; height: 48px; margin-bottom: 16px; animation: spin 1s linear infinite;"></i>
+            <p>Cargando clases...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vista Tareas -->
+      <div class="content-view" id="viewTasks" style="display: none;">
+        <div class="view-header">
+          <h2>Tareas</h2>
+          <div class="view-actions" style="display: flex; gap: 12px; align-items: center;">
+            <div class="view-filters">
+              <button class="filter-btn active" data-filter="all">Todas</button>
+              <button class="filter-btn" data-filter="pending">Pendientes</button>
+              <button class="filter-btn" data-filter="completed">Completadas</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="tasks-list" id="tasksContainer">
+          <p style="text-align: center; color: #666; padding: 40px;">Cargando tareas...</p>
+        </div>
+      </div>
+
+      <!-- Vista Calendario -->
+      <div class="content-view" id="viewCalendar" style="display: none;">
+        <!-- Header del Calendario -->
+        <div style="background: white; padding: 24px; border-radius: 12px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="margin: 0; color: #2c3e50; display: flex; align-items: center; gap: 12px;">
+              <i data-lucide="calendar" style="color: #667eea; width: 28px; height: 28px;"></i>
+              Calendario Académico
+            </h2>
+            <div style="display: flex; gap: 12px; align-items: center;">
+              <!-- Selector de vista -->
+              <div class="calendar-view-selector" style="display: flex; gap: 4px; background: #f0f4ff; padding: 4px; border-radius: 8px;">
+                <button class="view-btn" data-calendar-view="mes" style="padding: 8px 16px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s;">
+                  Mes
+                </button>
+                <button class="view-btn" data-calendar-view="semana" style="padding: 8px 16px; background: transparent; color: #667eea; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s;">
+                  Semana
+                </button>
+                <button class="view-btn" data-calendar-view="dia" style="padding: 8px 16px; background: transparent; color: #667eea; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s;">
+                  Día
+                </button>
+              </div>
+              <button id="btnCrearEvento" style="display: none;" class="btn-primary">
+                <i data-lucide="plus-circle"></i>
+                Nuevo Evento
+              </button>
+            </div>
+          </div>
+          
+          <!-- Navegación del mes -->
+          <div style="display: flex; align-items: center; justify-content: center; gap: 20px;">
+            <button id="btnMesAnterior" style="background: #f0f4ff; color: #667eea; border: none; padding: 10px 14px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center;">
+              <i data-lucide="chevron-left" style="width: 20px; height: 20px;"></i>
+            </button>
+            <h3 id="mesActual" style="margin: 0; color: #2c3e50; min-width: 200px; text-align: center; font-size: 20px; font-weight: 600;">
+              Noviembre 2025
+            </h3>
+            <button id="btnMesSiguiente" style="background: #f0f4ff; color: #667eea; border: none; padding: 10px 14px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center;">
+              <i data-lucide="chevron-right" style="width: 20px; height: 20px;"></i>
+            </button>
+            <button id="btnHoy" style="padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s;">
+              Hoy
+            </button>
+          </div>
+        </div>
+
+        <!-- Grid del Calendario -->
+        <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+          <!-- Días de la semana -->
+          <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 4px;">
+            <div style="text-align: center; font-weight: 700; color: #667eea; padding: 16px 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Dom</div>
+            <div style="text-align: center; font-weight: 700; color: #667eea; padding: 16px 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Lun</div>
+            <div style="text-align: center; font-weight: 700; color: #667eea; padding: 16px 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Mar</div>
+            <div style="text-align: center; font-weight: 700; color: #667eea; padding: 16px 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Mié</div>
+            <div style="text-align: center; font-weight: 700; color: #667eea; padding: 16px 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Jue</div>
+            <div style="text-align: center; font-weight: 700; color: #667eea; padding: 16px 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Vie</div>
+            <div style="text-align: center; font-weight: 700; color: #667eea; padding: 16px 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Sáb</div>
+          </div>
+          
+          <!-- Cuadrícula de días -->
+          <div id="calendarGrid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; background: #f8f9fa; padding: 4px; border-radius: 8px;">
+            <!-- Los días se generarán con JavaScript -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Vista Anuncios (solo profesores) -->
+      <div class="content-view" id="viewAnnouncements" style="display: none;">
+        <div class="view-header">
+          <h2>Mis Anuncios</h2>
+          <button class="btn-primary profesor-only" onclick="mostrarFormularioAnuncio()" style="display: none;">
+            <i data-lucide="plus"></i>
+            Nuevo Anuncio
+          </button>
+        </div>
+
+        <div class="activity-stream" id="anunciosProfesorContainer">
+          <p style="text-align: center; color: #666; padding: 40px;">Cargando anuncios...</p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Panel Lateral de Detalles del Curso -->
+  <div id="courseSidePanel" class="course-side-panel">
+    <div class="course-panel-overlay" onclick="cerrarPanelCurso()"></div>
+    <div class="course-panel-content">
+      <div class="course-panel-header">
+        <button class="course-panel-close" onclick="cerrarPanelCurso()">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div id="coursePanelBody" class="course-panel-body">
+        <!-- El contenido se cargará dinámicamente -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Loader -->
+  <div class="loader hidden" id="loader">
+    <div class="spinner"></div>
+  </div>
+
+  <!-- Modal de Configuración -->
+  <div class="modal-overlay-config" id="modalConfiguracion">
+    <div class="modal-config-container">
+      <div class="modal-config-header">
+        <div class="modal-config-title">
+          <i data-lucide="settings"></i>
+          <h2>Configuración del Classroom</h2>
+        </div>
+        <button class="btn-close-config" onclick="cerrarConfiguracion()">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      
+      <div class="modal-config-body">
+        <!-- Tabs laterales -->
+        <div class="config-tabs-sidebar">
+          <button class="config-tab-btn active" data-tab="general" onclick="cambiarTab('general')">
+            <i data-lucide="sliders"></i>
+            <span>General</span>
+          </button>
+          <button class="config-tab-btn" data-tab="apariencia" onclick="cambiarTab('apariencia')">
+            <i data-lucide="palette"></i>
+            <span>Apariencia</span>
+          </button>
+          <button class="config-tab-btn" data-tab="seguridad" onclick="cambiarTab('seguridad')">
+            <i data-lucide="shield"></i>
+            <span>Seguridad</span>
+          </button>
+        </div>
+
+        <!-- Contenido de tabs -->
+        <div class="config-content-area">
+          <!-- TAB GENERAL -->
+          <div class="config-tab-content active" id="tab-general">
+            <h3 class="config-section-title">
+              <i data-lucide="calendar"></i>
+              Vista de Calendario Predeterminada
+            </h3>
+            <div class="config-option">
+              <select id="config-vista-calendario" class="config-select">
+                <option value="mes">Vista de Mes</option>
+                <option value="semana">Vista de Semana</option>
+                <option value="dia">Vista de Día</option>
+              </select>
+              <p class="config-hint">Elige cómo quieres ver el calendario por defecto</p>
+            </div>
+
+            <div class="config-divider"></div>
+
+            <!-- Sección de exportar - Solo para alumnos -->
+            <div id="seccionExportar" style="display: none;">
+              <h3 class="config-section-title">
+                <i data-lucide="download"></i>
+                Exportar Mis Datos Académicos
+              </h3>
+              <div class="config-option">
+                <div class="config-buttons-grid">
+                  <button class="btn-config-action" onclick="exportarTareasPDF()">
+                    <i data-lucide="file-text"></i>
+                    <span>Exportar Tareas (PDF)</span>
+                  </button>
+                  <button class="btn-config-action" onclick="exportarCalificacionesPDF()">
+                    <i data-lucide="award"></i>
+                    <span>Exportar Calificaciones (PDF)</span>
+                  </button>
+                </div>
+                <p class="config-hint">Descarga tus datos académicos en formato PDF</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB APARIENCIA -->
+          <div class="config-tab-content" id="tab-apariencia">
+            <h3 class="config-section-title">
+              <i data-lucide="sun"></i>
+              Tema de Interfaz
+            </h3>
+            <div class="config-option">
+              <div class="theme-selector">
+                <button class="theme-card active" data-theme="light" onclick="cambiarTema('light')">
+                  <i data-lucide="sun"></i>
+                  <span>Claro</span>
+                </button>
+                <button class="theme-card" data-theme="dark" onclick="cambiarTema('dark')">
+                  <i data-lucide="moon"></i>
+                  <span>Oscuro</span>
+                </button>
+                <button class="theme-card" data-theme="auto" onclick="cambiarTema('auto')">
+                  <i data-lucide="monitor"></i>
+                  <span>Automático</span>
+                </button>
+              </div>
+              <p class="config-hint">Cambia entre modo claro y oscuro según tu preferencia</p>
+            </div>
+
+            <div class="config-divider"></div>
+
+            <h3 class="config-section-title">
+              <i data-lucide="type"></i>
+              Tamaño de Fuente
+            </h3>
+            <div class="config-option">
+              <div class="font-size-selector">
+                <button class="font-size-btn" data-size="pequeño">
+                  <span style="font-size: 14px;">A</span>
+                  <small>Pequeño</small>
+                </button>
+                <button class="font-size-btn active" data-size="normal">
+                  <span style="font-size: 16px;">A</span>
+                  <small>Normal</small>
+                </button>
+                <button class="font-size-btn" data-size="grande">
+                  <span style="font-size: 20px;">A</span>
+                  <small>Grande</small>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB SEGURIDAD -->
+          <div class="config-tab-content" id="tab-seguridad">
+            <h3 class="config-section-title">
+              <i data-lucide="lock"></i>
+              Cambiar Contraseña del Classroom
+            </h3>
+            <div class="config-option">
+              <form class="config-form" onsubmit="cambiarPasswordClassroom(event)">
+                <div class="form-group">
+                  <label>Contraseña Actual</label>
+                  <div class="password-input-wrapper">
+                    <input type="password" id="password-actual" class="config-input" placeholder="Ingresa tu contraseña actual">
+                    <button type="button" class="toggle-password-btn" onclick="togglePasswordVisibility('password-actual')">
+                      <i data-lucide="eye"></i>
+                    </button>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Nueva Contraseña</label>
+                  <div class="password-input-wrapper">
+                    <input type="password" id="password-nueva" class="config-input" placeholder="Mínimo 6 caracteres">
+                    <button type="button" class="toggle-password-btn" onclick="togglePasswordVisibility('password-nueva')">
+                      <i data-lucide="eye"></i>
+                    </button>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Confirmar Contraseña</label>
+                  <div class="password-input-wrapper">
+                    <input type="password" id="password-confirmar" class="config-input" placeholder="Repite la nueva contraseña">
+                    <button type="button" class="toggle-password-btn" onclick="togglePasswordVisibility('password-confirmar')">
+                      <i data-lucide="eye"></i>
+                    </button>
+                  </div>
+                </div>
+                <button type="submit" class="btn-config-primary">
+                  <i data-lucide="check"></i>
+                  Actualizar Contraseña
+                </button>
+              </form>
+              <p class="config-hint warning">Esta contraseña es solo para el Classroom, no afecta tu cuenta principal</p>
+            </div>
+
+            <div class="config-divider"></div>
+
+            <h3 class="config-section-title">
+              <i data-lucide="eye-off"></i>
+              Privacidad
+            </h3>
+
+            <div class="config-option">
+              <div class="config-toggle-item">
+                <div class="toggle-info">
+                  <div class="toggle-icon"><i data-lucide="circle"></i></div>
+                  <div>
+                    <h4>Estado en Línea</h4>
+                    <p>Mostrar cuando estás conectado a otros usuarios</p>
+                  </div>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="config-estado-online" checked onchange="toggleEstadoOnline()">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="config-option">
+              <div class="config-toggle-item">
+                <div class="toggle-info">
+                  <div class="toggle-icon"><i data-lucide="user-check"></i></div>
+                  <div>
+                    <h4>Perfil Público</h4>
+                    <p>Permitir que otros vean tu información de perfil</p>
+                  </div>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="config-perfil-publico" checked onchange="togglePerfilPublico()">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-config-footer">
+        <button class="btn-config-secondary" onclick="cerrarConfiguracion()">
+          <i data-lucide="x"></i>
+          Cerrar
+        </button>
+        <button class="btn-config-primary" onclick="guardarTodasConfiguraciones()">
+          <i data-lucide="save"></i>
+          Guardar Cambios
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Config JS - MUST be first -->
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/classroom.js"></script>
+  <script>
+    lucide.createIcons();
+  </script>
+</body>
+</html>

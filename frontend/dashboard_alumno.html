@@ -1,0 +1,1732 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>Panel del Alumno - CEMI</title>
+  <link rel="stylesheet" href="assets/css/dashboard.css" />
+  <link rel="stylesheet" href="assets/css/dashboard_alumno_extras.css" />
+  <link rel="stylesheet" href="assets/css/credit-card.css" />
+  <link rel="stylesheet" href="assets/css/user-chat-manager.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  
+  <!-- Config JS - MUST be first script -->
+  <script src="assets/js/config.js"></script>
+  
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="dashboard-body">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <img src="images/logo.png" alt="Logo CEMI">
+      <h2>CEMI</h2>
+    </div>
+    <nav class="sidebar-menu">
+      <button id="btnCursos"><i data-lucide="book-open"></i> Mis Cursos</button>
+      <button id="btnNotas"><i data-lucide="clipboard-list"></i> Mis Calificaciones</button>
+      <button id="btnPagos"><i data-lucide="credit-card"></i> Mis Pagos</button>
+      <button id="btnPerfil"><i data-lucide="user"></i> Mi Perfil</button>
+      <button id="btnClassroom" onclick="window.location.href='classroom.html'"><i data-lucide="school"></i> Classroom</button>
+      <button id="btnChatSoporte" style="position: relative;">
+        <i data-lucide="message-circle"></i> Chat Soporte
+        <span id="chatNotificationBadge" class="notification-badge" style="display: none;"></span>
+      </button>
+      <button id="logoutBtn" class="logout"><i data-lucide="log-out"></i> Cerrar sesión</button>
+    </nav>
+  </aside>
+
+  <!-- Main -->
+  <main class="dashboard-main">
+    <header class="dashboard-header">
+      <h1>Panel del Alumno</h1>
+      <div class="user-info">
+        <i data-lucide="user"></i> <span id="welcomeMessage">Alumno</span>
+      </div>
+    </header>
+
+    <!-- Loader -->
+    <div id="loader" class="loader hidden"></div>
+
+    <!-- Contenido dinámico SPA -->
+    <section id="mainContent" class="dashboard-content spa-animate active"></section>
+  </main>
+
+  <script>
+  lucide.createIcons();
+
+  const API_URL = "http://localhost:3000/api";
+  const loader = document.getElementById("loader");
+  const mainContent = document.getElementById("mainContent");
+  const welcomeMessage = document.getElementById("welcomeMessage");
+  const id_alumno = localStorage.getItem("id_alumno");
+  
+  if (!id_alumno) {
+    console.error("No se encontró el ID del alumno");
+    window.location.href = "login.html";
+  }
+
+  // Cargar script del chat y crear instancia
+  const chatScript = document.createElement('script');
+  chatScript.src = `assets/js/user-chat-manager.js?v=${Date.now()}`; // Cache busting
+  chatScript.onload = () => {
+    console.log('✅ user-chat-manager.js cargado correctamente');
+    if (typeof UserChatManager !== 'undefined') {
+      window.userChatManager = new UserChatManager('alumno');
+      // Inicializar WebSocket inmediatamente para recibir notificaciones
+      window.userChatManager.init();
+    } else {
+      console.error('❌ UserChatManager no está definido');
+    }
+  };
+  chatScript.onerror = () => {
+    console.error('❌ Error al cargar user-chat-manager.js');
+  };
+  document.head.appendChild(chatScript);
+
+  // Mostrar saludo dinámico con nombre guardado
+  const nombreAlumno = localStorage.getItem("nombre") || "Alumno";
+  welcomeMessage.textContent = `Bienvenido/a, ${nombreAlumno} 👋`;
+
+  const sections = {
+    btnCursos: async () => {
+      loader.classList.remove("hidden");
+      mainContent.classList.remove("active");
+      
+      console.log("ID Alumno:", id_alumno); // Debug
+      
+      try {
+        const response = await fetch(`${API_URL}/alumnos/${id_alumno}`);
+        
+        console.log("Response status:", response.status); // Debug
+        
+        if (!response.ok) {
+          throw new Error(`Error al cargar los datos del alumno: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        console.log("Datos recibidos:", data); // Debug
+
+        const cursos = data.cursos || [];
+        const totalCursos = cursos.length;
+        const promedioGeneral = parseFloat(data.promedio_general) || 0;
+
+        mainContent.innerHTML = `
+          <div class="alumno-cursos-container">
+            <div class="section-header-alumno">
+              <div class="header-title">
+                <i data-lucide="book-open"></i>
+                <h2>Mis Cursos</h2>
+              </div>
+              <p class="section-subtitle">Gestiona tus cursos inscritos y visualiza tu progreso</p>
+            </div>
+
+            <!-- Estadísticas generales MEJORADAS -->
+            <div class="alumno-stats-grid-enhanced">
+              <div class="alumno-stat-card-enhanced primary">
+                <div class="stat-icon-wrapper">
+                  <i data-lucide="book-open"></i>
+                </div>
+                <div class="stat-content-wrapper">
+                  <div class="stat-number">${totalCursos}</div>
+                  <div class="stat-label">Cursos Inscritos</div>
+                  <div class="stat-sublabel">Este período</div>
+                </div>
+                <div class="stat-decoration"></div>
+              </div>
+
+              <div class="alumno-stat-card-enhanced success">
+                <div class="stat-icon-wrapper">
+                  <i data-lucide="trending-up"></i>
+                </div>
+                <div class="stat-content-wrapper">
+                  <div class="stat-number">${promedioGeneral > 0 ? promedioGeneral.toFixed(1) : 'S/N'}</div>
+                  <div class="stat-label">Promedio General</div>
+                  <div class="stat-sublabel">Todos los cursos</div>
+                </div>
+                <div class="stat-decoration"></div>
+              </div>
+
+              <div class="alumno-stat-card-enhanced info">
+                <div class="stat-icon-wrapper">
+                  <i data-lucide="award"></i>
+                </div>
+                <div class="stat-content-wrapper">
+                  <div class="stat-number">${cursos.filter(c => c.promedio && c.promedio >= 7).length}/${totalCursos}</div>
+                  <div class="stat-label">Aprobados</div>
+                  <div class="stat-sublabel">Cursos al día</div>
+                </div>
+                <div class="stat-decoration"></div>
+              </div>
+            </div>
+
+            <!-- Grid de cursos -->
+            <div class="cursos-grid">
+              ${cursos.length > 0 ? cursos.map((curso, index) => {
+                const promedio = parseFloat(curso.promedio) || 0;
+                const progreso = promedio > 0 ? Math.min((promedio / 10) * 100, 100) : 0;
+                
+                return `
+                <div class="curso-card" onclick="abrirDetalleCursoAlumno(${curso.id_curso}, '${curso.nombre_curso}')">
+                  <div class="curso-card-header">
+                    <div class="curso-icon">
+                      <i data-lucide="book-open"></i>
+                    </div>
+                    <div class="curso-card-title">
+                      <h3>${curso.nombre_curso}</h3>
+                      <div class="idioma">${curso.nombre_idioma || 'Curso'}</div>
+                      <span class="curso-badge">Nivel ${curso.id_nivel || 'N/A'}</span>
+                    </div>
+                  </div>
+                  
+                  <div class="curso-card-info">
+                    <div class="info-row">
+                      <i data-lucide="clock"></i>
+                      <span>${curso.horario || 'Por confirmar'}</span>
+                    </div>
+                    ${promedio > 0 ? `
+                    <div class="info-row">
+                      <i data-lucide="trending-up"></i>
+                      <span>Promedio: <strong style="color: ${promedio >= 7 ? '#4caf50' : promedio >= 5 ? '#ff9800' : '#f44336'}">${promedio.toFixed(1)}</strong></span>
+                    </div>
+                    ` : `
+                    <div class="info-row">
+                      <i data-lucide="alert-circle"></i>
+                      <span style="color: #718096;">Sin calificaciones</span>
+                    </div>
+                    `}
+                  </div>
+                  
+                  <div class="curso-card-footer">
+                    ${promedio > 0 ? `
+                    <div class="cupos-info">
+                      <div class="cupos-bar">
+                        <div class="cupos-bar-fill ${promedio >= 7 ? '' : promedio >= 5 ? 'warning' : 'danger'}" 
+                             style="width: ${progreso}%"></div>
+                      </div>
+                      <span class="cupos-text">Progreso: ${progreso.toFixed(0)}%</span>
+                    </div>
+                    ` : `
+                    <div class="cupos-info">
+                      <span class="cupos-text" style="color: #718096;">Sin progreso registrado</span>
+                    </div>
+                    `}
+                    <div class="card-actions">
+                      <button class="icon-btn" onclick="event.stopPropagation(); abrirDetalleCursoAlumno(${curso.id_curso}, '${curso.nombre_curso}')" title="Ver detalles">
+                        <i data-lucide="eye"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              `}).join('') : `
+                <div class="estado-vacio-profesor">
+                  <div class="estado-vacio-icon">
+                    <i data-lucide="inbox"></i>
+                  </div>
+                  <h3>No hay cursos inscritos</h3>
+                  <p>Aún no estás inscrito en ningún curso. Contacta con administración para más información.</p>
+                </div>
+              `}
+            </div>
+          </div>
+        `;
+
+        lucide.createIcons();
+        loader.classList.add("hidden");
+        setTimeout(() => mainContent.classList.add("active"), 100);
+
+      } catch (error) {
+        console.error("Error al cargar cursos:", error);
+        mainContent.innerHTML = `
+          <div class="error-container">
+            <i data-lucide="alert-circle"></i>
+            <h3>Error al cargar los cursos</h3>
+            <p>Por favor, intenta nuevamente más tarde.</p>
+          </div>
+        `;
+        lucide.createIcons();
+        loader.classList.add("hidden");
+        setTimeout(() => mainContent.classList.add("active"), 100);
+      }
+    },
+
+    btnNotas: async () => {
+      loader.classList.remove("hidden");
+      mainContent.classList.remove("active");
+
+      try {
+        const response = await fetch(`${API_URL}/alumnos/${id_alumno}`);
+        
+        if (!response.ok) {
+          throw new Error(`Error al cargar calificaciones: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        const cursos = data.cursos || [];
+
+        mainContent.innerHTML = `
+          <div class="alumno-calificaciones-container">
+            <div class="section-header-alumno">
+              <div class="header-title">
+                <i data-lucide="clipboard-list"></i>
+                <h2>Mis Calificaciones</h2>
+              </div>
+            </div>
+
+            <!-- Resumen de rendimiento -->
+            <div class="calificaciones-resumen">
+              <div class="resumen-card">
+                <div class="resumen-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                  <i data-lucide="book-open"></i>
+                </div>
+                <div class="resumen-info">
+                  <h3>${cursos.length}</h3>
+                  <p>Cursos Activos</p>
+                </div>
+              </div>
+
+              <div class="resumen-card">
+                <div class="resumen-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                  <i data-lucide="bar-chart-3"></i>
+                </div>
+                <div class="resumen-info">
+                  <h3>${parseFloat(data.promedio_general) > 0 ? parseFloat(data.promedio_general).toFixed(1) : 'S/N'}</h3>
+                  <p>Promedio General</p>
+                </div>
+              </div>
+
+              <div class="resumen-card">
+                <div class="resumen-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                  <i data-lucide="trending-up"></i>
+                </div>
+                <div class="resumen-info">
+                  <h3>${cursos.filter(c => c.promedio && c.promedio >= 7).length}</h3>
+                  <p>Cursos Aprobados</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tabla de calificaciones por curso -->
+            <div class="calificaciones-tabla-container">
+              <h3><i data-lucide="list"></i> Detalle de Calificaciones</h3>
+              
+              ${cursos.length > 0 ? `
+                <div class="tabla-calificaciones-wrapper">
+                  <table class="tabla-calificaciones-alumno">
+                    <thead>
+                      <tr>
+                        <th>Curso</th>
+                        <th>Idioma</th>
+                        <th>Parcial 1</th>
+                        <th>Parcial 2</th>
+                        <th>Final</th>
+                        <th>Promedio</th>
+                        <th>Estado</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${cursos.map(curso => {
+                        const promedio = curso.promedio || 0;
+                        let estadoClase = 'estado-pendiente';
+                        let estadoTexto = 'Pendiente';
+                        
+                        if (promedio >= 7) {
+                          estadoClase = 'estado-aprobado';
+                          estadoTexto = 'Aprobado';
+                        } else if (promedio >= 4) {
+                          estadoClase = 'estado-regular';
+                          estadoTexto = 'Regular';
+                        } else if (promedio > 0) {
+                          estadoClase = 'estado-reprobado';
+                          estadoTexto = 'Reprobado';
+                        }
+
+                        return `
+                          <tr onclick="verDetalleCalificacion(${curso.id_curso}, '${curso.nombre_curso}')">
+                            <td class="curso-nombre">
+                              <i data-lucide="book"></i>
+                              <span>${curso.nombre_curso}</span>
+                            </td>
+                            <td>${curso.nombre_idioma || 'N/A'}</td>
+                            <td class="nota-valor">${curso.parcial1 || '-'}</td>
+                            <td class="nota-valor">${curso.parcial2 || '-'}</td>
+                            <td class="nota-valor">${curso.final || '-'}</td>
+                            <td class="promedio-valor ${promedio >= 7 ? 'aprobado' : promedio >= 4 ? 'regular' : promedio > 0 ? 'desaprobado' : ''}">
+                              ${promedio > 0 ? promedio.toFixed(1) : '-'}
+                            </td>
+                            <td>
+                              <span class="estado-badge ${estadoClase}">
+                                ${estadoTexto}
+                              </span>
+                            </td>
+                          </tr>
+                        `;
+                      }).join('')}
+                    </tbody>
+                  </table>
+                </div>
+                
+                <div class="leyenda-calificaciones">
+                  <h4><i data-lucide="info"></i> Escala de Calificaciones</h4>
+                  <div class="leyenda-items">
+                    <div class="leyenda-item">
+                      <span class="leyenda-dot" style="background: #43a047;"></span>
+                      <span>Aprobado: 7.0 - 10.0</span>
+                    </div>
+                    <div class="leyenda-item">
+                      <span class="leyenda-dot" style="background: #fb8c00;"></span>
+                      <span>Regular: 4.0 - 6.9</span>
+                    </div>
+                    <div class="leyenda-item">
+                      <span class="leyenda-dot" style="background: #e53935;"></span>
+                      <span>Reprobado: 0.0 - 3.9</span>
+                    </div>
+                  </div>
+                </div>
+              ` : `
+                <div class="empty-state-calificaciones">
+                  <i data-lucide="clipboard-x"></i>
+                  <h3>No hay calificaciones disponibles</h3>
+                  <p>Aún no tienes cursos con calificaciones registradas.</p>
+                </div>
+              `}
+            </div>
+          </div>
+        `;
+
+        lucide.createIcons();
+        loader.classList.add("hidden");
+        setTimeout(() => mainContent.classList.add("active"), 100);
+
+      } catch (error) {
+        console.error("Error al cargar calificaciones:", error);
+        mainContent.innerHTML = `
+          <div class="error-container">
+            <i data-lucide="alert-circle"></i>
+            <h3>Error al cargar las calificaciones</h3>
+            <p>Por favor, intenta nuevamente más tarde.</p>
+          </div>
+        `;
+        lucide.createIcons();
+        loader.classList.add("hidden");
+        setTimeout(() => mainContent.classList.add("active"), 100);
+      }
+    },
+
+    btnPagos: async () => {
+      loader.classList.remove("hidden");
+      mainContent.classList.remove("active");
+
+      try {
+        const response = await fetch(`${API_URL}/pagos/alumno/${id_alumno}`);
+        
+        console.log("Response status pagos:", response.status);
+        
+        if (!response.ok) {
+          throw new Error(`Error al cargar pagos: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log("Datos de pagos recibidos:", data);
+        console.log("Tiene estadisticas?", !!data.estadisticas);
+        console.log("Estadisticas:", data.estadisticas);
+
+        // Valores por defecto si no vienen datos
+        const estadisticas = data.estadisticas || {
+          total_pagado: 0,
+          total_pendiente: 0,
+          cantidad_pagos: 0,
+          cantidad_pendientes: 0
+        };
+        
+        const pagosRealizados = data.pagos_realizados || [];
+        const pagosPendientes = data.pagos_pendientes || [];
+
+        mainContent.innerHTML = `
+          <div class="alumno-pagos-container">
+            <div class="section-header-alumno">
+              <div class="header-title">
+                <i data-lucide="credit-card"></i>
+                <h2>Mis Pagos</h2>
+              </div>
+            </div>
+
+            <!-- Estadísticas de pagos -->
+            <div class="pagos-stats-grid">
+              <div class="stat-pago-card total-pagado">
+                <div class="stat-pago-icon">
+                  <i data-lucide="check-circle"></i>
+                </div>
+                <div class="stat-pago-info">
+                  <p>Total Pagado</p>
+                  <h3>$${(data.estadisticas.total_pagado || 0).toLocaleString('es-AR', {minimumFractionDigits: 2})}</h3>
+                </div>
+              </div>
+
+              <div class="stat-pago-card total-pendiente">
+                <div class="stat-pago-icon">
+                  <i data-lucide="clock"></i>
+                </div>
+                <div class="stat-pago-info">
+                  <p>Total Pendiente</p>
+                  <h3>$${(data.estadisticas.total_pendiente || 0).toLocaleString('es-AR', {minimumFractionDigits: 2})}</h3>
+                </div>
+              </div>
+
+              <div class="stat-pago-card cantidad-pagos">
+                <div class="stat-pago-icon">
+                  <i data-lucide="file-text"></i>
+                </div>
+                <div class="stat-pago-info">
+                  <p>Pagos Realizados</p>
+                  <h3>${data.estadisticas.cantidad_pagos || 0}</h3>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pagos pendientes -->
+            <div class="pagos-pendientes-section">
+              <h3><i data-lucide="alert-circle"></i> Períodos Pendientes de Pago</h3>
+              
+              ${(data.pagos_pendientes && data.pagos_pendientes.length > 0) ? `
+                <div class="pagos-pendientes-grid">
+                  ${data.pagos_pendientes.map(pago => `
+                    <div class="pago-pendiente-card ${pago.estado === 'vencido' ? 'vencido' : ''}">
+                      <div class="pago-pendiente-header">
+                        <div class="pago-periodo">
+                          <i data-lucide="calendar"></i>
+                          <span>${pago.mes_nombre}</span>
+                        </div>
+                        ${pago.estado === 'vencido' ? 
+                          '<span class="badge-vencido"><i data-lucide="alert-triangle"></i> Vencido</span>' : 
+                          '<span class="badge-pendiente"><i data-lucide="clock"></i> Pendiente</span>'
+                        }
+                      </div>
+                      <div class="pago-pendiente-body">
+                        <div class="pago-monto-info">
+                          <span class="pago-label">Monto:</span>
+                          <span class="pago-monto">$${parseFloat(pago.monto).toLocaleString('es-AR', {minimumFractionDigits: 2})}</span>
+                        </div>
+                        <div class="pago-vencimiento-info">
+                          <span class="pago-label">Vencimiento:</span>
+                          <span>${new Date(pago.fecha_vencimiento).toLocaleDateString('es-ES')}</span>
+                        </div>
+                      </div>
+                      <button class="btn-pagar" onclick="window.creditCardForm.openModal({amount: ${pago.monto}, concepto: 'Cuota Mensual', periodo: '${pago.mes_nombre}', id_pago: ${pago.id_inscripcion}})">
+                        <i data-lucide="credit-card"></i>
+                        <span>Pagar Ahora</span>
+                      </button>
+                    </div>
+                  `).join('')}
+                </div>
+              ` : `
+                <div class="no-pagos-pendientes">
+                  <i data-lucide="check-circle-2"></i>
+                  <h4>¡Estás al día con tus pagos!</h4>
+                  <p>No tienes períodos pendientes de pago.</p>
+                </div>
+              `}
+            </div>
+
+            <!-- Historial de pagos -->
+            <div class="historial-pagos-section">
+              <h3><i data-lucide="list"></i> Historial de Pagos</h3>
+              
+              ${(data.pagos_realizados && data.pagos_realizados.length > 0) ? `
+                <div class="tabla-historial-wrapper">
+                  <table class="tabla-historial-pagos">
+                    <thead>
+                      <tr>
+                        <th>Fecha</th>
+                        <th>Período</th>
+                        <th>Concepto</th>
+                        <th>Medio de Pago</th>
+                        <th>Monto</th>
+                        <th>Estado</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${data.pagos_realizados.map(pago => `
+                        <tr>
+                          <td>${new Date(pago.fecha_pago).toLocaleDateString('es-ES')}</td>
+                          <td>${pago.periodo ? new Date(pago.periodo + '-01').toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }) : 'N/A'}</td>
+                          <td>${pago.concepto}</td>
+                          <td>
+                            <span class="medio-pago-badge">
+                              <i data-lucide="${pago.medio_pago.toLowerCase().includes('tarjeta') ? 'credit-card' : 'banknote'}"></i>
+                              ${pago.medio_pago}
+                            </span>
+                          </td>
+                          <td class="monto-pagado">$${parseFloat(pago.monto).toLocaleString('es-AR', {minimumFractionDigits: 2})}</td>
+                          <td><span class="badge-pagado"><i data-lucide="check"></i> Pagado</span></td>
+                        </tr>
+                      `).join('')}
+                    </tbody>
+                  </table>
+                </div>
+              ` : `
+                <div class="no-historial">
+                  <i data-lucide="inbox"></i>
+                  <p>Aún no has realizado ningún pago.</p>
+                </div>
+              `}
+            </div>
+          </div>
+        `;
+
+        lucide.createIcons();
+        loader.classList.add("hidden");
+        setTimeout(() => mainContent.classList.add("active"), 100);
+
+      } catch (error) {
+        console.error("Error al cargar pagos:", error);
+        mainContent.innerHTML = `
+          <div class="error-container">
+            <i data-lucide="alert-circle"></i>
+            <h3>Error al cargar los pagos</h3>
+            <p>${error.message || 'Por favor, intenta nuevamente más tarde.'}</p>
+          </div>
+        `;
+        lucide.createIcons();
+        loader.classList.add("hidden");
+        setTimeout(() => mainContent.classList.add("active"), 100);
+      }
+    },
+
+    // =====================================================
+    // Sección: Mi Perfil
+    // =====================================================
+    btnPerfil: async () => {
+      loader.classList.remove("hidden");
+      mainContent.classList.remove("active");
+
+      try {
+        const response = await fetch(`${API_URL}/alumnos/${id_alumno}/perfil`);
+        const perfil = await response.json();
+
+        mainContent.innerHTML = `
+          <div class="alumno-perfil-container">
+            <div class="section-header-alumno">
+              <div class="header-title">
+                <i data-lucide="user"></i>
+                <h2>Mi Perfil</h2>
+              </div>
+              <p class="section-subtitle">Administra tu información personal</p>
+            </div>
+
+            <!-- Información personal -->
+            <div class="perfil-content">
+              <div class="perfil-section">
+                <div class="perfil-section-header">
+                  <i data-lucide="user-circle"></i>
+                  <h3>Datos Personales</h3>
+                </div>
+                
+                <div class="perfil-datos-grid">
+                  <div class="perfil-dato">
+                    <label>Nombre Completo</label>
+                    <div class="dato-valor">
+                      <i data-lucide="user"></i>
+                      <span>${perfil.nombre || 'No especificado'} ${perfil.apellido || ''}</span>
+                    </div>
+                  </div>
+
+                  <div class="perfil-dato">
+                    <label>DNI</label>
+                    <div class="dato-valor">
+                      <i data-lucide="id-card"></i>
+                      <span>${perfil.dni || 'No especificado'}</span>
+                    </div>
+                  </div>
+
+                  <div class="perfil-dato">
+                    <label>Legajo</label>
+                    <div class="dato-valor">
+                      <i data-lucide="bookmark"></i>
+                      <span>${perfil.legajo || 'No especificado'}</span>
+                    </div>
+                  </div>
+
+                  <div class="perfil-dato">
+                    <label>Email</label>
+                    <div class="dato-valor">
+                      <i data-lucide="mail"></i>
+                      <span>${perfil.mail || 'No especificado'}</span>
+                    </div>
+                  </div>
+
+                  <div class="perfil-dato">
+                    <label>Estado</label>
+                    <div class="dato-valor">
+                      <span class="estado-badge ${perfil.estado || 'inactivo'}">${perfil.estado || 'Sin estado'}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Datos editables -->
+              <div class="perfil-section">
+                <div class="perfil-section-header">
+                  <i data-lucide="edit"></i>
+                  <h3>Información de Contacto</h3>
+                </div>
+                
+                <form id="formEditarPerfil" class="perfil-form">
+                  <div class="form-group-perfil">
+                    <label for="telefonoEdit">
+                      <i data-lucide="phone"></i>
+                      Teléfono Personal
+                    </label>
+                    <input 
+                      type="tel" 
+                      id="telefonoEdit" 
+                      value="${perfil.telefono || ''}"
+                      placeholder="Ingresa tu teléfono"
+                    >
+                  </div>
+
+                  <div class="form-group-perfil">
+                    <label for="domicilioEdit">
+                      <i data-lucide="home"></i>
+                      Domicilio
+                    </label>
+                    <input 
+                      type="text" 
+                      id="domicilioEdit" 
+                      value="${perfil.domicilio || ''}"
+                      placeholder="Ingresa tu domicilio"
+                    >
+                  </div>
+
+                  <div class="form-actions">
+                    <button type="submit" class="btn-guardar-perfil">
+                      <i data-lucide="save"></i>
+                      Guardar Cambios
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              <!-- Información adicional -->
+              <div class="perfil-section">
+                <div class="perfil-section-header">
+                  <i data-lucide="info"></i>
+                  <h3>Información Adicional</h3>
+                </div>
+                
+                <div class="perfil-datos-grid">
+                  <div class="perfil-dato">
+                    <label>Fecha de Registro</label>
+                    <div class="dato-valor">
+                      <i data-lucide="calendar-plus"></i>
+                      <span>${perfil.fecha_registro ? new Date(perfil.fecha_registro).toLocaleDateString('es-ES') : 'No disponible'}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        // Manejar submit del formulario
+        document.getElementById('formEditarPerfil').addEventListener('submit', async (e) => {
+          e.preventDefault();
+          
+          const telefono = document.getElementById('telefonoEdit').value;
+          const domicilio = document.getElementById('domicilioEdit').value;
+
+          try {
+            const response = await fetch(`${API_URL}/alumnos/${id_alumno}/perfil`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ telefono, domicilio })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+              showNotification('Perfil actualizado correctamente', 'success');
+            } else {
+              showNotification('Error al actualizar perfil', 'error');
+            }
+
+          } catch (error) {
+            console.error('Error:', error);
+            showNotification('Error al actualizar perfil', 'error');
+          }
+        });
+
+        lucide.createIcons();
+        loader.classList.add("hidden");
+        setTimeout(() => mainContent.classList.add("active"), 100);
+
+      } catch (error) {
+        console.error("Error al cargar perfil:", error);
+        mainContent.innerHTML = `
+          <div class="error-container">
+            <i data-lucide="alert-circle"></i>
+            <h3>Error al cargar perfil</h3>
+            <p>Por favor, intenta nuevamente más tarde.</p>
+          </div>
+        `;
+        lucide.createIcons();
+        loader.classList.add("hidden");
+        setTimeout(() => mainContent.classList.add("active"), 100);
+      }
+    },
+
+    btnChatSoporte: () => {
+      mainContent.classList.remove("active");
+      mainContent.innerHTML = `<div id="userChatContainer"></div>`;
+      setTimeout(() => {
+        if (window.userChatManager) {
+          window.userChatManager.renderChatView();
+          // Ya NO llamamos init() aquí - se llamó automáticamente al cargar la página
+        }
+        mainContent.classList.add("active");
+        lucide.createIcons();
+      }, 100);
+    }
+  };
+
+  // Función auxiliar para mostrar notificaciones
+  function showNotification(message, type = 'success') {
+    document.querySelectorAll('.notification').forEach(n => n.remove());
+    
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+      notification.remove();
+    }, 3000);
+  }
+
+  // Función para abrir detalle de curso
+  window.abrirDetalleCursoAlumno = async function(idCurso, nombreCurso) {
+    try {
+      loader.classList.remove('hidden');
+      
+      const id_alumno = localStorage.getItem("id_alumno");
+      const response = await fetch(`${API_URL}/cursos/${idCurso}/detalles`);
+      const data = await response.json();
+      
+      // Buscar las calificaciones del alumno actual
+      const misCalificaciones = data.alumnos.find(a => a.id_alumno == id_alumno);
+      
+      // Crear overlay y panel
+      const overlay = document.createElement('div');
+      overlay.className = 'curso-detalle-overlay active';
+      overlay.onclick = cerrarDetalleCursoAlumno;
+      
+      const panel = document.createElement('div');
+      panel.className = 'curso-detalle-panel-alumno active';
+      panel.id = 'cursoDetallePanel';
+      
+      panel.innerHTML = `
+        <div class="panel-header-alumno">
+          <div>
+            <h2>${nombreCurso}</h2>
+            <p class="curso-idioma-badge">${data.curso.nombre_idioma || 'Curso'}</p>
+          </div>
+          <button class="btn-cerrar-panel" onclick="cerrarDetalleCursoAlumno()">
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+        
+        <div class="panel-body-alumno">
+          <!-- Información del curso -->
+          <div class="info-section">
+            <h3><i data-lucide="info"></i> Información del Curso</h3>
+            <div class="info-grid">
+              <div class="info-item">
+                <span class="info-label">Profesor:</span>
+                <span class="info-value">${data.curso.profesor || 'No asignado'}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Horario:</span>
+                <span class="info-value">${data.curso.horario || 'Por confirmar'}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Aula:</span>
+                <span class="info-value">${data.curso.aula || 'Por asignar'}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Nivel:</span>
+                <span class="info-value">${data.curso.nivel || 'N/A'}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mis Calificaciones -->
+          <div class="calificaciones-section">
+            <h3><i data-lucide="clipboard-check"></i> Mis Calificaciones</h3>
+            ${misCalificaciones ? `
+              <div class="calificaciones-detalle">
+                <div class="nota-item">
+                  <span>Parcial 1:</span>
+                  <span class="nota-valor">${misCalificaciones.parcial1 > 0 ? misCalificaciones.parcial1 : 'Pendiente'}</span>
+                </div>
+                <div class="nota-item">
+                  <span>Parcial 2:</span>
+                  <span class="nota-valor">${misCalificaciones.parcial2 > 0 ? misCalificaciones.parcial2 : 'Pendiente'}</span>
+                </div>
+                <div class="nota-item">
+                  <span>Final:</span>
+                  <span class="nota-valor">${misCalificaciones.final > 0 ? misCalificaciones.final : 'Pendiente'}</span>
+                </div>
+                ${misCalificaciones.promedio > 0 ? `
+                  <div class="nota-item promedio-final">
+                    <span>Promedio:</span>
+                    <span class="nota-valor destacado">${parseFloat(misCalificaciones.promedio).toFixed(1)}</span>
+                  </div>
+                ` : ''}
+              </div>
+            ` : '<p class="sin-datos">Aún no hay calificaciones registradas</p>'}
+          </div>
+
+          <!-- Compañeros de curso -->
+          <div class="companeros-section">
+            <h3><i data-lucide="users"></i> Compañeros de Curso</h3>
+            ${data.alumnos && data.alumnos.length > 1 ? `
+              <div class="companeros-list">
+                ${data.alumnos.filter(a => a.id_alumno != id_alumno).map(alumno => `
+                  <div class="companero-item">
+                    <div class="companero-avatar">
+                      <i data-lucide="user"></i>
+                    </div>
+                    <span>${alumno.nombre_completo}</span>
+                  </div>
+                `).join('')}
+              </div>
+            ` : '<p class="sin-datos">Eres el único alumno inscrito en este curso</p>'}
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(overlay);
+      document.body.appendChild(panel);
+      lucide.createIcons();
+      loader.classList.add('hidden');
+      
+    } catch (error) {
+      console.error('Error al cargar detalles:', error);
+      loader.classList.add('hidden');
+      showNotification('Error al cargar los detalles del curso', 'error');
+    }
+  };
+
+  window.cerrarDetalleCursoAlumno = function() {
+    const overlay = document.querySelector('.curso-detalle-overlay');
+    const panel = document.getElementById('cursoDetallePanel');
+    
+    if (overlay) overlay.remove();
+    if (panel) panel.remove();
+  };
+
+  // Función para ver detalle de calificación (desde tabla)
+  window.verDetalleCalificacion = function(idCurso, nombreCurso) {
+    abrirDetalleCursoAlumno(idCurso, nombreCurso);
+  };
+
+  // Función para abrir modal de pago
+  window.abrirModalPago = function(periodo, monto, mesNombre) {
+    const modal = document.createElement('div');
+    modal.className = 'modal-pago-overlay active';
+    modal.id = 'modalPago';
+    
+    modal.innerHTML = `
+      <div class="modal-pago-content">
+        <div class="modal-pago-header">
+          <h2><i data-lucide="credit-card"></i> Realizar Pago</h2>
+          <button class="btn-cerrar-modal" onclick="cerrarModalPago()">
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+        
+        <div class="modal-pago-body">
+          <!-- Info del pago -->
+          <div class="info-pago-detalle">
+            <div class="info-row">
+              <span class="info-label">Período:</span>
+              <span class="info-valor">${mesNombre}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Monto a pagar:</span>
+              <span class="info-valor monto-destacado">$${parseFloat(monto).toLocaleString('es-AR', {minimumFractionDigits: 2})}</span>
+            </div>
+          </div>
+
+          <!-- Selector de medio de pago -->
+          <div class="metodo-pago-selector">
+            <label><i data-lucide="credit-card"></i> Selecciona el medio de pago:</label>
+            <div class="metodos-pago-grid">
+              <div class="metodo-option" onclick="seleccionarMetodo(this, 'Tarjeta de Crédito')">
+                <i data-lucide="credit-card"></i>
+                <span>Tarjeta de Crédito</span>
+              </div>
+              <div class="metodo-option" onclick="seleccionarMetodo(this, 'Tarjeta de Débito')">
+                <i data-lucide="credit-card"></i>
+                <span>Tarjeta de Débito</span>
+              </div>
+              <div class="metodo-option" onclick="seleccionarMetodo(this, 'Transferencia')">
+                <i data-lucide="arrow-right-left"></i>
+                <span>Transferencia</span>
+              </div>
+              <div class="metodo-option" onclick="seleccionarMetodo(this, 'Efectivo')">
+                <i data-lucide="banknote"></i>
+                <span>Efectivo</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Formulario de tarjeta -->
+          <div id="formularioTarjeta" class="formulario-tarjeta" style="display: none;">
+            <h4><i data-lucide="credit-card"></i> Datos de la Tarjeta</h4>
+            
+            <div class="form-group">
+              <label>Número de Tarjeta</label>
+              <input type="text" id="numeroTarjeta" placeholder="1234 5678 9012 3456" maxlength="19" 
+                     oninput="formatearNumeroTarjeta(this)">
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label>Titular</label>
+                <input type="text" id="titularTarjeta" placeholder="NOMBRE APELLIDO">
+              </div>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label>Vencimiento (MM/AA)</label>
+                <input type="text" id="vencimientoTarjeta" placeholder="MM/AA" maxlength="5"
+                       oninput="formatearVencimiento(this)">
+              </div>
+              <div class="form-group">
+                <label>CVV</label>
+                <input type="text" id="cvvTarjeta" placeholder="123" maxlength="4"
+                       oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+              </div>
+            </div>
+          </div>
+
+          <!-- Botón de pago -->
+          <button class="btn-confirmar-pago" onclick="procesarPago('${periodo}', ${monto})">
+            <i data-lucide="check-circle"></i>
+            <span>Confirmar Pago</span>
+          </button>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    lucide.createIcons();
+  };
+
+  window.cerrarModalPago = function() {
+    const modal = document.getElementById('modalPago');
+    if (modal) modal.remove();
+  };
+
+  let medioPagoSeleccionado = null;
+
+  window.seleccionarMetodo = function(elemento, metodo) {
+    // Remover selección anterior
+    document.querySelectorAll('.metodo-option').forEach(el => el.classList.remove('selected'));
+    
+    // Marcar como seleccionado
+    elemento.classList.add('selected');
+    medioPagoSeleccionado = metodo;
+    
+    // Mostrar/ocultar formulario de tarjeta
+    const formulario = document.getElementById('formularioTarjeta');
+    if (metodo.includes('Tarjeta')) {
+      formulario.style.display = 'block';
+    } else {
+      formulario.style.display = 'none';
+    }
+  };
+
+  window.formatearNumeroTarjeta = function(input) {
+    let valor = input.value.replace(/\s/g, '');
+    valor = valor.replace(/[^0-9]/g, '');
+    let formateado = valor.match(/.{1,4}/g)?.join(' ') || valor;
+    input.value = formateado;
+  };
+
+  window.formatearVencimiento = function(input) {
+    let valor = input.value.replace(/\//g, '');
+    valor = valor.replace(/[^0-9]/g, '');
+    if (valor.length >= 2) {
+      valor = valor.substring(0, 2) + '/' + valor.substring(2, 4);
+    }
+    input.value = valor;
+  };
+
+  window.procesarPago = async function(periodo, monto) {
+    if (!medioPagoSeleccionado) {
+      showNotification('Por favor selecciona un medio de pago', 'error');
+      return;
+    }
+
+    // Validar datos de tarjeta si es necesario
+    if (medioPagoSeleccionado.includes('Tarjeta')) {
+      const numeroTarjeta = document.getElementById('numeroTarjeta').value;
+      const titular = document.getElementById('titularTarjeta').value;
+      const vencimiento = document.getElementById('vencimientoTarjeta').value;
+      const cvv = document.getElementById('cvvTarjeta').value;
+
+      if (!numeroTarjeta || !titular || !vencimiento || !cvv) {
+        showNotification('Por favor completa todos los datos de la tarjeta', 'error');
+        return;
+      }
+
+      if (numeroTarjeta.replace(/\s/g, '').length < 15) {
+        showNotification('Número de tarjeta inválido', 'error');
+        return;
+      }
+
+      if (cvv.length < 3) {
+        showNotification('CVV inválido', 'error');
+        return;
+      }
+    }
+
+    try {
+      loader.classList.remove('hidden');
+      
+      const response = await fetch(`${API_URL}/pagos/realizar`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          id_alumno: id_alumno,
+          periodo: periodo,
+          monto: monto,
+          medio_pago: medioPagoSeleccionado,
+          datos_tarjeta: medioPagoSeleccionado.includes('Tarjeta') ? {
+            numero: document.getElementById('numeroTarjeta')?.value,
+            titular: document.getElementById('titularTarjeta')?.value,
+            vencimiento: document.getElementById('vencimientoTarjeta')?.value
+          } : null
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        loader.classList.add('hidden');
+        cerrarModalPago();
+        
+        // Mostrar comprobante
+        mostrarComprobante(data.comprobante);
+        
+        // Recargar la sección de pagos
+        setTimeout(() => {
+          document.getElementById('btnPagos').click();
+        }, 3000);
+      } else {
+        throw new Error(data.message || 'Error al procesar el pago');
+      }
+    } catch (error) {
+      console.error('Error al procesar pago:', error);
+      loader.classList.add('hidden');
+      showNotification(error.message || 'Error al procesar el pago', 'error');
+    }
+  };
+
+  window.mostrarComprobante = function(comprobante) {
+    const modal = document.createElement('div');
+    modal.className = 'modal-pago-overlay active';
+    modal.id = 'modalComprobante';
+    
+    modal.innerHTML = `
+      <div class="modal-comprobante-content">
+        <div class="comprobante-header">
+          <div class="check-icon">
+            <i data-lucide="check-circle"></i>
+          </div>
+          <h2>¡Pago Exitoso!</h2>
+          <p>Tu pago ha sido procesado correctamente</p>
+        </div>
+        
+        <div class="comprobante-body">
+          <div class="comprobante-detalle">
+            <div class="detalle-row">
+              <span>Comprobante N°:</span>
+              <strong>${comprobante.numero}</strong>
+            </div>
+            <div class="detalle-row">
+              <span>Fecha:</span>
+              <strong>${new Date(comprobante.fecha).toLocaleDateString('es-ES')}</strong>
+            </div>
+            <div class="detalle-row">
+              <span>Período:</span>
+              <strong>${new Date(comprobante.periodo + '-01').toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}</strong>
+            </div>
+            <div class="detalle-row total">
+              <span>Monto Pagado:</span>
+              <strong>$${parseFloat(comprobante.monto).toLocaleString('es-AR', {minimumFractionDigits: 2})}</strong>
+            </div>
+          </div>
+        </div>
+        
+        <button class="btn-cerrar-comprobante" onclick="cerrarComprobante()">
+          <i data-lucide="x"></i>
+          Cerrar
+        </button>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    lucide.createIcons();
+  };
+
+  window.cerrarComprobante = function() {
+    const modal = document.getElementById('modalComprobante');
+    if (modal) modal.remove();
+  };
+
+  // Navegación SPA con logout
+  document.querySelectorAll(".sidebar-menu button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      if (btn.id === "logoutBtn") {
+        localStorage.clear();
+        window.location.href = "login.html";
+        return;
+      }
+
+      document.querySelectorAll(".sidebar-menu button").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      loader.classList.remove("hidden");
+      mainContent.classList.remove("active");
+
+      setTimeout(() => {
+        sections[btn.id]?.();
+      }, 250);
+    });
+  });
+
+  // Cargar "Mis Cursos" por defecto al iniciar
+  document.addEventListener("DOMContentLoaded", () => {
+    const btnCursos = document.getElementById("btnCursos");
+    if (btnCursos) {
+      btnCursos.classList.add("active");
+      btnCursos.click();
+    }
+  });
+</script>
+
+<!-- Modal de Selección de Método de Pago -->
+<div class="payment-method-modal-overlay" id="paymentMethodModal" onclick="if(event.target === this) this.classList.remove('active')">
+  <div class="payment-method-modal">
+    <div class="payment-method-header">
+      <h2><i data-lucide="wallet"></i> Seleccionar Método de Pago</h2>
+      <button class="payment-close" onclick="document.getElementById('paymentMethodModal').classList.remove('active')">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+
+    <!-- Información del pago -->
+    <div class="payment-info-summary">
+      <div class="payment-info-row">
+        <span class="payment-info-label">Concepto:</span>
+        <span class="payment-info-value" id="methodPaymentConcepto">Cuota Mensual</span>
+      </div>
+      <div class="payment-info-row">
+        <span class="payment-info-label">Período:</span>
+        <span class="payment-info-value" id="methodPaymentPeriodo">-</span>
+      </div>
+      <div class="payment-info-row">
+        <span class="payment-info-label">Monto a Pagar:</span>
+        <span class="payment-info-value payment-amount-highlight" id="methodPaymentAmount">$0.00</span>
+      </div>
+    </div>
+
+    <!-- Opciones de pago -->
+    <div class="payment-methods-grid">
+      <button class="payment-method-option" id="btnCardPayment">
+        <div class="payment-method-icon">
+          <i data-lucide="credit-card"></i>
+        </div>
+        <div>
+          <h3>Tarjeta de Crédito/Débito</h3>
+          <p>Pago instantáneo con tarjeta</p>
+        </div>
+      </button>
+
+      <button class="payment-method-option" id="btnTransferPayment" onclick="document.getElementById('paymentMethodModal').classList.remove('active'); document.getElementById('transferModal').classList.add('active'); if(typeof lucide !== 'undefined') lucide.createIcons();">
+        <div class="payment-method-icon">
+          <i data-lucide="landmark"></i>
+        </div>
+        <div>
+          <h3>Transferencia Bancaria</h3>
+          <p>Transferir desde tu banco</p>
+        </div>
+      </button>
+
+      <button class="payment-method-option" id="btnCashPayment">
+        <div class="payment-method-icon">
+          <i data-lucide="banknote"></i>
+        </div>
+        <div>
+          <h3>Efectivo</h3>
+          <p>Pagar en la institución</p>
+        </div>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Pago con Tarjeta -->
+<div class="credit-card-modal-overlay" id="creditCardModal">
+  <div class="credit-card-modal">
+    <!-- Header -->
+    <div class="modal-header">
+      <h2>Pago con Tarjeta</h2>
+      <div class="modal-actions">
+        <button class="back-button" id="backToMethods">←</button>
+        <button class="close-button" id="closePaymentModal">×</button>
+      </div>
+    </div>
+
+    <!-- Información del pago (oculta, solo data) -->
+    <input type="hidden" id="paymentIdPago" value="">
+    <input type="hidden" id="paymentConcepto" value="">
+    <input type="hidden" id="paymentPeriodo" value="">
+    <input type="hidden" id="paymentAmount" data-amount="0">
+
+    <!-- Container con Tarjeta + Formulario -->
+    <div class="payment-content-wrapper">
+      <!-- Tarjeta 3D (Izquierda) -->
+      <div class="container preload">
+        <div class="creditcard">
+          <div class="front">
+            <div id="ccsingle"></div>
+            <svg version="1.1" id="cardfront" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+                x="0px" y="0px" viewBox="0 0 750 471" style="enable-background:new 0 0 750 471;" xml:space="preserve">
+                <g id="Front">
+                    <g id="CardBackground">
+                        <g id="Page-1_1_">
+                            <g id="amex_1_">
+                                <path id="Rectangle-1_1_" class="lightcolor grey" d="M40,0h670c22.1,0,40,17.9,40,40v391c0,22.1-17.9,40-40,40H40c-22.1,0-40-17.9-40-40V40
+                        C0,17.9,17.9,0,40,0z" />
+                            </g>
+                        </g>
+                        <path class="darkcolor greydark" d="M750,431V193.2c-217.6-57.5-556.4-13.5-750,24.9V431c0,22.1,17.9,40,40,40h670C732.1,471,750,453.1,750,431z" />
+                    </g>
+                    <text transform="matrix(1 0 0 1 60.106 295.0121)" id="svgnumber" class="st2 st3 st4">0123 4567 8910 1112</text>
+                    <text transform="matrix(1 0 0 1 54.1064 428.1723)" id="svgname" class="st2 st5 st6">JUAN PÉREZ</text>
+                    <text transform="matrix(1 0 0 1 54.1074 389.8793)" class="st7 st5 st8">nombre del titular</text>
+                    <text transform="matrix(1 0 0 1 479.7754 388.8793)" class="st7 st5 st8">vencimiento</text>
+                    <text transform="matrix(1 0 0 1 65.1054 241.5)" class="st7 st5 st8">número de tarjeta</text>
+                    <g>
+                        <text transform="matrix(1 0 0 1 574.4219 433.8095)" id="svgexpire" class="st2 st5 st9">01/23</text>
+                        <text transform="matrix(1 0 0 1 479.3848 417.0097)" class="st2 st10 st11">VÁLIDO</text>
+                        <text transform="matrix(1 0 0 1 479.3848 435.6762)" class="st2 st10 st11">HASTA</text>
+                        <polygon class="st2" points="554.5,421 540.4,414.2 540.4,427.9 		" />
+                    </g>
+                    <g id="cchip">
+                        <g>
+                            <path class="st2" d="M168.1,143.6H82.9c-10.2,0-18.5-8.3-18.5-18.5V74.9c0-10.2,8.3-18.5,18.5-18.5h85.3
+                    c10.2,0,18.5,8.3,18.5,18.5v50.2C186.6,135.3,178.3,143.6,168.1,143.6z" />
+                        </g>
+                        <g>
+                            <g>
+                                <rect x="82" y="70" class="st12" width="1.5" height="60" />
+                            </g>
+                            <g>
+                                <rect x="167.4" y="70" class="st12" width="1.5" height="60" />
+                            </g>
+                            <g>
+                                <path class="st12" d="M125.5,130.8c-10.2,0-18.5-8.3-18.5-18.5c0-4.6,1.7-8.9,4.7-12.3c-3-3.4-4.7-7.7-4.7-12.3
+                        c0-10.2,8.3-18.5,18.5-18.5s18.5,8.3,18.5,18.5c0,4.6-1.7,8.9-4.7,12.3c3,3.4,4.7,7.7,4.7,12.3
+                        C143.9,122.5,135.7,130.8,125.5,130.8z M125.5,70.8c-9.3,0-16.9,7.6-16.9,16.9c0,4.4,1.7,8.6,4.8,11.8l0.5,0.5l-0.5,0.5
+                        c-3.1,3.2-4.8,7.4-4.8,11.8c0,9.3,7.6,16.9,16.9,16.9s16.9-7.6,16.9-16.9c0-4.4-1.7-8.6-4.8-11.8l-0.5-0.5l0.5-0.5
+                        c3.1-3.2,4.8-7.4,4.8-11.8C142.4,78.4,134.8,70.8,125.5,70.8z" />
+                            </g>
+                            <g>
+                                <rect x="82.8" y="82.1" class="st12" width="25.8" height="1.5" />
+                            </g>
+                            <g>
+                                <rect x="82.8" y="117.9" class="st12" width="26.1" height="1.5" />
+                            </g>
+                            <g>
+                                <rect x="142.4" y="82.1" class="st12" width="25.8" height="1.5" />
+                            </g>
+                            <g>
+                                <rect x="142" y="117.9" class="st12" width="26.2" height="1.5" />
+                            </g>
+                        </g>
+                    </g>
+                </g>
+                <g id="Back">
+                </g>
+            </svg>
+          </div>
+          <div class="back">
+            <svg version="1.1" id="cardback" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+                x="0px" y="0px" viewBox="0 0 750 471" style="enable-background:new 0 0 750 471;" xml:space="preserve">
+                <g id="Front">
+                    <line class="st0" x1="35.3" y1="10.4" x2="36.7" y2="11" />
+                </g>
+                <g id="Back">
+                    <g id="Page-1_2_">
+                        <g id="amex_2_">
+                            <path id="Rectangle-1_2_" class="darkcolor greydark" d="M40,0h670c22.1,0,40,17.9,40,40v391c0,22.1-17.9,40-40,40H40c-22.1,0-40-17.9-40-40V40
+                    C0,17.9,17.9,0,40,0z" />
+                        </g>
+                    </g>
+                    <rect y="61.6" class="st2" width="750" height="78" />
+                    <g>
+                        <path class="st3" d="M701.1,249.1H48.9c-3.3,0-6-2.7-6-6v-52.5c0-3.3,2.7-6,6-6h652.1c3.3,0,6,2.7,6,6v52.5
+                C707.1,246.4,704.4,249.1,701.1,249.1z" />
+                        <rect x="42.9" y="198.6" class="st4" width="664.1" height="10.5" />
+                        <rect x="42.9" y="224.5" class="st4" width="664.1" height="10.5" />
+                        <path class="st5" d="M701.1,184.6H618h-8h-10v64.5h10h8h83.1c3.3,0,6-2.7,6-6v-52.5C707.1,187.3,704.4,184.6,701.1,184.6z" />
+                    </g>
+                    <text transform="matrix(1 0 0 1 621.999 227.2734)" id="svgsecurity" class="st6 st7">985</text>
+                    <g class="st8">
+                        <text transform="matrix(1 0 0 1 518.083 280.0879)" class="st9 st6 st10">código de seguridad</text>
+                    </g>
+                    <rect x="58.1" y="378.6" class="st11" width="375.5" height="13.5" />
+                    <rect x="58.1" y="405.6" class="st11" width="421.7" height="13.5" />
+                    <text transform="matrix(1 0 0 1 59.5073 228.6099)" id="svgnameback" class="st12 st13">Juan Pérez</text>
+                </g>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Formulario (Derecha) -->
+      <form class="form-container" id="creditCardForm">
+        <div class="field-container">
+          <label for="name">Nombre del Titular</label>
+          <input id="name" maxlength="20" type="text" placeholder="JUAN PÉREZ">
+        </div>
+        <div class="field-container">
+          <label for="cardnumber">Número de Tarjeta</label><span id="generatecard">generar aleatorio</span>
+          <input id="cardnumber" type="text" pattern="[0-9]*" inputmode="numeric" placeholder="1234 5678 9012 3456">
+          <svg id="ccicon" class="ccicon" width="750" height="471" viewBox="0 0 750 471" version="1.1" xmlns="http://www.w3.org/2000/svg"
+              xmlns:xlink="http://www.w3.org/1999/xlink">
+          </svg>
+        </div>
+        <div class="field-container">
+          <label for="expirationdate">Vencimiento (mm/aa)</label>
+          <input id="expirationdate" type="text" pattern="[0-9]*" inputmode="numeric" placeholder="01/25">
+        </div>
+        <div class="field-container">
+          <label for="securitycode">Código de Seguridad</label>
+          <input id="securitycode" type="text" pattern="[0-9]*" inputmode="numeric" placeholder="123">
+        </div>
+      </form>
+    </div> <!-- cierre payment-content-wrapper -->
+  </div> <!-- cierre credit-card-modal -->
+</div> <!-- cierre credit-card-modal-overlay -->
+
+<!-- Modal de Transferencia Bancaria -->
+<div class="transfer-modal-overlay" id="transferModal" onclick="if(event.target === this) this.classList.remove('active')">
+  <div class="transfer-modal">
+    <div class="transfer-header">
+      <h2><i data-lucide="landmark"></i> Datos para Transferencia</h2>
+      <button class="transfer-close" onclick="document.getElementById('transferModal').classList.remove('active')">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+    <div class="transfer-content">
+      <div class="transfer-info-card">
+        <div class="transfer-field">
+          <label>Alias</label>
+          <div class="transfer-value">
+            <span>educacion.cemi</span>
+            <button class="copy-btn" onclick="copyToClipboard('educacion.cemi', this)">
+              <i data-lucide="copy"></i>
+            </button>
+          </div>
+        </div>
+        <div class="transfer-field">
+          <label>CBU</label>
+          <div class="transfer-value">
+            <span>0008466199055723490</span>
+            <button class="copy-btn" onclick="copyToClipboard('0008466199055723490', this)">
+              <i data-lucide="copy"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="transfer-instructions">
+        <p><i data-lucide="info"></i> Realiza la transferencia y envía el comprobante por correo o WhatsApp.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/imask"></script>
+<script src="assets/js/credit-card.js"></script>
+
+<!-- Estilos del Chat de Usuario -->
+<style>
+  .user-chat-container {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 160px);
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    overflow: hidden;
+  }
+
+  .user-chat-header {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .user-chat-header h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+  }
+
+  .user-chat-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    opacity: 0.9;
+    margin-top: 4px;
+  }
+
+  .user-chat-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #4ade80;
+    animation: pulse 2s infinite;
+  }
+
+  .user-chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    background: #f8f9fa;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .user-chat-message {
+    display: flex;
+    gap: 10px;
+    animation: messageSlideIn 0.3s ease-out;
+  }
+
+  .user-chat-message.sent {
+    flex-direction: row-reverse;
+  }
+
+  .user-chat-message-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  .user-chat-message.sent .user-chat-message-avatar {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+
+  .user-chat-message.received .user-chat-message-avatar {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  }
+
+  .user-chat-message-content {
+    max-width: 60%;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .user-chat-message-bubble {
+    padding: 12px 16px;
+    border-radius: 16px;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+  }
+
+  .user-chat-message.sent .user-chat-message-bubble {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-bottom-right-radius: 4px;
+  }
+
+  .user-chat-message.received .user-chat-message-bubble {
+    background: white;
+    color: #333;
+    border-bottom-left-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+
+  .user-chat-message-time {
+    font-size: 11px;
+    color: #999;
+    padding: 0 4px;
+  }
+
+  .user-chat-message.sent .user-chat-message-time {
+    text-align: right;
+  }
+
+  .user-chat-input-area {
+    padding: 16px 20px;
+    background: white;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .user-chat-input {
+    flex: 1;
+    padding: 12px 16px;
+    border: 2px solid #e5e7eb;
+    border-radius: 24px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.3s ease;
+  }
+
+  .user-chat-input:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
+
+  .user-chat-send-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+  }
+
+  .user-chat-send-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  }
+
+  .user-chat-send-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: scale(1);
+  }
+
+  .user-chat-typing {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: rgba(102, 126, 234, 0.1);
+    border-radius: 16px;
+    font-size: 13px;
+    color: #667eea;
+    align-self: flex-start;
+  }
+
+  .user-chat-typing-dots {
+    display: flex;
+    gap: 4px;
+  }
+
+  .user-chat-typing-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #667eea;
+    animation: typingBounce 1.4s infinite;
+  }
+
+  .user-chat-typing-dot:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+
+  .user-chat-typing-dot:nth-child(3) {
+    animation-delay: 0.4s;
+  }
+
+  .user-chat-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #999;
+    gap: 12px;
+  }
+
+  .user-chat-empty i {
+    width: 64px;
+    height: 64px;
+    opacity: 0.5;
+  }
+
+  @keyframes messageSlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes typingBounce {
+    0%, 60%, 100% {
+      transform: translateY(0);
+    }
+    30% {
+      transform: translateY(-8px);
+    }
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+</style>
+
+<!-- UserChatManager se carga desde assets/js/user-chat-manager.js -->
+
+</body>
+</html>

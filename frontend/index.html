@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CEMI - Sistema de Gestión Académica</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/chat-widget.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="logo" onclick="window.location.href='index.html'" style="cursor: pointer;">
+        <img src="images/logo.png" alt="Logo CEMI">
+        <span>CEMI</span>
+      </div>
+      <ul class="nav-links">
+        <li><a href="#classroom">Classroom</a></li>
+        <li><a href="#dashboard">Dashboard</a></li>
+        <li><a href="#soporte">Soporte</a></li>
+        <li class="nav-item-dropdown">
+          <a href="#" class="dropdown-trigger" id="moreInfoBtn">Más Información</a>
+        </li>
+      </ul>
+      <button class="login-btn" onclick="window.location.href='login.html'">Iniciar Sesión</button>
+    </div>
+  </nav>
+
+  <!-- Dropdown Menu -->
+  <div class="dropdown-menu" id="dropdownMenu">
+    <div class="dropdown-backdrop" id="dropdownBackdrop"></div>
+    <div class="dropdown-content">
+      <div class="dropdown-grid">
+        <div class="dropdown-column">
+          <a href="#roles" class="dropdown-item">Roles de Sistema</a>
+          <a href="#modulos" class="dropdown-item">Módulos Principales</a>
+          <a href="#caracteristicas" class="dropdown-item">Características</a>
+          <a href="#tecnologias" class="dropdown-item">Tecnologías</a>
+          <a href="#historia" class="dropdown-item">Nuestra Historia</a>
+          <a href="#faq" class="dropdown-item">Preguntas Frecuentes</a>
+          <a href="#equipo" class="dropdown-item">Nuestro Equipo</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hero Principal -->
+  <section class="hero-main">
+    <div class="hero-logo-side">
+      <img src="images/logo.png" alt="CEMI Logo" class="hero-logo-animate">
+    </div>
+    <div class="hero-content">
+      <h1>CEMI Sistema Gestor</h1>
+      <p>Una nueva forma de enseñar y aprender.</p>
+      <div class="hero-buttons">
+        <button class="cta-btn" onclick="window.location.href='classroom-login.html'">Empezar ahora</button>
+        <a href="#classroom" class="link-arrow">Más información</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Classroom Section -->
+  <section class="product-section" id="classroom">
+    <div class="section-content">
+      <h2>Classroom</h2>
+      <p class="section-subtitle">El aula virtual más intuitiva.</p>
+      <p class="section-description">Tareas, calificaciones, anuncios y más. Todo en un solo lugar diseñado para la educación moderna.</p>
+      <div class="section-links">
+        <button class="cta-btn" onclick="window.location.href='classroom-login.html'">Acceder al Classroom</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Dashboard Section -->
+  <section class="product-section bg-light" id="dashboard">
+    <div class="section-content">
+      <h2>Dashboard</h2>
+      <p class="section-subtitle">Gestión completa.</p>
+      <p class="section-description">Administra alumnos, profesores, cursos, pagos y estadísticas desde un panel de control intuitivo.</p>
+      <div class="section-links">
+        <button class="cta-btn-secondary" onclick="window.location.href='login.html'">Ir al Dashboard</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Grid -->
+  <section class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">
+        <i data-lucide="users" style="width: 48px; height: 48px;"></i>
+      </div>
+      <h3>Gestión de Alumnos</h3>
+      <p>Registros, inscripciones y seguimiento académico centralizado.</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">
+        <i data-lucide="book-open" style="width: 48px; height: 48px;"></i>
+      </div>
+      <h3>Cursos y Clases</h3>
+      <p>Organiza horarios, niveles y asignaciones de manera eficiente.</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">
+        <i data-lucide="credit-card" style="width: 48px; height: 48px;"></i>
+      </div>
+      <h3>Control de Pagos</h3>
+      <p>Seguimiento de cuotas, recibos y reportes financieros automatizados.</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">
+        <i data-lucide="clipboard-check" style="width: 48px; height: 48px;"></i>
+      </div>
+      <h3>Tareas y Evaluaciones</h3>
+      <p>Asigna, recibe y califica trabajos digitalmente.</p>
+    </div>
+  </section>
+
+  <!-- Soporte Section -->
+  <section class="product-section" id="soporte">
+    <div class="section-content">
+      <h2>¿Necesitas ayuda?</h2>
+      <p class="section-description">Nuestro equipo de soporte está listo para asistirte.</p>
+      <div class="section-links">
+        <a href="mailto:soporte@cemi.edu" class="link-arrow">Contactar soporte →</a>
+      </div>
+    </div>
+  </section>
+
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <script>
+    lucide.createIcons();
+    
+    // Dropdown Menu con hover elegante
+    const moreInfoBtn = document.getElementById('moreInfoBtn');
+    const dropdownMenu = document.getElementById('dropdownMenu');
+    const dropdownBackdrop = document.getElementById('dropdownBackdrop');
+    const navItemDropdown = document.querySelector('.nav-item-dropdown');
+    const dropdownContent = document.querySelector('.dropdown-content');
+    
+    let closeTimeout;
+    
+    // Abrir con hover en el botón
+    navItemDropdown.addEventListener('mouseenter', () => {
+      clearTimeout(closeTimeout);
+      dropdownMenu.classList.add('active');
+    });
+    
+    // Mantener abierto cuando el mouse está en el dropdown content
+    dropdownContent.addEventListener('mouseenter', () => {
+      clearTimeout(closeTimeout);
+    });
+    
+    // Cerrar cuando el mouse sale del botón
+    navItemDropdown.addEventListener('mouseleave', () => {
+      closeTimeout = setTimeout(() => {
+        dropdownMenu.classList.remove('active');
+      }, 100);
+    });
+    
+    // Cerrar cuando el mouse sale del dropdown content
+    dropdownContent.addEventListener('mouseleave', () => {
+      closeTimeout = setTimeout(() => {
+        dropdownMenu.classList.remove('active');
+      }, 100);
+    });
+    
+    // Cerrar al hacer clic en backdrop
+    dropdownBackdrop.addEventListener('click', () => {
+      dropdownMenu.classList.remove('active');
+    });
+    
+    // Cerrar dropdown al hacer clic en un item
+    document.querySelectorAll('.dropdown-item').forEach(item => {
+      item.addEventListener('click', () => {
+        dropdownMenu.classList.remove('active');
+      });
+    });
+    
+    // Cerrar dropdown con tecla ESC
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && dropdownMenu.classList.contains('active')) {
+        dropdownMenu.classList.remove('active');
+      }
+    });
+  </script>
+</body>
+</html>
+
+  <!-- Roles -->
+  <section id="roles" class="roles">
+    <h2 data-aos="fade-up">Roles del Sistema</h2>
+    <div class="role-grid">
+      <div class="role-card" data-aos="zoom-in" data-aos-delay="100">
+        <i data-lucide="user-cog"></i>
+        <h3>Administrador</h3>
+        <p>Gestiona usuarios, cursos, pagos y reportes globales del sistema.</p>
+      </div>
+      <div class="role-card" data-aos="zoom-in" data-aos-delay="200">
+        <i data-lucide="user"></i>
+        <h3>Alumno</h3>
+        <p>Accede a sus cursos, calificaciones, horarios y pagos en línea.</p>
+      </div>
+      <div class="role-card" data-aos="zoom-in" data-aos-delay="300">
+        <i data-lucide="user-check"></i>
+        <h3>Profesor</h3>
+        <p>Administra asistencia, carga de notas y comunicación con alumnos.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Estadísticas Impactantes -->
+  <section class="stats-section">
+    <div class="stats-container">
+      <div class="stat-item" data-aos="fade-up" data-aos-delay="100">
+        <i data-lucide="users"></i>
+        <h3 class="counter" data-target="500">0</h3>
+        <p>Alumnos Activos</p>
+      </div>
+      <div class="stat-item" data-aos="fade-up" data-aos-delay="200">
+        <i data-lucide="book-open"></i>
+        <h3 class="counter" data-target="50">0</h3>
+        <p>Cursos Disponibles</p>
+      </div>
+      <div class="stat-item" data-aos="fade-up" data-aos-delay="300">
+        <i data-lucide="award"></i>
+        <h3 class="counter" data-target="95">0</h3>
+        <p>% Satisfacción</p>
+      </div>
+      <div class="stat-item" data-aos="fade-up" data-aos-delay="400">
+        <i data-lucide="trending-up"></i>
+        <h3 class="counter" data-target="99">0</h3>
+        <p>% Uptime</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Módulos -->
+  <section id="modulos" class="modules">
+    <h2 data-aos="fade-up">Módulos Principales</h2>
+    <div class="module-grid">
+      <div class="module-card" data-aos="flip-left" data-aos-delay="100">
+        <i data-lucide="book-open"></i>
+        <h3>Cursos</h3>
+        <p>Gestión completa de materias, niveles y aulas.</p>
+      </div>
+      <div class="module-card" data-aos="flip-left" data-aos-delay="200">
+        <i data-lucide="wallet"></i>
+        <h3>Pagos</h3>
+        <p>Registro y control de cuotas, matrículas y comprobantes.</p>
+      </div>
+      <div class="module-card" data-aos="flip-left" data-aos-delay="300">
+        <i data-lucide="calendar"></i>
+        <h3>Horarios</h3>
+        <p>Consulta y administración de horarios de clases.</p>
+      </div>
+      <div class="module-card" data-aos="flip-left" data-aos-delay="100">
+        <i data-lucide="bar-chart-3"></i>
+        <h3>Reportes</h3>
+        <p>Estadísticas e informes de rendimiento académico.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Características Técnicas -->
+  <section id="caracteristicas" class="features-section">
+    <h2 data-aos="fade-up">Características del Sistema</h2>
+    <div class="features-grid">
+      <div class="feature-item" data-aos="fade-right" data-aos-delay="100">
+        <div class="feature-icon">
+          <i data-lucide="shield-check"></i>
+        </div>
+        <div class="feature-content">
+          <h3>Seguridad Avanzada</h3>
+          <p>Encriptación de datos, autenticación segura y control de acceso por roles.</p>
+        </div>
+      </div>
+      <div class="feature-item" data-aos="fade-right" data-aos-delay="200">
+        <div class="feature-icon">
+          <i data-lucide="database"></i>
+        </div>
+        <div class="feature-content">
+          <h3>Base de Datos Robusta</h3>
+          <p>Sistema de almacenamiento confiable con respaldos automáticos.</p>
+        </div>
+      </div>
+      <div class="feature-item" data-aos="fade-right" data-aos-delay="300">
+        <div class="feature-icon">
+          <i data-lucide="zap"></i>
+        </div>
+        <div class="feature-content">
+          <h3>Rendimiento Óptimo</h3>
+          <p>Respuesta rápida y eficiente para operaciones en tiempo real.</p>
+        </div>
+      </div>
+      <div class="feature-item" data-aos="fade-right" data-aos-delay="100">
+        <div class="feature-icon">
+          <i data-lucide="file-text"></i>
+        </div>
+        <div class="feature-content">
+          <h3>Reportes Detallados</h3>
+          <p>Generación de informes académicos y administrativos en múltiples formatos.</p>
+        </div>
+      </div>
+      <div class="feature-item" data-aos="fade-right" data-aos-delay="200">
+        <div class="feature-icon">
+          <i data-lucide="smartphone"></i>
+        </div>
+        <div class="feature-content">
+          <h3>Diseño Responsive</h3>
+          <p>Acceso desde cualquier dispositivo: PC, tablet o móvil.</p>
+        </div>
+      </div>
+      <div class="feature-item" data-aos="fade-right" data-aos-delay="300">
+        <div class="feature-icon">
+          <i data-lucide="clock"></i>
+        </div>
+        <div class="feature-content">
+          <h3>Disponibilidad 24/7</h3>
+          <p>Sistema accesible en todo momento con monitoreo constante.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sección Nosotros -->
+  <section id="nosotros" class="about-section"></section>
+  <section id="historia" class="about-hero" data-aos="fade-up">
+    <div class="hero-text" data-aos="fade-right">
+      <h1 style="color: var(--color-primary); font-size: 2.5em;">Conoce nuestra historia</h1>
+      <p>Somos un equipo dedicado a modernizar la gestión académica, facilitando la vida de alumnos, profesores y administrativos a través de la tecnología.</p>
+    </div>
+    <div class="hero-image" data-aos="fade-left">
+      <img src="images/banner1.jpg" alt="Banner1" class="animate-on-scroll">
+    </div>
+  </section>
+
+  <section id="filosofia" class="roles">
+    <h2 data-aos="fade-up">Nuestra Filosofía</h2>
+    <div class="role-grid">
+      <div class="role-card" data-aos="zoom-in" data-aos-delay="100">
+        <i data-lucide="target"></i>
+        <h3>Misión</h3>
+        <p>Optimizar la gestión académica a través de una plataforma digital unificada, ágil y transparente para toda la comunidad educativa de CEMI.</p>
+      </div>
+      <div class="role-card" data-aos="zoom-in" data-aos-delay="200">
+        <i data-lucide="eye"></i>
+        <h3>Visión</h3>
+        <p>Ser el sistema de gestión de referencia en la región, impulsando la innovación y la calidad educativa mediante herramientas eficientes y fáciles de usar.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="valores" class="modules">
+    <h2 data-aos="fade-up">Nuestros Valores</h2>
+    <div class="module-grid">
+      <div class="module-card" data-aos="fade-up" data-aos-delay="100">
+        <i data-lucide="lightbulb"></i>
+        <h3>Innovación</h3>
+        <p>Buscamos constantemente nuevas y mejores formas de solucionar los desafíos educativos.</p>
+      </div>
+      <div class="module-card" data-aos="fade-up" data-aos-delay="200">
+        <i data-lucide="shield-check"></i>
+        <h3>Calidad</h3>
+        <p>Nos comprometemos con la excelencia y la fiabilidad en nuestro software y nuestro soporte.</p>
+      </div>
+      <div class="module-card" data-aos="fade-up" data-aos-delay="300">
+        <i data-lucide="users"></i>
+        <h3>Comunidad</h3>
+        <p>Creamos herramientas que fomentan la colaboración y el éxito colectivo de la institución.</p>
+      </div>
+      <div class="module-card" data-aos="fade-up" data-aos-delay="400">
+        <i data-lucide="bar-chart-3"></i>
+        <h3>Transparencia</h3>
+        <p>Creemos en el acceso fácil y claro a la información académica y administrativa.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tecnologías Utilizadas -->
+  <section id="tecnologias" class="tech-section">
+    <h2 data-aos="fade-up">Tecnologías Utilizadas</h2>
+    <p class="tech-subtitle" data-aos="fade-up" data-aos-delay="100">Stack tecnológico profesional y moderno</p>
+    <div class="tech-grid">
+      <div class="tech-item" data-aos="zoom-in" data-aos-delay="100">
+        <div class="tech-icon">
+          <i data-lucide="code-2"></i>
+        </div>
+        <a href="https://nodejs.org" target="_blank" rel="noopener noreferrer"><h4>Node.js</h4></a>
+        <p>Backend</p>
+      </div>
+      <div class="tech-item" data-aos="zoom-in" data-aos-delay="200">
+        <div class="tech-icon">
+          <i data-lucide="database"></i>
+        </div>
+        <a href="https://www.mysql.com" target="_blank" rel="noopener noreferrer"><h4>MySQL</h4></a>
+        <p>Base de Datos</p>
+      </div>
+      <div class="tech-item" data-aos="zoom-in" data-aos-delay="300">
+        <div class="tech-icon">
+          <i data-lucide="layout"></i>
+        </div>
+        <a href="https://developer.mozilla.org/es/docs/Web/HTML" target="_blank" rel="noopener noreferrer"><h4>HTML5/CSS3</h4></a>
+        <p>Frontend</p>
+      </div>
+      <div class="tech-item" data-aos="zoom-in" data-aos-delay="400">
+        <div class="tech-icon">
+          <i data-lucide="server"></i>
+        </div>
+        <a href="https://expressjs.com" target="_blank" rel="noopener noreferrer"><h4>Express.js</h4></a>
+        <p>Framework</p>
+      </div>
+      <div class="tech-item" data-aos="zoom-in" data-aos-delay="500">
+        <div class="tech-icon">
+          <i data-lucide="shield"></i>
+        </div>
+        <a href="https://www.npmjs.com/package/bcrypt" target="_blank" rel="noopener noreferrer"><h4>bcrypt</h4></a>
+        <p>Seguridad</p>
+      </div>
+      <div class="tech-item" data-aos="zoom-in" data-aos-delay="600">
+        <div class="tech-icon">
+          <i data-lucide="git-branch"></i>
+        </div>
+        <a href="https://git-scm.com" target="_blank" rel="noopener noreferrer"><h4>Git</h4></a>
+        <p>Control de Versiones</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq" class="faq-section">
+    <h2 data-aos="fade-up">Preguntas Frecuentes</h2>
+    <div class="faq-container">
+      <div class="faq-item" data-aos="fade-up" data-aos-delay="100">
+        <div class="faq-question">
+          <i data-lucide="help-circle"></i>
+          <h3>¿Cómo accedo al sistema?</h3>
+          <i data-lucide="chevron-down" class="faq-toggle"></i>
+        </div>
+        <div class="faq-answer">
+          <p>Los usuarios registrados pueden acceder mediante el botón "Iniciar Sesión" usando sus credenciales asignadas por la administración.</p>
+        </div>
+      </div>
+      <div class="faq-item" data-aos="fade-up" data-aos-delay="200">
+        <div class="faq-question">
+          <i data-lucide="help-circle"></i>
+          <h3>¿Es seguro el sistema?</h3>
+          <i data-lucide="chevron-down" class="faq-toggle"></i>
+        </div>
+        <div class="faq-answer">
+          <p>Sí, implementamos encriptación de contraseñas, validación de datos y control de acceso basado en roles para garantizar la seguridad.</p>
+        </div>
+      </div>
+      <div class="faq-item" data-aos="fade-up" data-aos-delay="300">
+        <div class="faq-question">
+          <i data-lucide="help-circle"></i>
+          <h3>¿Puedo acceder desde mi móvil?</h3>
+          <i data-lucide="chevron-down" class="faq-toggle"></i>
+        </div>
+        <div class="faq-answer">
+          <p>El sistema cuenta con diseño responsive, permitiendo acceso completo desde smartphones, tablets y computadoras.</p>
+        </div>
+      </div>
+      <div class="faq-item" data-aos="fade-up" data-aos-delay="400">
+        <div class="faq-question">
+          <i data-lucide="help-circle"></i>
+          <h3>¿Qué reportes puedo generar?</h3>
+          <i data-lucide="chevron-down" class="faq-toggle"></i>
+        </div>
+        <div class="faq-answer">
+          <p>El sistema permite generar reportes de calificaciones, asistencias, pagos y estadísticas generales en formato digital.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="equipo" class="about-section">
+    <h2 style="text-align: center; color: var(--color-primary); font-size: 2em; margin-bottom: 40px;" data-aos="fade-up">Nuestro Equipo</h2>
+    <p style="text-align: center; max-width: 600px; margin: -20px auto 40px auto;" data-aos="fade-up" data-aos-delay="100">Los desarrolladores detrás de este proyecto final.</p>
+    
+    <div class="team-grid">
+      <div class="team-card" data-aos="flip-up" data-aos-delay="100">
+        <i data-lucide="user-cog"></i>
+        <h4>(Mendoza Eduardo)</h4>
+        <p>Backend</p>
+      </div>
+      <div class="team-card">
+        <i data-lucide="code-2"></i>
+        <h4>(Bareiro Bautista)</h4>
+        <p>Frontend</p>
+      </div>
+      <div class="team-card">
+        <i data-lucide="layout"></i>
+        <h4>(Lucena Carlos)</h4>
+        <p>Jefe De Proyecto</p>
+      </div>
+      <div class="team-card">
+        <i data-lucide="database"></i>
+        <h4>(Gomez Micaela)</h4>
+        <p>Jefe De Proyecto</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer Profesional -->
+  <footer class="professional-footer">
+    <div class="footer-main">
+      <div class="footer-column">
+        <div class="footer-logo">
+          <img src="images/logo.png" alt="Logo CEMI">
+          <h3>CEMI</h3>
+        </div>
+        <p class="footer-description">Sistema de Gestión Académica Integral para instituciones educativas modernas.</p>
+      </div>
+      
+      <div class="footer-column">
+        <h4>Enlaces Rápidos</h4>
+        <ul class="footer-links">
+          <li><a href="#roles"><i data-lucide="chevron-right"></i> Roles</a></li>
+          <li><a href="#modulos"><i data-lucide="chevron-right"></i> Módulos</a></li>
+          <li><a href="#nosotros"><i data-lucide="chevron-right"></i> Nosotros</a></li>
+          <li><a href="login.html"><i data-lucide="chevron-right"></i> Iniciar Sesión</a></li>
+        </ul>
+      </div>
+      
+      <div class="footer-column">
+        <h4>Contacto</h4>
+        <ul class="footer-contact">
+          <li><i data-lucide="mail"></i> contacto@cemi.edu.ar</li>
+          <li><i data-lucide="phone"></i> +54 381 123-4567</li>
+          <li><i data-lucide="map-pin"></i> Sarmiento y Marconi<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Bella Vista, Tucumán</li>
+        </ul>
+      </div>
+      
+      <div class="footer-column">
+        <h4>Síguenos</h4>
+        <div class="footer-social">
+          <a href="https://www.facebook.com/p/CEMI-Bella-Vista-61573420844539/" target="_blank" rel="noopener noreferrer" class="social-link">
+            <i data-lucide="facebook"></i>
+          </a>
+          <a href="#" class="social-link" onclick="abrirMapa(event)">
+            <i data-lucide="map"></i>
+          </a>
+        </div>
+        <button class="footer-cta" onclick="window.location.href='register.html'">
+          <i data-lucide="user-plus"></i> Registrarse
+        </button>
+      </div>
+    </div>
+    
+    <div class="footer-bottom">
+      <p>&copy; 2025 CEMI - Sistema de Gestión Académica. Todos los derechos reservados.</p>
+      <p class="footer-tech">Desarrollado con <i data-lucide="heart" style="width: 14px; height: 14px; color: #e53935;"></i> usando Node.js, MySQL y tecnologías modernas</p>
+      <div class="footer-links">
+        <a href="terminos.html">Términos de Servicio</a>
+        <a href="privacidad.html">Privacidad</a>
+        <a href="ayuda.html">Ayuda</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Botón Flotante de Acceso Rápido -->
+  <button class="floating-btn" onclick="window.location.href='login.html'" title="Acceso Rápido">
+    <i data-lucide="log-in"></i>
+  </button>
+
+  <!-- Menú Flotante Expandible -->
+  <div class="floating-menu-container" id="floatingMenu">
+    <!-- Botón Principal -->
+    <button class="floating-btn-main" title="Menú de Recursos">
+      <i data-lucide="menu" class="icon-menu"></i>
+      <i data-lucide="x" class="icon-close"></i>
+    </button>
+    
+    <!-- Botones Secundarios -->
+    <div class="floating-submenu">
+      <button class="floating-btn-sub floating-btn-help" onclick="window.location.href='ayuda.html'" title="Centro de Ayuda">
+        <i data-lucide="help-circle"></i>
+      </button>
+      
+      <button class="floating-btn-sub floating-btn-privacy" onclick="window.location.href='privacidad.html'" title="Política de Privacidad">
+        <i data-lucide="shield-check"></i>
+      </button>
+      
+      <button class="floating-btn-sub floating-btn-terms" onclick="window.location.href='terminos.html'" title="Términos de Servicio">
+        <i data-lucide="file-text"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Modal de Mapa -->
+  <div id="mapaModal" class="mapa-modal" onclick="cerrarMapa()">
+    <div class="mapa-modal-content" onclick="event.stopPropagation()">
+      <div class="mapa-modal-header">
+        <h3><i data-lucide="map-pin"></i> Ubicación CEMI</h3>
+        <button onclick="cerrarMapa()" class="mapa-close-btn">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div class="mapa-container">
+        <iframe 
+          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3560.8287364556586!2d-65.30864192377594!3d-27.032020576429577!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94224f1587308ef1%3A0xccea20f86f0fd2b1!2sCentro%20Universitario%20Dr.%20Ra%C3%BAl%20Alfonsin!5e0!3m2!1ses!2sar!4v1730000000000!5m2!1ses!2sar"
+          width="100%" 
+          height="450" 
+          style="border:0; border-radius: 12px;" 
+          allowfullscreen="" 
+          loading="lazy" 
+          referrerpolicy="no-referrer-when-downgrade">
+        </iframe>
+      </div>
+      <div class="mapa-actions">
+        <a 
+          href="https://www.google.com/maps/dir/-27.0305812,-65.3213426/Centro+Universitario+Dr.+Ra%C3%BAl+Alfonsin,+Sarmiento,+Marconi+%26,+Bella+Vista,+Tucum%C3%A1n/@-27.030495,-65.3240088,15z/data=!3m1!4b1!4m9!4m8!1m1!4e1!1m5!1m1!1s0x94224f1587308ef1:0xccea20f86f0fd2b1!2m2!1d-65.3064623!2d-27.0320205?entry=ttu&g_ep=EgoyMDI1MTAyOS4yIKXMDSoASAFQAw%3D%3D"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="mapa-directions-btn">
+          <i data-lucide="navigation"></i> Cómo llegar
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Funciones para el modal del mapa
+    function abrirMapa(event) {
+      event.preventDefault();
+      const modal = document.getElementById('mapaModal');
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+      // Reinicializar iconos de Lucide en el modal
+      setTimeout(() => lucide.createIcons(), 100);
+    }
+
+    function cerrarMapa() {
+      const modal = document.getElementById('mapaModal');
+      modal.classList.remove('active');
+      document.body.style.overflow = 'auto';
+    }
+
+    // Cerrar modal con tecla ESC
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        cerrarMapa();
+      }
+    });
+  </script>
+
+  <!-- AOS JS -->
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+  
+  <!-- SweetAlert2 JS -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  
+  <!-- Config JS - MUST be first -->
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/script.js"></script>
+  <script>
+    // Inicializar Lucide Icons
+    lucide.createIcons();
+    
+    // Inicializar AOS
+    AOS.init({
+      duration: 800,
+      easing: 'ease-in-out',
+      once: true,
+      offset: 100
+    });
+
+    // ===== MENÚ FLOTANTE EXPANDIBLE =====
+    const floatingMenu = document.getElementById('floatingMenu');
+    const mainBtn = floatingMenu.querySelector('.floating-btn-main');
+    
+    // Toggle al hacer click
+    mainBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      floatingMenu.classList.toggle('active');
+    });
+    
+    // Cerrar al hacer click fuera
+    document.addEventListener('click', (e) => {
+      if (!floatingMenu.contains(e.target)) {
+        floatingMenu.classList.remove('active');
+      }
+    });
+    
+    // Cerrar al hacer click en un botón secundario
+    floatingMenu.querySelectorAll('.floating-btn-sub').forEach(btn => {
+      btn.addEventListener('click', () => {
+        floatingMenu.classList.remove('active');
+      });
+    });
+
+    // ===== ACORDEÓN FAQ =====
+    document.querySelectorAll('.faq-question').forEach(question => {
+      question.addEventListener('click', () => {
+        const faqItem = question.parentElement;
+        const isActive = faqItem.classList.contains('active');
+        
+        // Cerrar todos los demás items
+        document.querySelectorAll('.faq-item').forEach(item => {
+          item.classList.remove('active');
+        });
+        
+        // Abrir el actual si no estaba activo
+        if (!isActive) {
+          faqItem.classList.add('active');
+        }
+      });
+    });
+
+    // ===== CONTADOR ANIMADO DE ESTADÍSTICAS =====
+    // Activar contadores cuando la sección sea visible
+    const statsObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && !entry.target.classList.contains('counted')) {
+          entry.target.classList.add('counted');
+          
+          // Para .counter (sección stats-section existente)
+          const counters = entry.target.querySelectorAll('.counter');
+          counters.forEach(counter => {
+            const target = parseInt(counter.getAttribute('data-target'));
+            let start = 0;
+            const increment = target / 100;
+            const timer = setInterval(() => {
+              start += increment;
+              if (start >= target) {
+                counter.textContent = target;
+                clearInterval(timer);
+              } else {
+                counter.textContent = Math.ceil(start);
+              }
+            }, 20);
+          });
+
+          // Para .stat-number (nueva sección de estadísticas si existe)
+          const statNumbers = entry.target.querySelectorAll('.stat-number');
+          statNumbers.forEach(num => {
+            const target = parseInt(num.getAttribute('data-target'));
+            const suffix = num.getAttribute('data-suffix') || '';
+            
+            let start = 0;
+            const increment = target / 100;
+            const timer = setInterval(() => {
+              start += increment;
+              if (start >= target) {
+                num.textContent = target + suffix;
+                clearInterval(timer);
+              } else {
+                num.textContent = Math.ceil(start) + suffix;
+              }
+            }, 20);
+          });
+        }
+      });
+    }, { threshold: 0.3 });
+
+    // Observar todas las secciones de estadísticas
+    document.querySelectorAll('.stats-section, .stats-container').forEach(section => {
+      statsObserver.observe(section);
+    });
+
+    // Ejemplo de SweetAlert2 para el botón de contacto (opcional)
+    function mostrarContacto() {
+      Swal.fire({
+        title: '¿Necesitas ayuda?',
+        text: 'Contáctanos para más información sobre el Sistema CEMI',
+        icon: 'question',
+        confirmButtonText: 'Entendido',
+        confirmButtonColor: '#1e3c72'
+      });
+    }
+  </script>
+  
+  <!-- Widget de Chat -->
+  <script src="assets/js/chat-widget.js"></script>
+</body>
+</html>

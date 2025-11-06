@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi Perfil - CEMI Classroom</title>
+  <link rel="stylesheet" href="assets/css/perfil-classroom.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+  <!-- Header -->
+  <header class="perfil-header">
+    <div class="header-container">
+      <div class="header-left">
+        <button class="btn-back" onclick="window.location.href='classroom.html'">
+          <i data-lucide="arrow-left"></i>
+          Volver al Classroom
+        </button>
+      </div>
+      <div class="header-center">
+        <h1>Mi Perfil</h1>
+      </div>
+      <div class="header-right">
+        <button class="btn-theme" id="toggleTheme">
+          <i data-lucide="sun"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <div class="perfil-container">
+    <!-- Sidebar de navegación -->
+    <aside class="perfil-sidebar">
+      <nav class="perfil-nav">
+        <button class="nav-item active" data-section="info-general" onclick="cambiarSeccion('info-general')">
+          <i data-lucide="user"></i>
+          <span>Información General</span>
+        </button>
+        <button class="nav-item" data-section="info-personal" onclick="cambiarSeccion('info-personal')">
+          <i data-lucide="id-card"></i>
+          <span>Datos Personales</span>
+        </button>
+        <button class="nav-item" data-section="info-academica" onclick="cambiarSeccion('info-academica')">
+          <i data-lucide="graduation-cap"></i>
+          <span>Información Académica</span>
+        </button>
+        <button class="nav-item" data-section="estadisticas" onclick="cambiarSeccion('estadisticas')">
+          <i data-lucide="bar-chart-2"></i>
+          <span>Estadísticas</span>
+        </button>
+        <button class="nav-item" data-section="configuracion-perfil" onclick="cambiarSeccion('configuracion-perfil')">
+          <i data-lucide="settings"></i>
+          <span>Configuración</span>
+        </button>
+      </nav>
+    </aside>
+
+    <!-- Contenido principal -->
+    <main class="perfil-content">
+      <!-- Sección: Información General -->
+      <section class="perfil-section active" id="info-general">
+        <div class="profile-header-card">
+          <div class="profile-avatar-container">
+            <div class="profile-avatar" id="profileAvatar">
+              <span id="avatarInitials">ED</span>
+            </div>
+            <button class="btn-change-avatar" onclick="document.getElementById('avatarInput').click()">
+              <i data-lucide="camera"></i>
+            </button>
+            <input type="file" id="avatarInput" accept="image/*" style="display: none;" onchange="cambiarAvatar(event)">
+          </div>
+          <div class="profile-header-info">
+            <h2 id="profileName">Cargando...</h2>
+            <div class="profile-badges">
+              <span class="badge badge-role" id="profileRole">Profesor</span>
+              <span class="badge badge-status"><i data-lucide="check-circle"></i> Activo</span>
+            </div>
+            <p class="profile-username">@<span id="profileUsername">username</span></p>
+            <p class="profile-joined">Miembro desde <span id="profileJoined">2025</span></p>
+          </div>
+        </div>
+
+        <div class="info-cards-grid">
+          <div class="info-card">
+            <div class="info-card-icon">
+              <i data-lucide="mail"></i>
+            </div>
+            <div class="info-card-content">
+              <h4>Email</h4>
+              <p id="infoEmail">cargando...</p>
+            </div>
+          </div>
+          <div class="info-card">
+            <div class="info-card-icon">
+              <i data-lucide="phone"></i>
+            </div>
+            <div class="info-card-content">
+              <h4>Teléfono</h4>
+              <p id="infoTelefono">cargando...</p>
+            </div>
+          </div>
+          <div class="info-card">
+            <div class="info-card-icon">
+              <i data-lucide="calendar"></i>
+            </div>
+            <div class="info-card-content">
+              <h4>Fecha de Nacimiento</h4>
+              <p id="infoFechaNac">cargando...</p>
+            </div>
+          </div>
+          <div class="info-card">
+            <div class="info-card-icon">
+              <i data-lucide="map-pin"></i>
+            </div>
+            <div class="info-card-content">
+              <h4>Dirección</h4>
+              <p id="infoDireccion">cargando...</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Biografía -->
+        <div class="biografia-section">
+          <h3>
+            <i data-lucide="file-text"></i>
+            Biografía
+          </h3>
+          <div class="biografia-content">
+            <p id="biografiaDisplay">Sin biografía</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Sección: Datos Personales (Editable) -->
+      <section class="perfil-section" id="info-personal">
+        <div class="section-header">
+          <h2>
+            <i data-lucide="id-card"></i>
+            Datos Personales
+          </h2>
+          <p>Actualiza tu información personal</p>
+        </div>
+
+        <form class="perfil-form" id="formDatosPersonales">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="inputNombre">Nombre</label>
+              <input type="text" id="inputNombre" class="form-input" placeholder="Tu nombre">
+            </div>
+            <div class="form-group">
+              <label for="inputApellido">Apellido</label>
+              <input type="text" id="inputApellido" class="form-input" placeholder="Tu apellido">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="inputEmail">Email</label>
+              <input type="email" id="inputEmail" class="form-input" placeholder="tucorreo@ejemplo.com">
+            </div>
+            <div class="form-group">
+              <label for="inputTelefono">Teléfono</label>
+              <input type="tel" id="inputTelefono" class="form-input" placeholder="+54 11 1234-5678">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="inputFechaNac">Fecha de Nacimiento</label>
+              <input type="date" id="inputFechaNac" class="form-input">
+            </div>
+            <div class="form-group">
+              <label for="inputDireccion">Dirección</label>
+              <input type="text" id="inputDireccion" class="form-input" placeholder="Calle, Ciudad">
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn-secondary" onclick="cancelarEdicion()">
+              <i data-lucide="x"></i>
+              Cancelar
+            </button>
+            <button type="submit" class="btn-primary">
+              <i data-lucide="save"></i>
+              Guardar Cambios
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Sección: Información Académica -->
+      <section class="perfil-section" id="info-academica">
+        <div class="section-header">
+          <h2>
+            <i data-lucide="graduation-cap"></i>
+            Información Académica
+          </h2>
+          <p id="academicSubtitle">Tus cursos y progreso</p>
+        </div>
+
+        <!-- Para Alumnos -->
+        <div id="alumnoAcademico" style="display: none;">
+          <div class="academic-stats">
+            <div class="stat-card">
+              <div class="stat-icon blue">
+                <i data-lucide="book-open"></i>
+              </div>
+              <div class="stat-content">
+                <h3 id="totalCursos">0</h3>
+                <p>Cursos Inscritos</p>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon green">
+                <i data-lucide="award"></i>
+              </div>
+              <div class="stat-content">
+                <h3 id="promedioGeneral">0.0</h3>
+                <p>Promedio General</p>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon orange">
+                <i data-lucide="clipboard-check"></i>
+              </div>
+              <div class="stat-content">
+                <h3 id="tareasCompletadas">0/0</h3>
+                <p>Tareas Completadas</p>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon purple">
+                <i data-lucide="calendar-check"></i>
+              </div>
+              <div class="stat-content">
+                <h3 id="asistenciaGeneral">0%</h3>
+                <p>Asistencia General</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="courses-section">
+            <h3>Mis Cursos</h3>
+            <div class="courses-grid" id="cursosAlumno">
+              <!-- Se llenan con JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Para Profesores -->
+        <div id="profesorAcademico" style="display: none;">
+          <div class="academic-stats">
+            <div class="stat-card">
+              <div class="stat-icon blue">
+                <i data-lucide="book-open"></i>
+              </div>
+              <div class="stat-content">
+                <h3 id="totalCursosProf">0</h3>
+                <p>Cursos que Imparto</p>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon green">
+                <i data-lucide="users"></i>
+              </div>
+              <div class="stat-content">
+                <h3 id="totalAlumnos">0</h3>
+                <p>Total de Alumnos</p>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon orange">
+                <i data-lucide="languages"></i>
+              </div>
+              <div class="stat-content">
+                <h3 id="especialidad">-</h3>
+                <p>Especialidad</p>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon purple">
+                <i data-lucide="clock"></i>
+              </div>
+              <div class="stat-content">
+                <h3 id="horasClase">0h</h3>
+                <p>Horas de Clase</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="courses-section">
+            <h3>Cursos que Imparto</h3>
+            <div class="courses-grid" id="cursosProfesor">
+              <!-- Se llenan con JS -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Sección: Estadísticas -->
+      <section class="perfil-section" id="estadisticas">
+        <div class="section-header">
+          <h2>
+            <i data-lucide="bar-chart-2"></i>
+            Estadísticas del Classroom
+          </h2>
+          <p>Tu actividad en la plataforma</p>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card-large">
+            <div class="stat-header">
+              <i data-lucide="clock"></i>
+              <h4>Tiempo en la Plataforma</h4>
+            </div>
+            <div class="stat-value">
+              <h2 id="tiempoPlataforma">0 horas</h2>
+              <p>Total acumulado</p>
+            </div>
+          </div>
+
+          <div class="stat-card-large">
+            <div class="stat-header">
+              <i data-lucide="activity"></i>
+              <h4>Última Actividad</h4>
+            </div>
+            <div class="stat-value">
+              <h2 id="ultimaActividad">Hoy</h2>
+              <p id="ultimaActividadDetalle">Hace 5 minutos</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Sección: Configuración del Perfil -->
+      <section class="perfil-section" id="configuracion-perfil">
+        <div class="section-header">
+          <h2>
+            <i data-lucide="settings"></i>
+            Configuración del Perfil
+          </h2>
+          <p>Personaliza tu perfil</p>
+        </div>
+
+        <div class="config-card">
+          <h3>Biografía</h3>
+          <p class="config-description">Cuéntanos un poco sobre ti</p>
+          <textarea id="inputBiografia" class="form-textarea" rows="4" placeholder="Escribe una breve descripción sobre ti..."></textarea>
+          <button class="btn-primary btn-sm" onclick="guardarBiografia()">
+            <i data-lucide="save"></i>
+            Guardar Biografía
+          </button>
+        </div>
+
+        <div class="config-card">
+          <h3>Acciones Rápidas</h3>
+          <div class="quick-actions">
+            <button class="btn-action" onclick="window.location.href='classroom.html'">
+              <i data-lucide="home"></i>
+              <span>Volver al Classroom</span>
+            </button>
+            <button class="btn-action" onclick="irAlDashboard()">
+              <i data-lucide="layout-dashboard"></i>
+              <span>Ir a Mi Dashboard</span>
+            </button>
+            <button class="btn-action" onclick="exportarMisDatos()">
+              <i data-lucide="download"></i>
+              <span>Exportar Mis Datos</span>
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="assets/js/perfil-classroom.js"></script>
+  <script>
+    lucide.createIcons();
+  </script>
+</body>
+</html>
