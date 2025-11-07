@@ -598,13 +598,13 @@ router.get("/usuario-classroom/:id_persona", async (req, res) => {
 
 // -------------------------
 // POST /api/auth/admin-cambiar-password-classroom
-// Admin cambia contraseña (Dashboard y Classroom usan la misma)
+// Admin cambia usuario y/o contraseña (Dashboard y Classroom usan la misma)
+// Recibe: id_persona, username, password (opcional)
 // -------------------------
 router.post("/admin-cambiar-password-classroom",
   [
-    body('id_usuario').isInt().withMessage('ID de usuario inválido'),
-    body('tipo_usuario').isIn(['alumno', 'profesor']).withMessage('Tipo de usuario inválido'),
-    body('nueva_password').isLength({ min: 6 }).withMessage('La contraseña debe tener al menos 6 caracteres')
+    body('id_persona').isInt().withMessage('ID de persona inválido'),
+    body('username').notEmpty().withMessage('El nombre de usuario es obligatorio')
   ],
   async (req, res) => {
     const errors = validationResult(req);
@@ -616,53 +616,72 @@ router.post("/admin-cambiar-password-classroom",
       });
     }
 
-    const { id_usuario, tipo_usuario, nueva_password } = req.body;
+    const { id_persona, username, password } = req.body;
 
     try {
-      console.log(`🔑 Admin actualizando password de Classroom/Dashboard para ${tipo_usuario} ID: ${id_usuario}`);
+      console.log(`🔑 Admin actualizando credenciales para id_persona: ${id_persona}`);
 
-      // Convertir tipo_usuario a id_perfil
-      let id_perfil;
-      if (tipo_usuario === 'alumno') id_perfil = 2;
-      else if (tipo_usuario === 'profesor') id_perfil = 3;
+      // Verificar que el usuario no esté en uso por otra persona
+      const [existingUser] = await pool.query(
+        `SELECT id_persona FROM usuarios WHERE username = ? AND id_persona != ?`,
+        [username, id_persona]
+      );
 
-      // Obtener id_persona del alumno/profesor
-      const tabla = tipo_usuario === 'alumno' ? 'alumnos' : 'profesores';
-      const idColumn = tipo_usuario === 'alumno' ? 'id_alumno' : 'id_profesor';
+      if (existingUser.length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'El nombre de usuario ya está en uso por otra persona'
+        });
+      }
 
+      // Buscar el usuario en la tabla usuarios
       const [user] = await pool.query(
-        `SELECT id_persona FROM ${tabla} WHERE ${idColumn} = ?`,
-        [id_usuario]
+        `SELECT id_usuario, username FROM usuarios WHERE id_persona = ?`,
+        [id_persona]
       );
 
       if (user.length === 0) {
         return res.status(404).json({
           success: false,
-          message: 'Usuario no encontrado'
+          message: 'Usuario no encontrado en la tabla usuarios'
         });
       }
 
-      // Hashear la nueva contraseña
-      const hashedPassword = await bcrypt.hash(nueva_password, 10);
-
-      // Actualizar contraseña en tabla usuarios centralizada
+      // Actualizar username
       await pool.query(
-        `UPDATE usuarios SET password_hash = ? WHERE id_persona = ? AND id_perfil = ?`,
-        [hashedPassword, user[0].id_persona, id_perfil]
+        `UPDATE usuarios SET username = ? WHERE id_persona = ?`,
+        [username, id_persona]
       );
 
-      console.log(`✅ Password actualizada para ${tipo_usuario} ID: ${id_usuario}`);
+      console.log(`✅ Username actualizado a: ${username}`);
 
-      return res.json({
-        success: true,
-        message: 'Contraseña actualizada correctamente (Dashboard y Classroom unificados)'
-      });
+      // Si se proporcionó password, actualizarlo también
+      if (password && password.trim().length > 0) {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        
+        await pool.query(
+          `UPDATE usuarios SET password_hash = ? WHERE id_persona = ?`,
+          [hashedPassword, id_persona]
+        );
+
+        console.log(`✅ Password actualizada para id_persona: ${id_persona}`);
+
+        return res.json({
+          success: true,
+          message: 'Usuario y contraseña actualizados correctamente (válidos para Dashboard y Classroom)'
+        });
+      } else {
+        return res.json({
+          success: true,
+          message: 'Usuario actualizado correctamente (válido para Dashboard y Classroom)'
+        });
+      }
 
     } catch (error) {
       console.error("💥 /auth/admin-cambiar-password-classroom error:", error);
       return res.status(500).json({
         success: false,
-        message: 'Error al actualizar la contraseña del Classroom'
+        message: 'Error al actualizar las credenciales'
       });
     }
   }
