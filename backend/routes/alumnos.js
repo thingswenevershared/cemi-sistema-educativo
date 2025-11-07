@@ -15,8 +15,8 @@ router.get("/", async (req, res) => {
         p.nombre, 
         p.apellido, 
         p.mail, 
+        p.telefono,
         a.legajo,
-        a.telefono,
         a.estado,
         a.fecha_registro,
         (SELECT COUNT(*) 
@@ -60,14 +60,15 @@ router.get("/:id",
         p.nombre, 
         p.apellido, 
         p.mail, 
+        p.telefono,
         a.legajo,
-        a.telefono,
         a.estado,
         a.fecha_registro,
-        a.usuario,
-        a.password_hash
+        u.username as usuario,
+        u.password_hash
       FROM alumnos a
       JOIN personas p ON a.id_alumno = p.id_persona
+      LEFT JOIN usuarios u ON a.id_persona = u.id_persona
       WHERE a.id_alumno = ?
     `, [req.params.id]);
     
@@ -530,11 +531,10 @@ router.get("/:id/perfil", async (req, res) => {
         p.apellido,
         p.mail,
         p.dni,
-        p.telefono as telefono_personal,
+        p.telefono,
+        p.direccion as domicilio,
+        p.fecha_nacimiento,
         a.legajo,
-        a.telefono,
-        a.domicilio,
-        a.fecha_nacimiento,
         a.estado,
         a.fecha_registro
       FROM alumnos a

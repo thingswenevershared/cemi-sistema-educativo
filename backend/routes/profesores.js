@@ -12,8 +12,8 @@ router.get("/", async (req, res) => {
         per.nombre,
         per.apellido,
         per.mail,
+        per.telefono,
         p.especialidad,
-        p.telefono,
         p.estado,
         p.fecha_ingreso,
         (SELECT GROUP_CONCAT(DISTINCT i.nombre_idioma SEPARATOR ', ')
@@ -45,14 +45,15 @@ router.get("/:id", async (req, res) => {
         per.nombre,
         per.apellido,
         per.mail,
+        per.telefono,
         p.especialidad,
-        p.telefono,
         p.estado,
         p.fecha_ingreso,
-        p.usuario,
-        p.password_hash
+        u.username as usuario,
+        u.password_hash
       FROM profesores p
       JOIN personas per ON p.id_profesor = per.id_persona
+      LEFT JOIN usuarios u ON p.id_persona = u.id_persona
       WHERE p.id_profesor = ?
     `, [req.params.id]);
     
@@ -450,9 +451,8 @@ router.get("/:id/perfil", async (req, res) => {
         per.apellido,
         per.mail,
         per.dni,
-        per.telefono as telefono_personal,
+        per.telefono,
         p.especialidad,
-        p.telefono,
         p.fecha_ingreso,
         p.estado,
         -- Total de cursos asignados
