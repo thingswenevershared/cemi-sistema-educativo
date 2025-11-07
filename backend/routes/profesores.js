@@ -150,16 +150,16 @@ router.put("/:id", async (req, res) => {
       });
     }
 
-    // Actualizar tabla personas (id_profesor = id_persona)
+    // Actualizar tabla personas (id_profesor = id_persona, incluye telefono)
     await pool.query(
-      'UPDATE personas SET nombre = ?, apellido = ?, mail = ? WHERE id_persona = ?',
-      [nombre, apellido, mail, id]
+      'UPDATE personas SET nombre = ?, apellido = ?, mail = ?, telefono = ? WHERE id_persona = ?',
+      [nombre, apellido, mail, telefono || null, id]
     );
 
-    // Actualizar tabla profesores
+    // Actualizar tabla profesores (solo campos propios de profesor)
     const [result] = await pool.query(
-      'UPDATE profesores SET especialidad = ?, telefono = ?, estado = ? WHERE id_profesor = ?',
-      [especialidad, telefono || null, estado || 'activo', id]
+      'UPDATE profesores SET especialidad = ?, estado = ? WHERE id_profesor = ?',
+      [especialidad, estado || 'activo', id]
     );
 
     if (result.affectedRows === 0) {

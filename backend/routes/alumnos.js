@@ -375,16 +375,16 @@ router.put("/:id", async (req, res) => {
       });
     }
 
-    // Actualizar persona
+    // Actualizar persona (incluye telefono)
     await pool.query(
-      'UPDATE personas SET nombre = ?, apellido = ?, mail = ? WHERE id_persona = ?',
-      [nombre, apellido, mail, id_alumno]
+      'UPDATE personas SET nombre = ?, apellido = ?, mail = ?, telefono = ? WHERE id_persona = ?',
+      [nombre, apellido, mail, telefono || null, id_alumno]
     );
 
-    // Actualizar alumno
+    // Actualizar alumno (solo campos propios de alumno)
     const [result] = await pool.query(
-      'UPDATE alumnos SET legajo = ?, telefono = ?, estado = ? WHERE id_alumno = ?',
-      [legajo, telefono || null, estado || 'activo', id_alumno]
+      'UPDATE alumnos SET legajo = ?, estado = ? WHERE id_alumno = ?',
+      [legajo, estado || 'activo', id_alumno]
     );
 
     if (result.affectedRows === 0) {
