@@ -598,7 +598,7 @@ router.get("/usuario-classroom/:id_persona", async (req, res) => {
 
 // -------------------------
 // POST /api/auth/admin-cambiar-password-classroom
-// Asignar/cambiar SOLO la contraseña de Classroom (NO cambia el usuario)
+// Admin cambia contraseña (Dashboard y Classroom usan la misma)
 // -------------------------
 router.post("/admin-cambiar-password-classroom",
   [
@@ -758,80 +758,8 @@ router.post("/classroom-login", async (req, res) => {
 });
 
 // -------------------------
-// POST /api/auth/admin-cambiar-password-classroom
-// Admin asigna/cambia password de Classroom para alumno o profesor
-// -------------------------
-router.post("/admin-cambiar-password-classroom",
-  [
-    body('id_usuario').isInt().withMessage('ID de usuario inválido'),
-    body('tipo_usuario').isIn(['alumno', 'profesor']).withMessage('Tipo de usuario inválido'),
-    body('nueva_password').notEmpty().withMessage('La nueva contraseña es requerida')
-      .isLength({ min: 6 }).withMessage('La contraseña debe tener al menos 6 caracteres')
-  ],
-  async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        message: errors.array()[0].msg,
-        errors: errors.array()
-      });
-    }
-
-    const { id_usuario, tipo_usuario, nueva_password } = req.body;
-
-    try {
-      // Hash de la nueva contraseña
-      const salt = bcrypt.genSaltSync(10);
-      const passwordHash = bcrypt.hashSync(nueva_password.trim(), salt);
-
-      // Obtener id_persona
-      const tabla = tipo_usuario === 'alumno' ? 'alumnos' : 'profesores';
-      const idColumn = tipo_usuario === 'alumno' ? 'id_alumno' : 'id_profesor';
-
-      const [user] = await pool.query(
-        `SELECT id_persona FROM ${tabla} WHERE ${idColumn} = ?`,
-        [id_usuario]
-      );
-
-      if (user.length === 0) {
-        return res.status(404).json({
-          success: false,
-          message: 'Usuario no encontrado'
-        });
-      }
-
-      // Actualizar contraseña en tabla usuarios centralizada
-      const [result] = await pool.query(
-        `UPDATE usuarios SET password_hash = ? WHERE id_persona = ?`,
-        [passwordHash, user[0].id_persona]
-      );
-
-      if (result.affectedRows === 0) {
-        return res.status(404).json({
-          success: false,
-          message: 'Usuario no encontrado en tabla usuarios'
-        });
-      }
-
-      return res.json({
-        success: true,
-        message: 'Contraseña actualizada exitosamente (Dashboard y Classroom unificados)'
-      });
-
-    } catch (error) {
-      console.error("💥 /auth/admin-cambiar-password-classroom error:", error);
-      return res.status(500).json({
-        success: false,
-        message: "Error al actualizar la contraseña"
-      });
-    }
-  }
-);
-
-// -------------------------
 // GET /api/auth/usuario-classroom/:id
-// Obtener información de credenciales Classroom de un usuario
+// Obtener información de usuario (Dashboard y Classroom usan mismas credenciales)
 // -------------------------
 router.get("/usuario-classroom/:id", async (req, res) => {
   const { id } = req.params;
@@ -864,7 +792,8 @@ router.get("/usuario-classroom/:id", async (req, res) => {
         success: true,
         usuario: rows[0].usuario,
         nombre: `${rows[0].nombre} ${rows[0].apellido}`,
-        tiene_password_classroom: tienePassword // Mismo password para Dashboard y Classroom
+        tiene_password: tienePassword, // Dashboard y Classroom usan mismo password
+        tiene_password_classroom: tienePassword // Por compatibilidad con frontend
       });
 
     } else if (tipo === 'profesor') {
@@ -891,7 +820,8 @@ router.get("/usuario-classroom/:id", async (req, res) => {
         success: true,
         usuario: rows[0].usuario,
         nombre: `${rows[0].nombre} ${rows[0].apellido}`,
-        tiene_password_classroom: tienePassword // Mismo password para Dashboard y Classroom
+        tiene_password: tienePassword, // Dashboard y Classroom usan mismo password
+        tiene_password_classroom: tienePassword // Por compatibilidad con frontend
       });
     }
 
