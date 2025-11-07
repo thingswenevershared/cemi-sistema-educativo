@@ -199,18 +199,18 @@ router.post("/", async (req, res) => {
       });
     }
 
-    // Primero crear persona
+    // Primero crear persona (incluyendo telefono)
     const [personaResult] = await pool.query(
-      'INSERT INTO personas (nombre, apellido, mail, dni) VALUES (?, ?, ?, ?)',
-      [nombre, apellido, mail, dni || null]
+      'INSERT INTO personas (nombre, apellido, mail, dni, telefono) VALUES (?, ?, ?, ?, ?)',
+      [nombre, apellido, mail, dni || null, telefono || null]
     );
 
     const id_persona = personaResult.insertId;
 
-    // Crear alumno
+    // Crear alumno (solo datos académicos, sin telefono)
     const [alumnoResult] = await pool.query(
-      'INSERT INTO alumnos (id_alumno, id_persona, legajo, telefono, estado, fecha_registro) VALUES (?, ?, ?, ?, ?, CURRENT_DATE)',
-      [id_persona, id_persona, legajo, telefono || null, 'activo']
+      'INSERT INTO alumnos (id_alumno, id_persona, legajo, estado, fecha_registro) VALUES (?, ?, ?, ?, CURRENT_DATE)',
+      [id_persona, id_persona, legajo, 'activo']
     );
 
     // Crear usuario si se proporcionó username y password
