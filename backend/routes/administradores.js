@@ -44,11 +44,12 @@ router.get("/:id", async (req, res) => {
         per.mail,
         per.dni,
         per.telefono,
-        adm.usuario,
-        adm.password_hash,
+        u.username as usuario,
+        u.password_hash,
         adm.nivel_acceso,
         adm.fecha_registro
       FROM personas per
+      LEFT JOIN usuarios u ON per.id_persona = u.id_persona
       LEFT JOIN administradores adm ON per.id_persona = adm.id_persona
       WHERE per.id_persona = ?
     `, [req.params.id]);
@@ -168,9 +169,9 @@ router.post("/", async (req, res) => {
       });
     }
 
-    // Verificar si el username ya existe en administradores (Dashboard)
+    // Verificar si el username ya existe en administradores/dashboard (usando tabla usuarios central)
     const [existingAdmin] = await pool.query(
-      'SELECT id_administrador FROM administradores WHERE usuario = ?',
+      'SELECT id_usuario FROM usuarios WHERE username = ?',
       [username]
     );
 
@@ -368,30 +369,9 @@ router.patch("/:id/usuario", async (req, res) => {
       });
     }
 
-    // Verificar si el usuario ya existe en tabla administradores (Dashboard)
-    const [existenteAdmin] = await pool.query(
-      `SELECT id_administrador 
-       FROM administradores 
-       WHERE usuario = ? 
-       AND id_persona != ?`,
-      [usuario.trim(), id]
-    );
-
-    if (existenteAdmin.length > 0) {
-      return res.status(400).json({ 
-        message: "Este usuario ya está en uso" 
-      });
-    }
-
-    // Actualizar el usuario en la tabla usuarios (Classroom)
-    await pool.query(
-      "UPDATE usuarios SET username = ? WHERE id_persona = ?",
-      [usuario.trim(), id]
-    );
-
-    // Actualizar el usuario en la tabla administradores (Dashboard)
+    // Actualizar el usuario en la tabla usuarios (Classroom + Dashboard central)
     const [result] = await pool.query(
-      "UPDATE administradores SET usuario = ? WHERE id_persona = ?",
+      "UPDATE usuarios SET username = ? WHERE id_persona = ?",
       [usuario.trim(), id]
     );
 

@@ -49,59 +49,23 @@ router.post("/login",
   }
 
   try {
-    // NUEVO: Buscar en las tablas del Dashboard (alumnos, profesores, administradores)
-    // Intentar encontrar en administradores
+    // NORMALIZADO: Buscar en tabla usuarios centralizada
     let [rows] = await pool.query(
       `SELECT 
-        adm.id_administrador,
-        adm.usuario,
-        adm.password_hash,
-        adm.nivel_acceso,
+        u.id_usuario,
+        u.username,
+        u.password_hash,
+        u.id_perfil,
         p.id_persona,
         p.nombre,
         p.apellido,
-        'admin' as rol
-       FROM administradores adm
-       JOIN personas p ON adm.id_persona = p.id_persona
-       WHERE adm.usuario = ? AND adm.estado = 'activo'`,
+        perf.nombre_perfil as rol
+       FROM usuarios u
+       JOIN personas p ON u.id_persona = p.id_persona
+       JOIN perfiles perf ON u.id_perfil = perf.id_perfil
+       WHERE u.username = ?`,
       [username]
     );
-
-    // Si no es admin, buscar en profesores
-    if (rows.length === 0) {
-      [rows] = await pool.query(
-        `SELECT 
-          prof.id_profesor,
-          prof.usuario,
-          prof.password_hash,
-          p.id_persona,
-          p.nombre,
-          p.apellido,
-          'profesor' as rol
-         FROM profesores prof
-         JOIN personas p ON prof.id_persona = p.id_persona
-         WHERE prof.usuario = ? AND prof.estado = 'activo'`,
-        [username]
-      );
-    }
-
-    // Si no es profesor, buscar en alumnos
-    if (rows.length === 0) {
-      [rows] = await pool.query(
-        `SELECT 
-          al.id_alumno,
-          al.usuario,
-          al.password_hash,
-          p.id_persona,
-          p.nombre,
-          p.apellido,
-          'alumno' as rol
-         FROM alumnos al
-         JOIN personas p ON al.id_persona = p.id_persona
-         WHERE al.usuario = ? AND al.estado = 'activo'`,
-        [username]
-      );
-    }
 
     if (rows.length === 0) {
       return res.status(401).json({ success: false, message: "Usuario no encontrado" });
@@ -121,26 +85,45 @@ router.post("/login",
 
     const rol = user.rol;
 
+    // Obtener ID específico según el rol
+    let id_especifico = null;
+    if (rol === 'administrador' || rol === 'admin') {
+      const [admins] = await pool.query(
+        'SELECT id_administrador FROM administradores WHERE id_persona = ?',
+        [user.id_persona]
+      );
+      id_especifico = admins[0]?.id_administrador;
+    } else if (rol === 'profesor') {
+      const [profs] = await pool.query(
+        'SELECT id_profesor FROM profesores WHERE id_persona = ?',
+        [user.id_persona]
+      );
+      id_especifico = profs[0]?.id_profesor;
+    } else if (rol === 'alumno') {
+      const [alums] = await pool.query(
+        'SELECT id_alumno FROM alumnos WHERE id_persona = ?',
+        [user.id_persona]
+      );
+      id_especifico = alums[0]?.id_alumno;
+    }
+
     // Preparar respuesta según el rol
     const response = {
       success: true,
       message: "Login exitoso",
       rol,
       nombre: `${user.nombre} ${user.apellido}`.trim(),
-      username: user.usuario,
-      id_persona: user.id_persona
+      username: user.username,
+      id_persona: user.id_persona,
+      id_usuario: user.id_usuario
     };
 
-    if (rol === 'admin') {
-      response.id_administrador = user.id_administrador;
-      response.id_usuario = user.id_administrador; // Para compatibilidad
-      response.nivel_acceso = user.nivel_acceso;
+    if (rol === 'administrador' || rol === 'admin') {
+      response.id_administrador = id_especifico;
     } else if (rol === 'profesor') {
-      response.id_profesor = user.id_profesor;
-      response.id_usuario = user.id_profesor; // Para compatibilidad
+      response.id_profesor = id_especifico;
     } else if (rol === 'alumno') {
-      response.id_alumno = user.id_alumno;
-      response.id_usuario = user.id_alumno; // Para compatibilidad
+      response.id_alumno = id_especifico;
     }
 
     return res.json(response);
@@ -199,9 +182,9 @@ router.post("/register",
     const { username, email, password, nombre, apellido, telefono, dni } = req.body;
 
     try {
-      // Verificar si el usuario ya existe en alumnos
+      // Verificar si el usuario ya existe en la tabla centralizada 'usuarios'
       const [existingUser] = await pool.query(
-        "SELECT id_alumno FROM alumnos WHERE usuario = ?",
+        "SELECT id_usuario FROM usuarios WHERE username = ?",
         [username.trim()]
       );
 
@@ -521,36 +504,24 @@ router.post("/cambiar-password-dashboard",
     try {
       console.log(`🔑 Intentando cambiar contraseña del Dashboard para: ${username}`);
 
-      // Buscar usuario en administradores
-      let [rows] = await pool.query(
-        'SELECT id_administrador as id, usuario, password_hash, "admin" as tipo FROM administradores WHERE usuario = ?',
+      // Buscar usuario en la tabla centralizada 'usuarios'
+      const [urows] = await pool.query(
+        `SELECT u.id_usuario, u.username, u.password_hash, perf.nombre_perfil as tipo, p.id_persona
+         FROM usuarios u
+         JOIN perfiles perf ON u.id_perfil = perf.id_perfil
+         JOIN personas p ON u.id_persona = p.id_persona
+         WHERE u.username = ?`,
         [username]
       );
 
-      // Si no es admin, buscar en profesores
-      if (rows.length === 0) {
-        [rows] = await pool.query(
-          'SELECT id_profesor as id, usuario, password_hash, "profesor" as tipo FROM profesores WHERE usuario = ?',
-          [username]
-        );
-      }
-
-      // Si no es profesor, buscar en alumnos
-      if (rows.length === 0) {
-        [rows] = await pool.query(
-          'SELECT id_alumno as id, usuario, password_hash, "alumno" as tipo FROM alumnos WHERE usuario = ?',
-          [username]
-        );
-      }
-
-      if (rows.length === 0) {
+      if (urows.length === 0) {
         return res.status(404).json({
           success: false,
           message: 'Usuario no encontrado en el Dashboard'
         });
       }
 
-      const user = rows[0];
+      const user = urows[0];
       const stored = String(user.password_hash ?? "");
 
       // Verificar contraseña actual
@@ -562,7 +533,7 @@ router.post("/cambiar-password-dashboard",
       }
 
       if (!passwordMatch) {
-        console.log(`❌ Contraseña actual incorrecta para usuario ${user.usuario}`);
+        console.log(`❌ Contraseña actual incorrecta para usuario ${user.username}`);
         return res.status(401).json({
           success: false,
           message: 'La contraseña actual del Dashboard es incorrecta'
@@ -572,25 +543,13 @@ router.post("/cambiar-password-dashboard",
       // Hash de la nueva contraseña
       const hashedPassword = await bcrypt.hash(passwordNueva, 10);
 
-      // Actualizar contraseña según el tipo de usuario
-      if (user.tipo === 'admin') {
-        await pool.query(
-          'UPDATE administradores SET password_hash = ? WHERE id_administrador = ?',
-          [hashedPassword, user.id]
-        );
-      } else if (user.tipo === 'profesor') {
-        await pool.query(
-          'UPDATE profesores SET password_hash = ? WHERE id_profesor = ?',
-          [hashedPassword, user.id]
-        );
-      } else if (user.tipo === 'alumno') {
-        await pool.query(
-          'UPDATE alumnos SET password_hash = ? WHERE id_alumno = ?',
-          [hashedPassword, user.id]
-        );
-      }
+      // Actualizar contraseña en la tabla centralizada 'usuarios'
+      await pool.query(
+        'UPDATE usuarios SET password_hash = ? WHERE id_usuario = ?',
+        [hashedPassword, user.id_usuario]
+      );
 
-      console.log(`✅ Contraseña del Dashboard actualizada para usuario: ${user.usuario} (${user.tipo})`);
+      console.log(`✅ Contraseña del Dashboard actualizada para usuario: ${user.username}`);
 
       return res.json({
         success: true,
@@ -660,18 +619,23 @@ router.post("/admin-cambiar-password-classroom",
     const { id_usuario, tipo_usuario, nueva_password } = req.body;
 
     try {
-      console.log(`🔑 Admin actualizando password de Classroom para ${tipo_usuario} ID: ${id_usuario}`);
+      console.log(`🔑 Admin actualizando password de Classroom/Dashboard para ${tipo_usuario} ID: ${id_usuario}`);
 
+      // Convertir tipo_usuario a id_perfil
+      let id_perfil;
+      if (tipo_usuario === 'alumno') id_perfil = 2;
+      else if (tipo_usuario === 'profesor') id_perfil = 3;
+
+      // Obtener id_persona del alumno/profesor
       const tabla = tipo_usuario === 'alumno' ? 'alumnos' : 'profesores';
       const idColumn = tipo_usuario === 'alumno' ? 'id_alumno' : 'id_profesor';
 
-      // Verificar que existe el usuario
-      const [rows] = await pool.query(
-        `SELECT ${idColumn}, usuario, password_classroom FROM ${tabla} WHERE ${idColumn} = ?`,
+      const [user] = await pool.query(
+        `SELECT id_persona FROM ${tabla} WHERE ${idColumn} = ?`,
         [id_usuario]
       );
 
-      if (rows.length === 0) {
+      if (user.length === 0) {
         return res.status(404).json({
           success: false,
           message: 'Usuario no encontrado'
@@ -681,17 +645,17 @@ router.post("/admin-cambiar-password-classroom",
       // Hashear la nueva contraseña
       const hashedPassword = await bcrypt.hash(nueva_password, 10);
 
-      // Actualizar SOLO password_classroom
+      // Actualizar contraseña en tabla usuarios centralizada
       await pool.query(
-        `UPDATE ${tabla} SET password_classroom = ? WHERE ${idColumn} = ?`,
-        [hashedPassword, id_usuario]
+        `UPDATE usuarios SET password_hash = ? WHERE id_persona = ? AND id_perfil = ?`,
+        [hashedPassword, user[0].id_persona, id_perfil]
       );
 
-      console.log(`✅ Password de Classroom actualizada para ${tipo_usuario}: ${rows[0].usuario}`);
+      console.log(`✅ Password actualizada para ${tipo_usuario} ID: ${id_usuario}`);
 
       return res.json({
         success: true,
-        message: 'Contraseña de Classroom actualizada correctamente'
+        message: 'Contraseña actualizada correctamente (Dashboard y Classroom unificados)'
       });
 
     } catch (error) {
@@ -821,28 +785,38 @@ router.post("/admin-cambiar-password-classroom",
       const salt = bcrypt.genSaltSync(10);
       const passwordHash = bcrypt.hashSync(nueva_password.trim(), salt);
 
-      let query, params;
-      
-      if (tipo_usuario === 'alumno') {
-        query = `UPDATE alumnos SET password_classroom = ? WHERE id_alumno = ?`;
-        params = [passwordHash, id_usuario];
-      } else if (tipo_usuario === 'profesor') {
-        query = `UPDATE profesores SET password_classroom = ? WHERE id_profesor = ?`;
-        params = [passwordHash, id_usuario];
-      }
+      // Obtener id_persona
+      const tabla = tipo_usuario === 'alumno' ? 'alumnos' : 'profesores';
+      const idColumn = tipo_usuario === 'alumno' ? 'id_alumno' : 'id_profesor';
 
-      const [result] = await pool.query(query, params);
+      const [user] = await pool.query(
+        `SELECT id_persona FROM ${tabla} WHERE ${idColumn} = ?`,
+        [id_usuario]
+      );
 
-      if (result.affectedRows === 0) {
+      if (user.length === 0) {
         return res.status(404).json({
           success: false,
           message: 'Usuario no encontrado'
         });
       }
 
+      // Actualizar contraseña en tabla usuarios centralizada
+      const [result] = await pool.query(
+        `UPDATE usuarios SET password_hash = ? WHERE id_persona = ?`,
+        [passwordHash, user[0].id_persona]
+      );
+
+      if (result.affectedRows === 0) {
+        return res.status(404).json({
+          success: false,
+          message: 'Usuario no encontrado en tabla usuarios'
+        });
+      }
+
       return res.json({
         success: true,
-        message: 'Contraseña de Classroom actualizada exitosamente'
+        message: 'Contraseña actualizada exitosamente (Dashboard y Classroom unificados)'
       });
 
     } catch (error) {
@@ -864,14 +838,15 @@ router.get("/usuario-classroom/:id", async (req, res) => {
   const { tipo } = req.query; // 'alumno' o 'profesor'
 
   try {
-    let query, tienePasswordClassroom;
+    let tienePassword;
 
     if (tipo === 'alumno') {
       const [rows] = await pool.query(
-        `SELECT a.id_alumno, a.usuario, a.password_classroom,
+        `SELECT a.id_alumno, u.username as usuario, u.password_hash,
                 p.nombre, p.apellido
          FROM alumnos a
          JOIN personas p ON a.id_persona = p.id_persona
+         LEFT JOIN usuarios u ON a.id_persona = u.id_persona
          WHERE a.id_alumno = ?`,
         [id]
       );
@@ -883,22 +858,23 @@ router.get("/usuario-classroom/:id", async (req, res) => {
         });
       }
 
-      tienePasswordClassroom = rows[0].password_classroom !== null;
+      tienePassword = rows[0].password_hash !== null;
 
       return res.json({
         success: true,
         usuario: rows[0].usuario,
         nombre: `${rows[0].nombre} ${rows[0].apellido}`,
-        tiene_password_classroom: tienePasswordClassroom
+        tiene_password_classroom: tienePassword // Mismo password para Dashboard y Classroom
       });
 
     } else if (tipo === 'profesor') {
       const [rows] = await pool.query(
-        `SELECT p.id_profesor, p.usuario, p.password_classroom,
+        `SELECT pr.id_profesor, u.username as usuario, u.password_hash,
                 per.nombre, per.apellido
-         FROM profesores p
-         JOIN personas per ON p.id_persona = per.id_persona
-         WHERE p.id_profesor = ?`,
+         FROM profesores pr
+         JOIN personas per ON pr.id_persona = per.id_persona
+         LEFT JOIN usuarios u ON pr.id_persona = u.id_persona
+         WHERE pr.id_profesor = ?`,
         [id]
       );
 
@@ -909,13 +885,13 @@ router.get("/usuario-classroom/:id", async (req, res) => {
         });
       }
 
-      tienePasswordClassroom = rows[0].password_classroom !== null;
+      tienePassword = rows[0].password_hash !== null;
 
       return res.json({
         success: true,
         usuario: rows[0].usuario,
         nombre: `${rows[0].nombre} ${rows[0].apellido}`,
-        tiene_password_classroom: tienePasswordClassroom
+        tiene_password_classroom: tienePassword // Mismo password para Dashboard y Classroom
       });
     }
 
