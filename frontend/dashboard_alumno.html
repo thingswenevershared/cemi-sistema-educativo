@@ -427,27 +427,20 @@
       try {
         const response = await fetch(`${API_URL}/pagos/alumno/${id_alumno}`);
         
-        console.log("Response status pagos:", response.status);
-        
         if (!response.ok) {
           throw new Error(`Error al cargar pagos: ${response.status}`);
         }
         
         const data = await response.json();
-        console.log("Datos de pagos recibidos:", data);
-        console.log("Tiene estadisticas?", !!data.estadisticas);
-        console.log("Estadisticas:", data.estadisticas);
+        console.log("Datos de pagos por curso:", data);
 
-        // Valores por defecto si no vienen datos
-        const estadisticas = data.estadisticas || {
+        const cursos = data.cursos || [];
+        const estadisticas = data.estadisticas_globales || {
           total_pagado: 0,
           total_pendiente: 0,
-          cantidad_pagos: 0,
-          cantidad_pendientes: 0
+          total_cursos: 0,
+          cuotas_vencidas: 0
         };
-        
-        const pagosRealizados = data.pagos_realizados || [];
-        const pagosPendientes = data.pagos_pendientes || [];
 
         mainContent.innerHTML = `
           <div class="alumno-pagos-container">
@@ -456,9 +449,10 @@
                 <i data-lucide="credit-card"></i>
                 <h2>Mis Pagos</h2>
               </div>
+              <p class="section-subtitle">Gestiona los pagos de tus cursos activos</p>
             </div>
 
-            <!-- Estadísticas de pagos -->
+            <!-- Estadísticas globales -->
             <div class="pagos-stats-grid">
               <div class="stat-pago-card total-pagado">
                 <div class="stat-pago-icon">
@@ -466,7 +460,7 @@
                 </div>
                 <div class="stat-pago-info">
                   <p>Total Pagado</p>
-                  <h3>$${(data.estadisticas.total_pagado || 0).toLocaleString('es-AR', {minimumFractionDigits: 2})}</h3>
+                  <h3>$${estadisticas.total_pagado.toLocaleString('es-AR', {minimumFractionDigits: 2})}</h3>
                 </div>
               </div>
 
@@ -476,108 +470,111 @@
                 </div>
                 <div class="stat-pago-info">
                   <p>Total Pendiente</p>
-                  <h3>$${(data.estadisticas.total_pendiente || 0).toLocaleString('es-AR', {minimumFractionDigits: 2})}</h3>
+                  <h3>$${estadisticas.total_pendiente.toLocaleString('es-AR', {minimumFractionDigits: 2})}</h3>
                 </div>
               </div>
 
-              <div class="stat-pago-card cantidad-pagos">
+              <div class="stat-pago-card cuotas-vencidas">
                 <div class="stat-pago-icon">
-                  <i data-lucide="file-text"></i>
+                  <i data-lucide="alert-triangle"></i>
                 </div>
                 <div class="stat-pago-info">
-                  <p>Pagos Realizados</p>
-                  <h3>${data.estadisticas.cantidad_pagos || 0}</h3>
+                  <p>Cuotas Impagas</p>
+                  <h3>${estadisticas.cuotas_impagas || 0}</h3>
                 </div>
               </div>
             </div>
 
-            <!-- Pagos pendientes -->
-            <div class="pagos-pendientes-section">
-              <h3><i data-lucide="alert-circle"></i> Períodos Pendientes de Pago</h3>
-              
-              ${(data.pagos_pendientes && data.pagos_pendientes.length > 0) ? `
-                <div class="pagos-pendientes-grid">
-                  ${data.pagos_pendientes.map(pago => `
-                    <div class="pago-pendiente-card ${pago.estado === 'vencido' ? 'vencido' : ''}">
-                      <div class="pago-pendiente-header">
-                        <div class="pago-periodo">
-                          <i data-lucide="calendar"></i>
-                          <span>${pago.mes_nombre}</span>
+            <!-- Cursos con pagos -->
+            ${cursos.length > 0 ? `
+              <div class="cursos-pagos-section">
+                <h3><i data-lucide="graduation-cap"></i> Pagos por Curso</h3>
+                
+                <div class="cursos-cards-grid">
+                  ${cursos.map(curso => `
+                    <div class="curso-pago-card">
+                      <!-- Header del curso -->
+                      <div class="curso-pago-header">
+                        <div class="curso-info">
+                          <div class="curso-nombre">
+                            <i data-lucide="book-open"></i>
+                            <span>${curso.nombre_curso}</span>
+                          </div>
+                          <div class="curso-profesor">
+                            <i data-lucide="user"></i>
+                            <span>${curso.profesor}</span>
+                          </div>
                         </div>
-                        ${pago.estado === 'vencido' ? 
-                          '<span class="badge-vencido"><i data-lucide="alert-triangle"></i> Vencido</span>' : 
-                          '<span class="badge-pendiente"><i data-lucide="clock"></i> Pendiente</span>'
-                        }
+                        <div class="curso-stats">
+                          <div class="curso-stat">
+                            <span class="stat-label">Pagadas</span>
+                            <span class="stat-value pagadas">${curso.estadisticas.cuotas_pagadas}/10</span>
+                          </div>
+                          <div class="curso-stat">
+                            <span class="stat-label">Monto</span>
+                            <span class="stat-value">$${parseFloat(curso.costo_mensual).toLocaleString('es-AR')}</span>
+                          </div>
+                        </div>
                       </div>
-                      <div class="pago-pendiente-body">
-                        <div class="pago-monto-info">
-                          <span class="pago-label">Monto:</span>
-                          <span class="pago-monto">$${parseFloat(pago.monto).toLocaleString('es-AR', {minimumFractionDigits: 2})}</span>
-                        </div>
-                        <div class="pago-vencimiento-info">
-                          <span class="pago-label">Vencimiento:</span>
-                          <span>${new Date(pago.fecha_vencimiento).toLocaleDateString('es-ES')}</span>
-                        </div>
+
+                      <!-- Grid de meses -->
+                      <div class="meses-grid">
+                        ${curso.meses.map(mes => {
+                          let estadoIcon = '';
+                          let estadoClass = '';
+                          
+                          if (mes.estado === 'pagado') {
+                            estadoIcon = 'check-circle';
+                            estadoClass = 'pagado';
+                          } else if (mes.estado === 'impago') {
+                            estadoIcon = 'x-circle';
+                            estadoClass = 'impago';
+                          } else if (mes.estado === 'pendiente') {
+                            estadoIcon = 'clock';
+                            estadoClass = 'pendiente';
+                          } else {
+                            estadoIcon = 'circle';
+                            estadoClass = 'proximo';
+                          }
+                          
+                          return `
+                            <div class="mes-item ${estadoClass}" 
+                                 onclick="${mes.estado === 'pendiente' || mes.estado === 'impago' ? `window.abrirModalSeleccionMes(${curso.id_curso}, '${curso.nombre_curso}', '${mes.mes}', ${mes.monto})` : ''}"
+                                 style="${mes.estado === 'pendiente' || mes.estado === 'impago' ? 'cursor: pointer;' : ''}">
+                              <i data-lucide="${estadoIcon}"></i>
+                              <span class="mes-nombre">${mes.mes === 'Matricula' ? 'Mat' : mes.mes.substring(0, 3)}</span>
+                              ${mes.estado === 'pagado' ? `<span class="mes-fecha">${new Date(mes.fecha_pago).toLocaleDateString('es-ES', {day: '2-digit', month: '2-digit'})}</span>` : ''}
+                            </div>
+                          `;
+                        }).join('')}
                       </div>
-                      <button class="btn-pagar" onclick="window.creditCardForm.openModal({amount: ${pago.monto}, concepto: 'Cuota Mensual', periodo: '${pago.mes_nombre}', id_pago: ${pago.id_inscripcion}})">
-                        <i data-lucide="credit-card"></i>
-                        <span>Pagar Ahora</span>
-                      </button>
+
+                      <!-- Footer con estadísticas del curso -->
+                      <div class="curso-pago-footer">
+                        <div class="progreso-info">
+                          <div class="progreso-bar">
+                            <div class="progreso-fill" style="width: ${(curso.estadisticas.cuotas_pagadas / 10) * 100}%"></div>
+                          </div>
+                          <span class="progreso-text">${Math.round((curso.estadisticas.cuotas_pagadas / 10) * 100)}% completado</span>
+                        </div>
+                        ${curso.estadisticas.cuotas_impagas > 0 ? `
+                          <div class="alerta-vencido">
+                            <i data-lucide="alert-triangle"></i>
+                            <span>${curso.estadisticas.cuotas_impagas} cuota${curso.estadisticas.cuotas_impagas > 1 ? 's' : ''} impaga${curso.estadisticas.cuotas_impagas > 1 ? 's' : ''}</span>
+                          </div>
+                        ` : ''}
+                      </div>
                     </div>
                   `).join('')}
                 </div>
-              ` : `
-                <div class="no-pagos-pendientes">
-                  <i data-lucide="check-circle-2"></i>
-                  <h4>¡Estás al día con tus pagos!</h4>
-                  <p>No tienes períodos pendientes de pago.</p>
-                </div>
-              `}
-            </div>
-
-            <!-- Historial de pagos -->
-            <div class="historial-pagos-section">
-              <h3><i data-lucide="list"></i> Historial de Pagos</h3>
-              
-              ${(data.pagos_realizados && data.pagos_realizados.length > 0) ? `
-                <div class="tabla-historial-wrapper">
-                  <table class="tabla-historial-pagos">
-                    <thead>
-                      <tr>
-                        <th>Fecha</th>
-                        <th>Período</th>
-                        <th>Concepto</th>
-                        <th>Medio de Pago</th>
-                        <th>Monto</th>
-                        <th>Estado</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      ${data.pagos_realizados.map(pago => `
-                        <tr>
-                          <td>${new Date(pago.fecha_pago).toLocaleDateString('es-ES')}</td>
-                          <td>${pago.periodo ? new Date(pago.periodo + '-01').toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }) : 'N/A'}</td>
-                          <td>${pago.concepto}</td>
-                          <td>
-                            <span class="medio-pago-badge">
-                              <i data-lucide="${pago.medio_pago.toLowerCase().includes('tarjeta') ? 'credit-card' : 'banknote'}"></i>
-                              ${pago.medio_pago}
-                            </span>
-                          </td>
-                          <td class="monto-pagado">$${parseFloat(pago.monto).toLocaleString('es-AR', {minimumFractionDigits: 2})}</td>
-                          <td><span class="badge-pagado"><i data-lucide="check"></i> Pagado</span></td>
-                        </tr>
-                      `).join('')}
-                    </tbody>
-                  </table>
-                </div>
-              ` : `
-                <div class="no-historial">
-                  <i data-lucide="inbox"></i>
-                  <p>Aún no has realizado ningún pago.</p>
-                </div>
-              `}
-            </div>
+              </div>
+            ` : `
+              <div class="no-cursos-activos">
+                <i data-lucide="inbox"></i>
+                <h4>No tienes cursos activos</h4>
+                <p>Inscríbete a un curso para comenzar a gestionar tus pagos.</p>
+              </div>
+            `}
           </div>
         `;
 
@@ -937,6 +934,101 @@
     abrirDetalleCursoAlumno(idCurso, nombreCurso);
   };
 
+  // =====================================================
+  // Modal de selección de mes (NUEVO SISTEMA DE PAGOS)
+  // =====================================================
+  window.abrirModalSeleccionMes = function(idCurso, nombreCurso, mesSeleccionado, monto) {
+    const modal = document.createElement('div');
+    modal.className = 'modal-seleccion-mes-overlay active';
+    modal.id = 'modalSeleccionMes';
+    
+    modal.innerHTML = `
+      <div class="modal-seleccion-mes-content">
+        <div class="modal-seleccion-mes-header">
+          <div class="header-info">
+            <i data-lucide="calendar"></i>
+            <div>
+              <h3>Confirmar Pago</h3>
+              <p>${nombreCurso}</p>
+            </div>
+          </div>
+          <button class="btn-cerrar-modal" onclick="cerrarModalSeleccionMes()">
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+        
+        <div class="modal-seleccion-mes-body">
+          <div class="mes-confirmacion">
+            <div class="mes-icono">
+              <i data-lucide="check-circle"></i>
+            </div>
+            <div class="mes-detalle">
+              <span class="mes-label">Cuota de:</span>
+              <span class="mes-valor">${mesSeleccionado}</span>
+            </div>
+          </div>
+          
+          <div class="monto-confirmacion">
+            <span class="monto-label">Monto a pagar:</span>
+            <span class="monto-valor">$${parseFloat(monto).toLocaleString('es-AR', {minimumFractionDigits: 2})}</span>
+          </div>
+          
+          <div class="acciones-confirmacion">
+            <button class="btn-cancelar" onclick="cerrarModalSeleccionMes()">
+              <i data-lucide="x"></i>
+              Cancelar
+            </button>
+            <button class="btn-confirmar-pago" onclick="confirmarPagoMes(${idCurso}, '${mesSeleccionado}', ${monto})">
+              <i data-lucide="credit-card"></i>
+              Continuar al Pago
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    lucide.createIcons();
+    
+    // Cerrar al hacer clic fuera del modal
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        cerrarModalSeleccionMes();
+      }
+    });
+  };
+
+  window.cerrarModalSeleccionMes = function() {
+    const modal = document.getElementById('modalSeleccionMes');
+    if (modal) {
+      modal.classList.remove('active');
+      setTimeout(() => modal.remove(), 300);
+    }
+  };
+
+  window.confirmarPagoMes = function(idCurso, mesCuota, monto) {
+    // Cerrar modal de selección
+    cerrarModalSeleccionMes();
+    
+    // Guardar datos del pago para enviar después
+    window.datosPagoActual = {
+      id_curso: idCurso,
+      mes_cuota: mesCuota,
+      monto: monto
+    };
+    
+    // Determinar el concepto correcto
+    const conceptoPago = mesCuota === 'Matricula' ? 'Matrícula' : `Cuota ${mesCuota}`;
+    
+    // Abrir el modal de métodos de pago existente
+    window.creditCardForm.openModal({
+      amount: monto,
+      concepto: conceptoPago,
+      periodo: mesCuota,
+      id_curso: idCurso
+    });
+  };
+
   // Función para abrir modal de pago
   window.abrirModalPago = function(periodo, monto, mesNombre) {
     const modal = document.createElement('div');
@@ -1104,6 +1196,9 @@
     try {
       loader.classList.remove('hidden');
       
+      // Obtener datos del pago actual (id_curso y mes_cuota)
+      const datosPago = window.datosPagoActual || {};
+      
       const response = await fetch(`${API_URL}/pagos/realizar`, {
         method: 'POST',
         headers: {
@@ -1111,7 +1206,8 @@
         },
         body: JSON.stringify({
           id_alumno: id_alumno,
-          periodo: periodo,
+          id_curso: datosPago.id_curso,
+          mes_cuota: datosPago.mes_cuota || periodo,
           monto: monto,
           medio_pago: medioPagoSeleccionado,
           datos_tarjeta: medioPagoSeleccionado.includes('Tarjeta') ? {
@@ -1127,6 +1223,9 @@
       if (response.ok && data.success) {
         loader.classList.add('hidden');
         cerrarModalPago();
+        
+        // Limpiar datos temporales
+        window.datosPagoActual = null;
         
         // Mostrar comprobante
         mostrarComprobante(data.comprobante);

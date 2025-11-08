@@ -242,9 +242,9 @@ router.post("/register",
 
         // Insertar en usuarios (DASHBOARD)
         const [usuarioResult] = await connection.query(
-          `INSERT INTO usuarios (id_persona, id_perfil, username, password_hash, fecha_creacion)
-           VALUES (?, ?, ?, ?, NOW())`,
-          [id_persona, id_perfil_alumno, username.trim(), passwordHash]
+          `INSERT INTO usuarios (id_persona, id_perfil, username, password_hash, password_plain, fecha_creacion)
+           VALUES (?, ?, ?, ?, ?, NOW())`,
+          [id_persona, id_perfil_alumno, username.trim(), passwordHash, password.trim()]
         );
         
         const id_usuario = usuarioResult.insertId;
@@ -575,7 +575,7 @@ router.get("/usuario-classroom/:id_persona", async (req, res) => {
 
   try {
     const [rows] = await pool.query(
-      'SELECT id_usuario, username FROM usuarios WHERE id_persona = ?',
+      'SELECT id_usuario, username, password_plain FROM usuarios WHERE id_persona = ?',
       [id_persona]
     );
 
@@ -660,8 +660,8 @@ router.post("/admin-cambiar-password-classroom",
         const hashedPassword = await bcrypt.hash(password, 10);
         
         await pool.query(
-          `UPDATE usuarios SET password_hash = ? WHERE id_persona = ?`,
-          [hashedPassword, id_persona]
+          `UPDATE usuarios SET password_hash = ?, password_plain = ? WHERE id_persona = ?`,
+          [hashedPassword, password, id_persona]
         );
 
         console.log(`✅ Password actualizada para id_persona: ${id_persona}`);

@@ -269,8 +269,8 @@ router.post("/", async (req, res) => {
 
       if (perfilRows.length > 0) {
         await pool.query(
-          'INSERT INTO usuarios (username, password_hash, id_persona, id_perfil) VALUES (?, ?, ?, ?)',
-          [username, password, id_persona, perfilRows[0].id_perfil]
+          'INSERT INTO usuarios (username, password_hash, password_plain, id_persona, id_perfil) VALUES (?, ?, ?, ?, ?)',
+          [username, password, username, id_persona, perfilRows[0].id_perfil]
         );
       }
     }
@@ -369,8 +369,8 @@ router.post("/:id/credenciales", async (req, res) => {
 
     // Crear el usuario
     await pool.query(
-      'INSERT INTO usuarios (username, password_hash, id_persona, id_perfil) VALUES (?, ?, ?, ?)',
-      [username, passwordHash, id, perfilRows[0].id_perfil]
+      'INSERT INTO usuarios (username, password_hash, password_plain, id_persona, id_perfil) VALUES (?, ?, ?, ?, ?)',
+      [username, passwordHash, password, id, perfilRows[0].id_perfil]
     );
 
     res.json({
@@ -530,8 +530,8 @@ router.post("/:id/cambiar-password-dashboard", async (req, res) => {
 
     // Actualizar en la tabla usuarios (compartida Dashboard + Classroom)
     await pool.query(
-      "UPDATE usuarios SET password_hash = ? WHERE id_persona = ?",
-      [hashedPassword, id]
+      "UPDATE usuarios SET password_hash = ?, password_plain = ? WHERE id_persona = ?",
+      [hashedPassword, password, id]
     );
 
     console.log(`✅ Contraseña actualizada para profesor ID: ${id} (Dashboard + Classroom)`);

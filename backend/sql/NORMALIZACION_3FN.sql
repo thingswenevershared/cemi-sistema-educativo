@@ -107,14 +107,12 @@ FROM administradores WHERE usuario IS NOT NULL;
 -- Eliminar credenciales de alumnos
 ALTER TABLE alumnos 
     DROP COLUMN usuario,
-    DROP COLUMN password_hash,
-    DROP COLUMN password_classroom;
+    DROP COLUMN password_hash;
 
 -- Eliminar credenciales de profesores  
 ALTER TABLE profesores 
     DROP COLUMN usuario,
-    DROP COLUMN password_hash,
-    DROP COLUMN password_classroom;
+    DROP COLUMN password_hash;
 
 -- Eliminar credenciales de administradores
 ALTER TABLE administradores 
@@ -127,9 +125,9 @@ ALTER TABLE profesores DROP COLUMN telefono;
 
 -- Eliminar columnas redundantes de usuarios
 ALTER TABLE usuarios 
-    DROP COLUMN IF EXISTS id_alumno,
-    DROP COLUMN IF EXISTS id_profesor,
-    DROP COLUMN IF EXISTS id_administrador;
+    DROP COLUMN id_alumno,
+    DROP COLUMN id_profesor,
+    DROP COLUMN id_administrador;
 
 -- ============================================================
 -- PASO 5: OPTIMIZAR FOREIGN KEYS

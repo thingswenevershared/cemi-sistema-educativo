@@ -626,23 +626,10 @@ case "pagos":
         <input type="text" id="pagoSearchAlumno" placeholder="Nombre, legajo o email...">
       </div>
       <div class="filter-group">
-        <label>Estado</label>
-        <select id="pagoFilterEstado">
-          <option value="">Todos</option>
-          <option value="pagado">Pagado</option>
-          <option value="mora">En Mora</option>
-          <option value="proximo_vencimiento">Próx. Vencimiento</option>
-        </select>
-      </div>
-      <div class="filter-group">
         <label>Medio de Pago</label>
         <select id="pagoFilterMedio">
           <option value="">Todos</option>
         </select>
-      </div>
-      <div class="filter-group">
-        <label>Periodo</label>
-        <input type="month" id="pagoFilterPeriodo">
       </div>
       <div>
         <button class="btn-add-pago" onclick="openRegistrarPagoModal()">
@@ -2558,13 +2545,15 @@ async function abrirModalCredencialesProfesor(idProfesor) {
     
     // Obtener usuario desde la tabla usuarios
     let usuarioActual = '';
+    let passwordActual = '';
     let tienePassword = false;
     try {
       const respUsuario = await fetch(`${API_URL}/auth/usuario-classroom/${profesor.id_persona}`);
       if (respUsuario.ok) {
         const usuario = await respUsuario.json();
-        usuarioActual = usuario.usuario || '';
-        tienePassword = usuario.tiene_password || false;
+        usuarioActual = usuario.username || '';
+        passwordActual = usuario.password_plain || '';
+        tienePassword = usuario.password_plain ? true : false;
       }
     } catch (error) {
       console.error('Error al cargar usuario:', error);
@@ -2581,24 +2570,30 @@ async function abrirModalCredencialesProfesor(idProfesor) {
           </div>
 
           <div style="margin-bottom: 16px;">
-            <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Usuario</label>
+            <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+              Usuario <span style="color: #9ca3af; font-weight: 400;">(actual: ${usuarioActual})</span>
+            </label>
             <input type="text" id="usuarioProfesor" value="${usuarioActual}" 
-                   style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-family: 'Courier New', monospace; font-size: 14px;">
+                   onfocus="if(this.value === '${usuarioActual}') this.value = '';"
+                   style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-family: 'Courier New', monospace; font-size: 14px; color: #9ca3af;">
           </div>
           
           <div style="margin-bottom: 8px;">
             <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">
-              Contraseña ${tienePassword ? '(configurada - dejar vacío para no cambiar)' : '(sin configurar)'}
+              Contraseña <span style="color: #9ca3af; font-weight: 400;">(actual: ${passwordActual || 'sin configurar'})</span>
             </label>
             <div style="position: relative;">
-              <input type="password" id="passwordProfesor" 
-                     placeholder="${tienePassword ? 'Dejar vacío para mantener actual' : 'Ingrese una contraseña'}" 
-                     style="width: 100%; padding: 10px 40px 10px 10px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box; font-size: 14px;">
+              <input type="text" id="passwordProfesor" value="${passwordActual}"
+                     onfocus="if(this.value === '${passwordActual}') this.value = '';"
+                     style="width: 100%; padding: 10px 40px 10px 10px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box; font-size: 14px; color: #9ca3af;">
               <button type="button" id="togglePasswordProfesor" 
                       style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 4px;">
                 <i data-lucide="eye" style="width: 20px; height: 20px; color: #6b7280;"></i>
               </button>
             </div>
+            <p style="font-size: 11px; color: #6b7280; margin-top: 4px;">
+              Dejá vacío para mantener la contraseña actual
+            </p>
           </div>
         </div>
       `,
@@ -2610,9 +2605,30 @@ async function abrirModalCredencialesProfesor(idProfesor) {
       didOpen: () => {
         lucide.createIcons();
         
+        // Efecto de placeholder al hacer focus/blur en usuario
+        const inputUsuario = document.getElementById('usuarioProfesor');
+        inputUsuario.addEventListener('blur', () => {
+          if (inputUsuario.value.trim() === '') {
+            inputUsuario.value = '${usuarioActual}';
+            inputUsuario.style.color = '#9ca3af';
+          } else {
+            inputUsuario.style.color = '#111827';
+          }
+        });
+        
+        // Efecto de placeholder al hacer focus/blur en password
+        const inputPassword = document.getElementById('passwordProfesor');
+        inputPassword.addEventListener('blur', () => {
+          if (inputPassword.value.trim() === '') {
+            inputPassword.value = '${passwordActual}';
+            inputPassword.style.color = '#9ca3af';
+          } else {
+            inputPassword.style.color = '#111827';
+          }
+        });
+        
         // Toggle password visibility
         const toggleBtn = document.getElementById('togglePasswordProfesor');
-        const inputPassword = document.getElementById('passwordProfesor');
         toggleBtn.addEventListener('click', () => {
           const isPassword = inputPassword.type === 'password';
           inputPassword.type = isPassword ? 'text' : 'password';
@@ -2625,14 +2641,20 @@ async function abrirModalCredencialesProfesor(idProfesor) {
       },
       preConfirm: async () => {
         const usuario = document.getElementById('usuarioProfesor').value.trim();
-        const password = document.getElementById('passwordProfesor').value;
+        const password = document.getElementById('passwordProfesor').value.trim();
         
-        if (!usuario) {
+        // Si el usuario está vacío o es el mismo que el actual, usar el actual
+        const nuevoUsuario = (usuario === '' || usuario === '${usuarioActual}') ? '${usuarioActual}' : usuario;
+        
+        // Si el password está vacío o es el mismo que el actual, no actualizar
+        const nuevoPassword = (password === '' || password === '${passwordActual}') ? '' : password;
+        
+        if (!nuevoUsuario) {
           Swal.showValidationMessage('El usuario es obligatorio');
           return false;
         }
         
-        return { usuario, password };
+        return { usuario: nuevoUsuario, password: nuevoPassword };
       }
     });
 
@@ -3044,21 +3066,15 @@ function renderPagosTable(pagos) {
 
 function setupPagosFilters() {
   const searchInput = document.getElementById('pagoSearchAlumno');
-  const estadoFilter = document.getElementById('pagoFilterEstado');
   const medioFilter = document.getElementById('pagoFilterMedio');
-  const periodoFilter = document.getElementById('pagoFilterPeriodo');
 
   if (searchInput) searchInput.addEventListener('input', filterPagos);
-  if (estadoFilter) estadoFilter.addEventListener('change', filterPagos);
   if (medioFilter) medioFilter.addEventListener('change', filterPagos);
-  if (periodoFilter) periodoFilter.addEventListener('change', filterPagos);
 }
 
 function filterPagos() {
   const searchTerm = document.getElementById('pagoSearchAlumno')?.value.toLowerCase() || '';
-  const estadoFilter = document.getElementById('pagoFilterEstado')?.value || '';
   const medioFilter = document.getElementById('pagoFilterMedio')?.value || '';
-  const periodoFilter = document.getElementById('pagoFilterPeriodo')?.value || '';
 
   const filtered = allPagos.filter(p => {
     const matchesSearch = 
@@ -3066,11 +3082,9 @@ function filterPagos() {
       p.legajo.toLowerCase().includes(searchTerm) ||
       (p.concepto && p.concepto.toLowerCase().includes(searchTerm));
     
-    const matchesEstado = !estadoFilter || p.estado_visual === estadoFilter;
     const matchesMedio = !medioFilter || p.medio_pago === medioFilter;
-    const matchesPeriodo = !periodoFilter || p.periodo === periodoFilter;
 
-    return matchesSearch && matchesEstado && matchesMedio && matchesPeriodo;
+    return matchesSearch && matchesMedio;
   });
 
   renderPagosTable(filtered);
@@ -3257,8 +3271,328 @@ async function eliminarPago(idPago, nombreAlumno, concepto) {
 }
 
 // Modal de registrar pago
-function openRegistrarPagoModal() {
-  showToast('Funcionalidad de registrar pago próximamente', 'info');
+async function openRegistrarPagoModal() {
+  try {
+    // Obtener lista de alumnos con inscripciones activas
+    const responseInscripciones = await fetch(`${API_URL}/inscripciones`);
+    const todasInscripciones = await responseInscripciones.json();
+    
+    if (!todasInscripciones || todasInscripciones.length === 0) {
+      showToast('No hay alumnos con cursos activos', 'warning');
+      return;
+    }
+
+    // Filtrar alumnos únicos con inscripciones activas
+    const alumnosConCursos = [...new Map(
+      todasInscripciones
+        .filter(insc => insc.estado === 'activo')
+        .map(insc => [insc.id_alumno, insc.alumno])
+    ).entries()].map(([id, nombre]) => ({ id_alumno: id, nombre_completo: nombre }));
+
+    if (alumnosConCursos.length === 0) {
+      showToast('No hay alumnos con cursos activos', 'warning');
+      return;
+    }
+
+    // Crear opciones de alumnos (solo los que tienen cursos)
+    const alumnosOptions = alumnosConCursos.map(alumno => 
+      `<option value="${alumno.id_alumno}">${alumno.nombre_completo}</option>`
+    ).join('');
+
+    const { value: formValues } = await Swal.fire({
+      title: '<div style="display: flex; align-items: center; gap: 12px;"><i class="lucide-credit-card" style="width: 28px; height: 28px; color: #1976d2;"></i> Registrar Pago Manual</div>',
+      html: `
+        <div style="text-align: left;">
+          <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #2c3e50;">
+              <i class="lucide-user" style="width: 16px; height: 16px;"></i> Alumno
+            </label>
+            <select id="swal-alumno" class="swal2-input" style="width: 100%; margin: 0;">
+              <option value="">Seleccionar alumno...</option>
+              ${alumnosOptions}
+            </select>
+          </div>
+
+          <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #2c3e50;">
+              <i class="lucide-book-open" style="width: 16px; height: 16px;"></i> Curso
+            </label>
+            <select id="swal-curso" class="swal2-input" style="width: 100%; margin: 0;" disabled>
+              <option value="">Primero selecciona un alumno</option>
+            </select>
+          </div>
+
+          <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #2c3e50;">
+              <i class="lucide-calendar" style="width: 16px; height: 16px;"></i> Mes de Cuota
+            </label>
+            <select id="swal-mes" class="swal2-input" style="width: 100%; margin: 0;" disabled>
+              <option value="">Primero selecciona un curso</option>
+            </select>
+            <div id="meses-pagados-info" style="margin-top: 8px; font-size: 12px;"></div>
+          </div>
+
+          <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #2c3e50;">
+              <i class="lucide-dollar-sign" style="width: 16px; height: 16px;"></i> Monto
+            </label>
+            <input id="swal-monto" type="number" class="swal2-input" placeholder="Ej: 15000" style="width: 100%; margin: 0;" step="0.01">
+          </div>
+
+          <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #2c3e50;">
+              <i class="lucide-wallet" style="width: 16px; height: 16px;"></i> Medio de Pago
+            </label>
+            <select id="swal-medio-pago" class="swal2-input" style="width: 100%; margin: 0;">
+              <option value="Efectivo">Efectivo</option>
+              <option value="Transferencia">Transferencia</option>
+              <option value="Tarjeta de Crédito">Tarjeta de Crédito</option>
+              <option value="Tarjeta de Débito">Tarjeta de Débito</option>
+            </select>
+          </div>
+
+          <div style="background: #e3f2fd; border-left: 4px solid #1976d2; padding: 12px; border-radius: 4px; margin-top: 20px;">
+            <p style="margin: 0; font-size: 13px; color: #1565c0;">
+              <i class="lucide-info" style="width: 14px; height: 14px;"></i> 
+              Este pago se registrará como pagado en la fecha actual
+            </p>
+          </div>
+        </div>
+      `,
+      width: '600px',
+      focusConfirm: false,
+      showCancelButton: true,
+      confirmButtonText: '<i class="lucide-check" style="width: 16px; height: 16px;"></i> Registrar Pago',
+      cancelButtonText: '<i class="lucide-x" style="width: 16px; height: 16px;"></i> Cancelar',
+      confirmButtonColor: '#1976d2',
+      cancelButtonColor: '#757575',
+      didOpen: () => {
+        // Inicializar Lucide icons en el modal
+        if (typeof lucide !== 'undefined') {
+          lucide.createIcons();
+        }
+
+        const alumnoSelect = document.getElementById('swal-alumno');
+        const cursoSelect = document.getElementById('swal-curso');
+        const mesSelect = document.getElementById('swal-mes');
+        const montoInput = document.getElementById('swal-monto');
+        const mesesPagadosInfo = document.getElementById('meses-pagados-info');
+
+        let pagosPorCurso = {}; // Guardar pagos ya realizados por curso
+
+        // Evento cuando cambia el alumno
+        alumnoSelect.addEventListener('change', async (e) => {
+          const idAlumno = e.target.value;
+          
+          if (!idAlumno) {
+            cursoSelect.innerHTML = '<option value="">Primero selecciona un alumno</option>';
+            cursoSelect.disabled = true;
+            mesSelect.innerHTML = '<option value="">Primero selecciona un curso</option>';
+            mesSelect.disabled = true;
+            montoInput.value = '';
+            mesesPagadosInfo.innerHTML = '';
+            return;
+          }
+
+          try {
+            cursoSelect.innerHTML = '<option value="">Cargando cursos...</option>';
+            cursoSelect.disabled = true;
+
+            // Obtener cursos del alumno (solo sus inscripciones activas)
+            const response = await fetch(`${API_URL}/inscripciones/alumno/${idAlumno}`);
+            const inscripciones = await response.json();
+
+            if (!inscripciones || inscripciones.length === 0) {
+              cursoSelect.innerHTML = '<option value="">Este alumno no tiene cursos</option>';
+              cursoSelect.disabled = true;
+              return;
+            }
+
+            // Filtrar solo cursos activos
+            const cursosActivos = inscripciones.filter(i => i.estado === 'activo');
+
+            if (cursosActivos.length === 0) {
+              cursoSelect.innerHTML = '<option value="">No hay cursos activos</option>';
+              cursoSelect.disabled = true;
+              return;
+            }
+
+            // Obtener pagos del alumno para verificar cuotas pagadas
+            const responsePagos = await fetch(`${API_URL}/pagos/alumno/${idAlumno}`);
+            const datosPagos = await responsePagos.json();
+
+            // Organizar pagos por curso
+            pagosPorCurso = {};
+            if (datosPagos.cursos) {
+              datosPagos.cursos.forEach(curso => {
+                const mesesPagados = curso.meses
+                  .filter(m => m.estado === 'pagado')
+                  .map(m => m.mes);
+                pagosPorCurso[curso.id_curso] = mesesPagados;
+                console.log(`Curso ${curso.id_curso} - Meses pagados:`, mesesPagados);
+              });
+            }
+
+            cursoSelect.innerHTML = '<option value="">Seleccionar curso...</option>' + 
+              cursosActivos.map(insc => 
+                `<option value="${insc.id_curso}" data-monto="${insc.costo_mensual}">
+                  ${insc.idioma} ${insc.nivel}
+                </option>`
+              ).join('');
+            cursoSelect.disabled = false;
+
+          } catch (error) {
+            console.error('Error al cargar cursos:', error);
+            cursoSelect.innerHTML = '<option value="">Error al cargar cursos</option>';
+          }
+        });
+
+        // Evento cuando cambia el curso
+        cursoSelect.addEventListener('change', (e) => {
+          const idCurso = e.target.value;
+          const selectedOption = e.target.options[e.target.selectedIndex];
+          const monto = selectedOption.dataset.monto;
+          
+          if (!idCurso) {
+            mesSelect.innerHTML = '<option value="">Primero selecciona un curso</option>';
+            mesSelect.disabled = true;
+            mesesPagadosInfo.innerHTML = '';
+            montoInput.value = '';
+            return;
+          }
+
+          // Obtener meses ya pagados para este curso
+          const mesesPagados = pagosPorCurso[idCurso] || [];
+          console.log(`Curso seleccionado: ${idCurso}, Meses pagados:`, mesesPagados);
+          
+          // Todos los meses académicos (incluyendo Matrícula)
+          const todosMeses = ['Matricula', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre'];
+          
+          // Crear opciones de meses (solo disponibles)
+          const mesesDisponibles = todosMeses.filter(mes => !mesesPagados.includes(mes));
+          console.log('Meses disponibles para pagar:', mesesDisponibles);
+          
+          if (mesesDisponibles.length === 0) {
+            mesSelect.innerHTML = '<option value="">Todas las cuotas están pagadas</option>';
+            mesSelect.disabled = true;
+            mesesPagadosInfo.innerHTML = '<div style="color: #43a047; background: #e8f5e9; padding: 8px; border-radius: 4px;"><i class="lucide-check-circle" style="width: 14px; height: 14px;"></i> ✓ Todas las cuotas de este curso están pagadas (incluyendo matrícula)</div>';
+          } else {
+            mesSelect.innerHTML = '<option value="">Seleccionar mes...</option>' + 
+              mesesDisponibles.map(mes => `<option value="${mes}">${mes}</option>`).join('');
+            mesSelect.disabled = false;
+            
+            // Mostrar información de meses pagados
+            if (mesesPagados.length > 0) {
+              mesesPagadosInfo.innerHTML = `<div style="color: #1565c0; background: #e3f2fd; padding: 8px; border-radius: 4px;">
+                <i class="lucide-info" style="width: 14px; height: 14px;"></i> Ya pagado: ${mesesPagados.join(', ')}
+              </div>`;
+            } else {
+              mesesPagadosInfo.innerHTML = '<div style="color: #757575;">No hay cuotas pagadas aún (ni matrícula)</div>';
+            }
+          }
+
+          // Auto-completar monto
+          if (monto) {
+            montoInput.value = monto;
+          }
+
+          // Re-inicializar iconos
+          if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+          }
+        });
+      },
+      preConfirm: () => {
+        const idAlumno = document.getElementById('swal-alumno').value;
+        const idCurso = document.getElementById('swal-curso').value;
+        const mesCuota = document.getElementById('swal-mes').value;
+        const monto = document.getElementById('swal-monto').value;
+        const medioPago = document.getElementById('swal-medio-pago').value;
+
+        if (!idAlumno) {
+          Swal.showValidationMessage('Selecciona un alumno');
+          return false;
+        }
+        if (!idCurso) {
+          Swal.showValidationMessage('Selecciona un curso');
+          return false;
+        }
+        if (!mesCuota) {
+          Swal.showValidationMessage('Selecciona el mes de cuota');
+          return false;
+        }
+        if (!monto || parseFloat(monto) <= 0) {
+          Swal.showValidationMessage('Ingresa un monto válido');
+          return false;
+        }
+        if (!medioPago) {
+          Swal.showValidationMessage('Selecciona un medio de pago');
+          return false;
+        }
+
+        return {
+          id_alumno: parseInt(idAlumno),
+          id_curso: parseInt(idCurso),
+          mes_cuota: mesCuota,
+          monto: parseFloat(monto),
+          medio_pago: medioPago
+        };
+      }
+    });
+
+    if (formValues) {
+      try {
+        // Mostrar loader
+        Swal.fire({
+          title: 'Registrando pago...',
+          html: '<i class="lucide-loader" style="width: 48px; height: 48px; animation: spin 1s linear infinite;"></i>',
+          showConfirmButton: false,
+          allowOutsideClick: false
+        });
+
+        const response = await fetch(`${API_URL}/pagos/realizar`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formValues)
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          await Swal.fire({
+            icon: 'success',
+            title: '¡Pago Registrado!',
+            html: `
+              <div style="text-align: left; padding: 20px;">
+                <p style="margin: 0 0 12px 0;"><strong>Comprobante:</strong> ${data.comprobante.numero}</p>
+                <p style="margin: 0 0 12px 0;"><strong>Monto:</strong> $${parseFloat(data.comprobante.monto).toLocaleString('es-AR', {minimumFractionDigits: 2})}</p>
+                <p style="margin: 0 0 12px 0;"><strong>Detalle:</strong> ${data.comprobante.detalle}</p>
+                <p style="margin: 0 0 12px 0;"><strong>Mes:</strong> ${data.comprobante.mes_cuota}</p>
+                <p style="margin: 0;"><strong>Fecha:</strong> ${new Date(data.comprobante.fecha).toLocaleDateString('es-ES')}</p>
+              </div>
+            `,
+            confirmButtonColor: '#1976d2'
+          });
+
+          // Recargar tabla de pagos
+          await loadPagosData();
+        } else {
+          throw new Error(data.message || 'Error al registrar el pago');
+        }
+      } catch (error) {
+        console.error('Error al registrar pago:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: error.message || 'No se pudo registrar el pago',
+          confirmButtonColor: '#1976d2'
+        });
+      }
+    }
+  } catch (error) {
+    console.error('Error al abrir modal:', error);
+    showToast('Error al cargar datos', 'error');
+  }
 }
 
 // ===== GESTIÓN DE AULAS ===== //
@@ -4027,13 +4361,15 @@ async function abrirModalCredencialesAlumno(idAlumno) {
     
     // Obtener usuario desde la tabla usuarios
     let usuarioActual = '';
+    let passwordActual = '';
     let tienePassword = false;
     try {
       const respUsuario = await fetch(`${API_URL}/auth/usuario-classroom/${alumno.id_persona}`);
       if (respUsuario.ok) {
         const usuario = await respUsuario.json();
-        usuarioActual = usuario.usuario || '';
-        tienePassword = usuario.tiene_password || false;
+        usuarioActual = usuario.username || '';
+        passwordActual = usuario.password_plain || '';
+        tienePassword = usuario.password_plain ? true : false;
       }
     } catch (error) {
       console.error('Error al cargar usuario:', error);
@@ -4050,24 +4386,30 @@ async function abrirModalCredencialesAlumno(idAlumno) {
           </div>
 
           <div style="margin-bottom: 16px;">
-            <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Usuario</label>
+            <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+              Usuario <span style="color: #9ca3af; font-weight: 400;">(actual: ${usuarioActual})</span>
+            </label>
             <input type="text" id="usuarioAlumno" value="${usuarioActual}" 
-                   style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-family: 'Courier New', monospace; font-size: 14px;">
+                   onfocus="if(this.value === '${usuarioActual}') this.value = '';"
+                   style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-family: 'Courier New', monospace; font-size: 14px; color: #9ca3af;">
           </div>
           
           <div style="margin-bottom: 8px;">
             <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">
-              Contraseña ${tienePassword ? '(configurada - dejar vacío para no cambiar)' : '(sin configurar)'}
+              Contraseña <span style="color: #9ca3af; font-weight: 400;">(actual: ${passwordActual || 'sin configurar'})</span>
             </label>
             <div style="position: relative;">
-              <input type="password" id="passwordAlumno" 
-                     placeholder="${tienePassword ? 'Dejar vacío para mantener actual' : 'Ingrese una contraseña'}" 
-                     style="width: 100%; padding: 10px 40px 10px 10px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box; font-size: 14px;">
+              <input type="text" id="passwordAlumno" value="${passwordActual}"
+                     onfocus="if(this.value === '${passwordActual}') this.value = '';"
+                     style="width: 100%; padding: 10px 40px 10px 10px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box; font-size: 14px; color: #9ca3af;">
               <button type="button" id="togglePasswordAlumno" 
                       style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 4px;">
                 <i data-lucide="eye" style="width: 20px; height: 20px; color: #6b7280;"></i>
               </button>
             </div>
+            <p style="font-size: 11px; color: #6b7280; margin-top: 4px;">
+              Dejá vacío para mantener la contraseña actual
+            </p>
           </div>
         </div>
       `,
@@ -4079,9 +4421,30 @@ async function abrirModalCredencialesAlumno(idAlumno) {
       didOpen: () => {
         lucide.createIcons();
         
+        // Efecto de placeholder al hacer focus/blur en usuario
+        const inputUsuario = document.getElementById('usuarioAlumno');
+        inputUsuario.addEventListener('blur', () => {
+          if (inputUsuario.value.trim() === '') {
+            inputUsuario.value = '${usuarioActual}';
+            inputUsuario.style.color = '#9ca3af';
+          } else {
+            inputUsuario.style.color = '#111827';
+          }
+        });
+        
+        // Efecto de placeholder al hacer focus/blur en password
+        const inputPassword = document.getElementById('passwordAlumno');
+        inputPassword.addEventListener('blur', () => {
+          if (inputPassword.value.trim() === '') {
+            inputPassword.value = '${passwordActual}';
+            inputPassword.style.color = '#9ca3af';
+          } else {
+            inputPassword.style.color = '#111827';
+          }
+        });
+        
         // Toggle password visibility
         const toggleBtn = document.getElementById('togglePasswordAlumno');
-        const inputPassword = document.getElementById('passwordAlumno');
         toggleBtn.addEventListener('click', () => {
           const isPassword = inputPassword.type === 'password';
           inputPassword.type = isPassword ? 'text' : 'password';
@@ -4094,14 +4457,20 @@ async function abrirModalCredencialesAlumno(idAlumno) {
       },
       preConfirm: async () => {
         const usuario = document.getElementById('usuarioAlumno').value.trim();
-        const password = document.getElementById('passwordAlumno').value;
+        const password = document.getElementById('passwordAlumno').value.trim();
         
-        if (!usuario) {
+        // Si el usuario está vacío o es el mismo que el actual, usar el actual
+        const nuevoUsuario = (usuario === '' || usuario === '${usuarioActual}') ? '${usuarioActual}' : usuario;
+        
+        // Si el password está vacío o es el mismo que el actual, no actualizar
+        const nuevoPassword = (password === '' || password === '${passwordActual}') ? '' : password;
+        
+        if (!nuevoUsuario) {
           Swal.showValidationMessage('El usuario es obligatorio');
           return false;
         }
         
-        return { usuario, password };
+        return { usuario: nuevoUsuario, password: nuevoPassword };
       }
     });
 
@@ -4888,6 +5257,18 @@ async function abrirModalCredencialesAdministrador(idAdmin) {
     if (!response.ok) throw new Error('Error al cargar datos del administrador');
     const admin = await response.json();
 
+    // Obtener password_plain desde tabla usuarios
+    let passwordActual = '';
+    try {
+      const respUsuario = await fetch(`${API_URL}/auth/usuario-classroom/${admin.id_persona}`);
+      if (respUsuario.ok) {
+        const usuario = await respUsuario.json();
+        passwordActual = usuario.password_plain || '';
+      }
+    } catch (error) {
+      console.error('Error al cargar usuario:', error);
+    }
+
     const { value: formValues } = await Swal.fire({
       title: 'Editar Credenciales - Dashboard',
       html: `
@@ -4900,24 +5281,28 @@ async function abrirModalCredencialesAdministrador(idAdmin) {
             </h3>
             
             <div style="margin-bottom: 15px;">
-              <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #374151;">Usuario</label>
+              <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #374151;">
+                Usuario <span style="color: #9ca3af; font-weight: 400;">(actual: ${admin.usuario || ''})</span>
+              </label>
               <input type="text" id="usuarioDashboard" value="${admin.usuario || ''}" 
-                     placeholder="Ingrese un usuario" 
-                     style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; box-sizing: border-box;">
+                     onfocus="if(this.value === '${admin.usuario || ''}') this.value = '';"
+                     style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; box-sizing: border-box; color: #9ca3af;">
             </div>
             
             <div style="margin-bottom: 15px;">
-              <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #374151;">Contraseña</label>
+              <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #374151;">
+                Contraseña <span style="color: #9ca3af; font-weight: 400;">(actual: ${passwordActual || 'sin configurar'})</span>
+              </label>
               <div style="position: relative;">
-                <input type="password" id="passwordDashboard" 
-                       placeholder="${admin.password_hash ? '●●●●●●●●' : 'Ingrese una contraseña'}" 
-                       style="width: 100%; padding: 8px 40px 8px 8px; border: 1px solid #d1d5db; border-radius: 4px; box-sizing: border-box;">
+                <input type="text" id="passwordDashboard" value="${passwordActual}"
+                       onfocus="if(this.value === '${passwordActual}') this.value = '';"
+                       style="width: 100%; padding: 8px 40px 8px 8px; border: 1px solid #d1d5db; border-radius: 4px; box-sizing: border-box; color: #9ca3af;">
                 <button type="button" id="togglePasswordDashboard" 
                         style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 4px; display: flex; align-items: center; color: #6b7280;">
                   <i data-lucide="eye" style="width: 18px; height: 18px;"></i>
                 </button>
               </div>
-              <small style="color: #6b7280; font-size: 12px;">Dejar vacío para mantener la contraseña actual</small>
+              <small style="color: #6b7280; font-size: 12px;">Dejá vacío para mantener la contraseña actual</small>
             </div>
           </div>
         </div>
@@ -4933,8 +5318,32 @@ async function abrirModalCredencialesAdministrador(idAdmin) {
           lucide.createIcons();
         }
 
-        // Toggle password visibility - Dashboard
+        const usuarioActualAdmin = "${admin.usuario || ''}";
+        const passwordActualAdmin = "${passwordActual}";
+
+        // Efecto de placeholder al hacer focus/blur en usuario
+        const inputUsuario = document.getElementById('usuarioDashboard');
+        inputUsuario.addEventListener('blur', () => {
+          if (inputUsuario.value.trim() === '') {
+            inputUsuario.value = usuarioActualAdmin;
+            inputUsuario.style.color = '#9ca3af';
+          } else {
+            inputUsuario.style.color = '#111827';
+          }
+        });
+
+        // Efecto de placeholder al hacer focus/blur en password
         const inputDash = document.getElementById('passwordDashboard');
+        inputDash.addEventListener('blur', () => {
+          if (inputDash.value.trim() === '') {
+            inputDash.value = passwordActualAdmin;
+            inputDash.style.color = '#9ca3af';
+          } else {
+            inputDash.style.color = '#111827';
+          }
+        });
+
+        // Toggle password visibility - Dashboard
         const toggleDash = document.getElementById('togglePasswordDashboard');
         
         toggleDash.addEventListener('click', () => {
@@ -4949,14 +5358,23 @@ async function abrirModalCredencialesAdministrador(idAdmin) {
         const usuarioDash = document.getElementById('usuarioDashboard').value.trim();
         const passwordDash = document.getElementById('passwordDashboard').value.trim();
 
-        if (!usuarioDash) {
+        const usuarioActualAdmin = "${admin.usuario || ''}";
+        const passwordActualAdmin = "${passwordActual}";
+
+        // Si el usuario está vacío o es el mismo que el actual, usar el actual
+        const nuevoUsuario = (usuarioDash === '' || usuarioDash === usuarioActualAdmin) ? usuarioActualAdmin : usuarioDash;
+        
+        // Si el password está vacío o es el mismo que el actual, no actualizar
+        const nuevoPassword = (passwordDash === '' || passwordDash === passwordActualAdmin) ? '' : passwordDash;
+
+        if (!nuevoUsuario) {
           Swal.showValidationMessage('El usuario del Dashboard es obligatorio');
           return false;
         }
 
         return {
-          usuarioDashboard: usuarioDash,
-          passwordDashboard: passwordDash
+          usuarioDashboard: nuevoUsuario,
+          passwordDashboard: nuevoPassword
         };
       }
     });

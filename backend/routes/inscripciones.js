@@ -7,16 +7,56 @@ const router = express.Router();
 router.get("/", async (req, res) => {
   try {
     const [rows] = await pool.query(`
-      SELECT i.id_inscripcion, CONCAT(p.nombre, ' ', p.apellido) AS alumno, 
-             c.nombre_curso, i.fecha_inscripcion, i.estado
+      SELECT 
+        i.id_inscripcion, 
+        i.id_alumno,
+        CONCAT(p.nombre, ' ', p.apellido) AS alumno,
+        a.legajo,
+        c.nombre_curso, 
+        i.fecha_inscripcion, 
+        i.estado
       FROM inscripciones i
       JOIN alumnos a ON i.id_alumno = a.id_alumno
-      JOIN personas p ON a.id_alumno = p.id_persona
+      JOIN personas p ON a.id_persona = p.id_persona
       JOIN cursos c ON i.id_curso = c.id_curso
+      ORDER BY i.fecha_inscripcion DESC
     `);
     res.json(rows);
   } catch (error) {
     res.status(500).json({ message: "Error al obtener inscripciones" });
+  }
+});
+
+// Obtener inscripciones de un alumno específico
+router.get("/alumno/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const [rows] = await pool.query(`
+      SELECT 
+        i.id_inscripcion,
+        i.id_curso,
+        i.fecha_inscripcion,
+        i.estado,
+        c.nombre_curso,
+        idioma.nombre_idioma AS idioma,
+        nivel.descripcion AS nivel,
+        15000 AS costo_mensual,
+        CONCAT(prof_p.nombre, ' ', prof_p.apellido) AS profesor
+      FROM inscripciones i
+      JOIN cursos c ON i.id_curso = c.id_curso
+      JOIN idiomas idioma ON c.id_idioma = idioma.id_idioma
+      JOIN niveles nivel ON c.id_nivel = nivel.id_nivel
+      JOIN profesores prof ON c.id_profesor = prof.id_profesor
+      JOIN personas prof_p ON prof.id_persona = prof_p.id_persona
+      WHERE i.id_alumno = ?
+      ORDER BY i.fecha_inscripcion DESC
+    `, [id]);
+
+    res.json(rows);
+  } catch (error) {
+    console.error('Error al obtener inscripciones del alumno:', error);
+    res.status(500).json({ message: "Error al obtener inscripciones del alumno" });
   }
 });
 

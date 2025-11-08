@@ -61,106 +61,145 @@ router.get("/", async (req, res) => {
   }
 });
 
-// GET /pagos/alumno/:id - Obtener pagos de un alumno específico
+// GET /pagos/alumno/:id - Obtener pagos de un alumno agrupados por curso
 router.get("/alumno/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
     console.log(`[pagos] Consultando pagos para alumno ID: ${id}`);
 
-    // Verificar primero si las columnas existen
-    const [columnas] = await pool.query(`
-      SELECT COLUMN_NAME 
-      FROM INFORMATION_SCHEMA.COLUMNS 
-      WHERE TABLE_SCHEMA = DATABASE() 
-      AND LOWER(TABLE_NAME) = 'pagos'
-      AND COLUMN_NAME IN ('periodo', 'fecha_vencimiento', 'estado_pago')
-    `);
+    // Obtener cursos activos del alumno
+    const [cursosActivos] = await pool.query(`
+      SELECT 
+        c.id_curso,
+        c.nombre_curso,
+        i.nombre_idioma,
+        n.descripcion AS nivel,
+        CONCAT(prof_p.nombre, ' ', prof_p.apellido) AS profesor,
+        15000 AS costo_mensual,
+        insc.fecha_inscripcion
+      FROM inscripciones insc
+      JOIN cursos c ON insc.id_curso = c.id_curso
+      JOIN idiomas i ON c.id_idioma = i.id_idioma
+      JOIN niveles n ON c.id_nivel = n.id_nivel
+      JOIN profesores prof ON c.id_profesor = prof.id_profesor
+      JOIN personas prof_p ON prof.id_persona = prof_p.id_persona
+      WHERE insc.id_alumno = ? AND insc.estado = 'activo'
+      ORDER BY c.nombre_curso
+    `, [id]);
 
-    const tieneNuevasCols = columnas.length >= 2;
-    console.log(`[pagos] Tiene columnas nuevas: ${tieneNuevasCols}, columnas encontradas: ${columnas.length}`);
+    console.log(`[pagos] Cursos activos encontrados: ${cursosActivos.length}`);
 
-    // Obtener pagos realizados
-    let pagosRealizados = [];
-    
-    if (tieneNuevasCols) {
-      const [rows] = await pool.query(`
+    // Meses académicos (Matrícula + Marzo-Noviembre)
+    const mesesAcademicos = [
+      'Matricula', 'Marzo', 'Abril', 'Mayo', 'Junio', 
+      'Julio', 'Agosto', 'Septiembre', 
+      'Octubre', 'Noviembre'
+    ];
+
+    // Para cada curso, obtener estado de pagos de cada mes
+    const cursosPagos = await Promise.all(cursosActivos.map(async (curso) => {
+      // Obtener pagos realizados para este curso
+      const [pagosRealizados] = await pool.query(`
         SELECT 
           pa.id_pago,
-          cp.descripcion AS concepto,
-          mp.descripcion AS medio_pago,
+          pa.mes_cuota,
           pa.monto,
           pa.fecha_pago,
-          pa.periodo,
-          pa.fecha_vencimiento,
-          pa.estado_pago
+          pa.detalle_pago
         FROM pagos pa
-        JOIN conceptos_pago cp ON pa.id_concepto = cp.id_concepto
-        JOIN medios_pago mp ON pa.id_medio_pago = mp.id_medio_pago
-        WHERE pa.id_alumno = ?
+        WHERE pa.id_alumno = ? AND pa.id_curso = ?
         ORDER BY pa.fecha_pago DESC
-      `, [id]);
-      pagosRealizados = rows;
-    } else {
-      // Tabla antigua sin columnas nuevas
-      const [rows] = await pool.query(`
-        SELECT 
-          pa.id_pago,
-          cp.descripcion AS concepto,
-          mp.descripcion AS medio_pago,
-          pa.monto,
-          pa.fecha_pago,
-          DATE_FORMAT(pa.fecha_pago, '%Y-%m') as periodo,
-          NULL as fecha_vencimiento,
-          'pagado' as estado_pago
-        FROM pagos pa
-        JOIN conceptos_pago cp ON pa.id_concepto = cp.id_concepto
-        JOIN medios_pago mp ON pa.id_medio_pago = mp.id_medio_pago
-        WHERE pa.id_alumno = ?
-        ORDER BY pa.fecha_pago DESC
-      `, [id]);
-      pagosRealizados = rows;
-    }
+      `, [id, curso.id_curso]);
 
-    console.log(`[pagos] pagos realizados encontrados: ${pagosRealizados.length}`);
+      console.log(`[GET PAGOS] Curso ${curso.id_curso} - Pagos encontrados:`, pagosRealizados.map(p => ({mes: p.mes_cuota, id: p.id_pago})));
 
-    // Generar períodos pendientes (últimos 3 meses + próximos 3 meses)
-    const periodosPendientes = [];
-    const hoy = new Date();
-    
-    for (let i = -3; i <= 3; i++) {
-      const fecha = new Date(hoy.getFullYear(), hoy.getMonth() + i, 1);
-      const periodo = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}`;
-      
-      // Verificar si ya existe un pago para este período
-      const yaExiste = pagosRealizados.some(p => p.periodo === periodo);
-      
-      if (!yaExiste) {
-        const fechaVencimiento = new Date(fecha.getFullYear(), fecha.getMonth() + 1, 10);
-        const estaVencido = fechaVencimiento < hoy;
+      // Generar estado de cada mes académico
+      const estadoMeses = mesesAcademicos.map((mes, index) => {
+        const pago = pagosRealizados.find(p => p.mes_cuota === mes);
         
-        periodosPendientes.push({
-          periodo,
-          monto: 15000.00, // Monto fijo mensual (puedes ajustarlo)
-          fecha_vencimiento: fechaVencimiento.toISOString().split('T')[0],
-          estado: estaVencido ? 'vencido' : 'pendiente',
-          mes_nombre: fecha.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
-        });
-      }
-    }
+        if (pago) {
+          console.log(`[MATCH] Mes "${mes}" encontrado en pagos como "${pago.mes_cuota}"`);
+          return {
+            mes,
+            estado: 'pagado',
+            fecha_pago: pago.fecha_pago,
+            monto: pago.monto,
+            id_pago: pago.id_pago
+          };
+        } else {
+          // Determinar estado según el mes actual
+          const hoy = new Date();
+          const mesActual = hoy.getMonth(); // 0-11
+          
+          // Matrícula (index 0) siempre se considera impaga si no está pagada
+          if (index === 0 && mes === 'Matricula') {
+            return {
+              mes,
+              estado: 'impago',
+              fecha_pago: null,
+              monto: curso.costo_mensual,
+              id_pago: null
+            };
+          }
+          
+          // Para los demás meses (Marzo=index 1, Abril=index 2, etc.)
+          const mesAcademicoActual = mesActual - 2; // Marzo = 0, Abril = 1, etc.
+          const indexMesReal = index - 1; // Ajustar por Matrícula
+          
+          let estado = 'pendiente';
+          if (indexMesReal < mesAcademicoActual) {
+            estado = 'impago';
+          } else if (indexMesReal === mesAcademicoActual) {
+            estado = 'pendiente';
+          } else {
+            estado = 'proximo';
+          }
 
-    // Calcular estadísticas
-    const totalPagado = pagosRealizados.reduce((sum, p) => sum + parseFloat(p.monto || 0), 0);
-    const totalPendiente = periodosPendientes.reduce((sum, p) => sum + parseFloat(p.monto || 0), 0);
+          return {
+            mes,
+            estado,
+            fecha_pago: null,
+            monto: curso.costo_mensual,
+            id_pago: null
+          };
+        }
+      });
+
+      // Calcular estadísticas del curso
+      const cuotasPagadas = estadoMeses.filter(m => m.estado === 'pagado').length;
+      const cuotasImpagas = estadoMeses.filter(m => m.estado === 'impago').length;
+      const cuotasPendientes = estadoMeses.filter(m => m.estado === 'pendiente').length;
+      const totalPagado = pagosRealizados.reduce((sum, p) => sum + parseFloat(p.monto || 0), 0);
+
+      return {
+        id_curso: curso.id_curso,
+        nombre_curso: `${curso.nombre_idioma} - ${curso.nivel}`,
+        profesor: curso.profesor,
+        costo_mensual: curso.costo_mensual,
+        meses: estadoMeses,
+        estadisticas: {
+          cuotas_pagadas: cuotasPagadas,
+          cuotas_impagas: cuotasImpagas,
+          cuotas_pendientes: cuotasPendientes,
+          total_pagado: totalPagado,
+          total_pendiente: (10 - cuotasPagadas) * parseFloat(curso.costo_mensual) // 10 = Matrícula + 9 meses
+        }
+      };
+    }));
+
+    // Estadísticas globales
+    const totalGlobalPagado = cursosPagos.reduce((sum, c) => sum + c.estadisticas.total_pagado, 0);
+    const totalGlobalPendiente = cursosPagos.reduce((sum, c) => sum + c.estadisticas.total_pendiente, 0);
+    const totalCuotasImpagas = cursosPagos.reduce((sum, c) => sum + c.estadisticas.cuotas_impagas, 0);
 
     res.json({
-      pagos_realizados: pagosRealizados,
-      pagos_pendientes: periodosPendientes,
-      estadisticas: {
-        total_pagado: totalPagado,
-        total_pendiente: totalPendiente,
-        cantidad_pagos: pagosRealizados.length,
-        cantidad_pendientes: periodosPendientes.length
+      cursos: cursosPagos,
+      estadisticas_globales: {
+        total_pagado: totalGlobalPagado,
+        total_pendiente: totalGlobalPendiente,
+        total_cursos: cursosPagos.length,
+        cuotas_impagas: totalCuotasImpagas
       }
     });
   } catch (error) {
@@ -179,14 +218,17 @@ router.post("/realizar",
     body('id_alumno')
       .isInt({ min: 1 }).withMessage('ID de alumno inválido')
       .toInt(),
-    body('periodo')
-      .matches(/^\d{4}-(0[1-9]|1[0-2])$/).withMessage('Periodo debe tener formato YYYY-MM'),
+    body('id_curso')
+      .isInt({ min: 1 }).withMessage('ID de curso inválido')
+      .toInt(),
+    body('mes_cuota')
+      .isIn(['Matricula', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre'])
+      .withMessage('Mes de cuota inválido'),
     body('monto')
       .isFloat({ min: 0.01 }).withMessage('Monto debe ser mayor a 0')
       .toFloat(),
     body('medio_pago')
-      .isInt({ min: 1 }).withMessage('Medio de pago inválido')
-      .toInt()
+      .isString().withMessage('Medio de pago inválido')
   ],
   async (req, res) => {
   // Verificar errores de validación
@@ -199,29 +241,35 @@ router.post("/realizar",
   }
 
   try {
-    const { id_alumno, periodo, monto, medio_pago, datos_tarjeta } = req.body;
+    const { id_alumno, id_curso, mes_cuota, monto, medio_pago } = req.body;
 
-    // Verificar si las columnas nuevas existen
-    const [columnas] = await pool.query(`
-      SELECT COLUMN_NAME 
-      FROM INFORMATION_SCHEMA.COLUMNS 
-      WHERE TABLE_SCHEMA = DATABASE() 
-      AND LOWER(TABLE_NAME) = 'pagos'
-      AND COLUMN_NAME IN ('periodo', 'estado_pago')
-    `);
+    // Verificar que no exista ya un pago para este curso y mes
+    const [pagoExistente] = await pool.query(
+      'SELECT id_pago FROM pagos WHERE id_alumno = ? AND id_curso = ? AND mes_cuota = ?',
+      [id_alumno, id_curso, mes_cuota]
+    );
 
-    const tieneNuevasCols = columnas.length >= 1;
+    if (pagoExistente.length > 0) {
+      return res.status(400).json({ 
+        success: false,
+        message: "Ya existe un pago registrado para este mes en este curso" 
+      });
+    }
 
-    if (tieneNuevasCols) {
-      // Verificar que no exista ya un pago para este período
-      const [pagoExistente] = await pool.query(
-        'SELECT id_pago FROM pagos WHERE id_alumno = ? AND periodo = ?',
-        [id_alumno, periodo]
-      );
+    // Obtener información del curso
+    const [cursoInfo] = await pool.query(`
+      SELECT c.nombre_curso, i.nombre_idioma AS idioma, n.descripcion AS nivel
+      FROM cursos c
+      JOIN idiomas i ON c.id_idioma = i.id_idioma
+      JOIN niveles n ON c.id_nivel = n.id_nivel
+      WHERE c.id_curso = ?
+    `, [id_curso]);
 
-      if (pagoExistente.length > 0) {
-        return res.status(400).json({ message: "Ya existe un pago registrado para este período" });
-      }
+    if (cursoInfo.length === 0) {
+      return res.status(400).json({ 
+        success: false,
+        message: "Curso no encontrado" 
+      });
     }
 
     // Obtener id del medio de pago
@@ -231,30 +279,43 @@ router.post("/realizar",
     );
 
     if (medios.length === 0) {
-      return res.status(400).json({ message: "Medio de pago no válido" });
+      return res.status(400).json({ 
+        success: false,
+        message: "Medio de pago no válido" 
+      });
     }
 
     const id_medio_pago = medios[0].id_medio_pago;
 
-    // Obtener id del concepto (asumimos concepto "Cuota Mensual" id=1)
-    const id_concepto = 1;
+    // Obtener id del concepto
+    // Matrícula = 1, Cuota Mensual = 2
+    const id_concepto = mes_cuota === 'Matricula' ? 1 : 2;
+
+    // Generar detalle del pago
+    const detalle_pago = mes_cuota === 'Matricula' 
+      ? `Matrícula - ${cursoInfo[0].idioma} ${cursoInfo[0].nivel}`
+      : `Cuota ${mes_cuota} - ${cursoInfo[0].idioma} ${cursoInfo[0].nivel}`;
+
+    // Calcular periodo en formato YYYY-MM
+    const mesesMap = {
+      'Matricula': '02', // Febrero para matrícula
+      'Marzo': '03', 'Abril': '04', 'Mayo': '05', 'Junio': '06',
+      'Julio': '07', 'Agosto': '08', 'Septiembre': '09', 
+      'Octubre': '10', 'Noviembre': '11'
+    };
+    const año = new Date().getFullYear();
+    const periodo = `${año}-${mesesMap[mes_cuota]}`;
+
+    console.log(`[PAGO] Registrando - mes_cuota: "${mes_cuota}", concepto ID: ${id_concepto}, detalle: "${detalle_pago}"`);
 
     // Registrar el pago
-    let result;
-    
-    if (tieneNuevasCols) {
-      // Insertar con columnas nuevas
-      [result] = await pool.query(`
-        INSERT INTO pagos (id_alumno, id_concepto, id_medio_pago, monto, fecha_pago, periodo, estado_pago)
-        VALUES (?, ?, ?, ?, CURDATE(), ?, 'pagado')
-      `, [id_alumno, id_concepto, id_medio_pago, monto, periodo]);
-    } else {
-      // Insertar sin columnas nuevas
-      [result] = await pool.query(`
-        INSERT INTO pagos (id_alumno, id_concepto, id_medio_pago, monto, fecha_pago)
-        VALUES (?, ?, ?, ?, CURDATE())
-      `, [id_alumno, id_concepto, id_medio_pago, monto]);
-    }
+    const [result] = await pool.query(`
+      INSERT INTO pagos 
+      (id_alumno, id_curso, id_concepto, id_medio_pago, monto, fecha_pago, periodo, detalle_pago, mes_cuota, estado_pago)
+      VALUES (?, ?, ?, ?, ?, CURDATE(), ?, ?, ?, 'pagado')
+    `, [id_alumno, id_curso, id_concepto, id_medio_pago, monto, periodo, detalle_pago, mes_cuota]);
+
+    console.log(`[PAGO] Guardado exitosamente - ID: ${result.insertId}`);
 
     res.json({
       success: true,
@@ -264,12 +325,14 @@ router.post("/realizar",
         numero: `COMP-${String(result.insertId).padStart(8, '0')}`,
         fecha: new Date().toISOString().split('T')[0],
         monto: monto,
-        periodo: periodo
+        detalle: detalle_pago,
+        mes_cuota: mes_cuota
       }
     });
   } catch (error) {
     console.error("Error al registrar pago:", error);
     res.status(500).json({ 
+      success: false,
       message: "Error al procesar el pago",
       error: error.message 
     });

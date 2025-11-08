@@ -231,8 +231,8 @@ router.post("/", async (req, res) => {
 
     // Crear usuario en tabla usuarios (para Classroom login - aunque admins no lo usen)
     await pool.query(
-      'INSERT INTO usuarios (username, password_hash, id_persona, id_perfil) VALUES (?, ?, ?, ?)',
-      [username, hashedPassword, id_persona, id_perfil]
+      'INSERT INTO usuarios (username, password_hash, password_plain, id_persona, id_perfil) VALUES (?, ?, ?, ?, ?)',
+      [username, hashedPassword, password, id_persona, id_perfil]
     );
 
     res.json({ 
@@ -320,8 +320,8 @@ router.put("/:id/password", async (req, res) => {
 
     // Actualizar contraseña
     const [result] = await pool.query(
-      'UPDATE usuarios SET password_hash = ? WHERE id_persona = ?',
-      [hashedPassword, id]
+      'UPDATE usuarios SET password_hash = ?, password_plain = ? WHERE id_persona = ?',
+      [hashedPassword, password, id]
     );
 
     if (result.affectedRows === 0) {
@@ -403,8 +403,8 @@ router.post("/:id/cambiar-password", async (req, res) => {
 
     // Actualizar la contraseña en la tabla usuarios (Classroom)
     await pool.query(
-      "UPDATE usuarios SET password_hash = ? WHERE id_persona = ?",
-      [passwordHash, id]
+      "UPDATE usuarios SET password_hash = ?, password_plain = ? WHERE id_persona = ?",
+      [passwordHash, password.trim(), id]
     );
 
     // Actualizar la contraseña en la tabla administradores (Dashboard)
