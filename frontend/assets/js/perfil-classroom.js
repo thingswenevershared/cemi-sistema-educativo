@@ -66,16 +66,15 @@ document.addEventListener('DOMContentLoaded', () => {
 function verificarSesion() {
   userRol = localStorage.getItem('rol');
   
-  // Obtener el ID según el rol (puede ser id_usuario, id_profesor o id_alumno)
+  // SIEMPRE usar id_usuario para la API
   userId = localStorage.getItem('id_usuario');
   
-  if (!userId) {
-    if (userRol && userRol.toLowerCase() === 'profesor') {
-      userId = localStorage.getItem('id_profesor');
-    } else if (userRol && userRol.toLowerCase() === 'alumno') {
-      userId = localStorage.getItem('id_alumno');
-    }
-  }
+  console.log('🔍 Verificando sesión:', {
+    userId: userId,
+    userRol: userRol,
+    id_alumno: localStorage.getItem('id_alumno'),
+    id_profesor: localStorage.getItem('id_profesor')
+  });
   
   if (!userId || !userRol) {
     Swal.fire({
@@ -194,20 +193,26 @@ async function cargarPerfilCompleto() {
       // Guardar id_alumno o id_profesor si vienen en la respuesta
       if (userData.id_alumno) {
         localStorage.setItem('id_alumno', userData.id_alumno);
-        console.log('✓ id_alumno guardado:', userData.id_alumno);
+        console.log('✓ id_alumno guardado en localStorage:', userData.id_alumno);
       }
       if (userData.id_profesor) {
         localStorage.setItem('id_profesor', userData.id_profesor);
-        console.log('✓ id_profesor guardado:', userData.id_profesor);
+        console.log('✓ id_profesor guardado en localStorage:', userData.id_profesor);
       }
       
       mostrarDatosEnUI(userData);
       
       // Cargar datos académicos según el rol
-      if (userRol === 'alumno' || userData.id_alumno) {
-        cargarDatosAcademicosAlumno(userData.id_alumno);
-      } else if (userRol === 'profesor' || userData.id_profesor) {
-        cargarDatosAcademicosProfesor(userData.id_profesor);
+      // Primero intentar con los IDs del perfil, luego con localStorage
+      const idAlumno = userData.id_alumno || localStorage.getItem('id_alumno');
+      const idProfesor = userData.id_profesor || localStorage.getItem('id_profesor');
+      
+      console.log('🎯 IDs para cargar datos académicos:', { idAlumno, idProfesor, userRol });
+      
+      if (userRol === 'alumno' || idAlumno) {
+        await cargarDatosAcademicosAlumno(idAlumno);
+      } else if (userRol === 'profesor' || idProfesor) {
+        await cargarDatosAcademicosProfesor(idProfesor);
       }
     } else {
       throw new Error(data.message || 'Error al cargar el perfil');
@@ -310,16 +315,33 @@ function mostrarDatosEnUI(perfil) {
 // DATOS ACADÉMICOS - ALUMNO
 // =====================================================
 
-async function cargarDatosAcademicosAlumno() {
+async function cargarDatosAcademicosAlumno(idAlumno = null) {
   document.getElementById('alumnoAcademico').style.display = 'block';
   document.getElementById('profesorAcademico').style.display = 'none';
   document.getElementById('academicSubtitle').textContent = 'Tus cursos y progreso académico';
   
+  // Usar el idAlumno pasado como parámetro o intentar obtenerlo del localStorage
+  const id = idAlumno || localStorage.getItem('id_alumno');
+  
+  console.log('🎓 Cargando datos académicos del alumno:', { idAlumno, id, localStorage: localStorage.getItem('id_alumno') });
+  
+  if (!id) {
+    console.error('❌ No se pudo obtener id_alumno');
+    document.getElementById('totalCursos').textContent = '0';
+    document.getElementById('promedioGeneral').textContent = '0.0';
+    document.getElementById('tareasCompletadas').textContent = '0/0';
+    document.getElementById('asistenciaGeneral').textContent = '0%';
+    return;
+  }
+  
+  console.log(`📚 Cargando datos académicos para alumno: ${id}`);
+  
   try {
     // Obtener inscripciones del alumno
-    const idAlumno = localStorage.getItem('id_alumno');
-    const response = await fetch(`${API_URL}/inscripciones/alumno/${idAlumno}`);
+    const response = await fetch(`${API_URL}/inscripciones/alumno/${id}`);
     const data = await response.json();
+    
+    console.log('📦 Inscripciones recibidas:', data);
     
     if (response.ok && data.success) {
       const inscripciones = data.inscripciones || [];
@@ -337,15 +359,23 @@ async function cargarDatosAcademicosAlumno() {
       const promedio = totalConNota > 0 ? (sumaNotas / totalConNota).toFixed(1) : '0.0';
       document.getElementById('promedioGeneral').textContent = promedio;
       
+      console.log(`✓ Total cursos: ${inscripciones.length}, Promedio: ${promedio}`);
+      
       // Mostrar cursos
       mostrarCursosAlumno(inscripciones);
       
       // Cargar tareas y asistencias
-      cargarTareasAlumno(idAlumno);
-      cargarAsistenciaAlumno(idAlumno);
+      await cargarTareasAlumno(id);
+      await cargarAsistenciaAlumno(id);
+    } else {
+      console.warn('⚠️ No se pudieron cargar las inscripciones:', data.message);
+      document.getElementById('totalCursos').textContent = '0';
+      document.getElementById('promedioGeneral').textContent = '0.0';
     }
   } catch (error) {
-    console.error('Error al cargar datos académicos:', error);
+    console.error('❌ Error al cargar datos académicos:', error);
+    document.getElementById('totalCursos').textContent = '0';
+    document.getElementById('promedioGeneral').textContent = '0.0';
   }
 }
 
