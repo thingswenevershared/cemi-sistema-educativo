@@ -501,6 +501,18 @@ function setupEventListeners() {
       filterTasks(filter);
     });
   });
+
+  // Filtro de cursos en el feed
+  const filterCurso = document.getElementById('filterCurso');
+  if (filterCurso) {
+    filterCurso.addEventListener('change', async (e) => {
+      const selectedValue = e.target.value;
+      cursoActivo = selectedValue ? parseInt(selectedValue) : null;
+      console.log('🔽 Filtro de curso cambiado:', cursoActivo || 'Todas las clases');
+      await loadFeed();
+    });
+    console.log('✅ Event listener de filtro de cursos agregado');
+  }
 }
 
 // =====================================================
