@@ -26,9 +26,8 @@ class CursadoManager {
     async init() {
         console.log('📚 Inicializando Cursado Manager...');
         
-        // Obtener ID del alumno del localStorage
-        const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
-        this.idAlumno = userInfo.id_alumno;
+        // Obtener ID del alumno del localStorage (igual que en el dashboard)
+        this.idAlumno = localStorage.getItem('id_alumno');
 
         if (!this.idAlumno) {
             console.error('❌ No se encontró ID de alumno');
@@ -36,6 +35,7 @@ class CursadoManager {
             return;
         }
 
+        console.log('✅ ID Alumno:', this.idAlumno);
         await this.cargarOpcionesFiltros();
         await this.cargarMisCursos();
         await this.cargarCatalogoCursos();
