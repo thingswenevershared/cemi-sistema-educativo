@@ -255,14 +255,14 @@ router.put("/perfil/:userId", async (req, res) => {
     
     console.log('  → Buscando id_persona...');
     const [checkUsuario] = await pool.query(
-      'SELECT u.id_persona, p.mail, p.email FROM usuarios u LEFT JOIN personas p ON u.id_persona = p.id_persona WHERE u.id_usuario = ? OR u.id_persona = ?',
+      'SELECT u.id_persona, p.mail FROM usuarios u LEFT JOIN personas p ON u.id_persona = p.id_persona WHERE u.id_usuario = ? OR u.id_persona = ?',
       [userId, userId]
     );
 
     let emailActual = null;
     if (checkUsuario.length > 0) {
       id_persona = checkUsuario[0].id_persona;
-      emailActual = checkUsuario[0].mail || checkUsuario[0].email;
+      emailActual = checkUsuario[0].mail;
       console.log(`  ✓ id_persona encontrado: ${id_persona}`);
       console.log(`  ✓ Email actual: ${emailActual}`);
     } else {
@@ -287,17 +287,11 @@ router.put("/perfil/:userId", async (req, res) => {
       values.push(apellido);
     }
     if (email !== undefined) {
-      // Intentar con 'email' primero, si no existe usar 'mail'
-      // Solo actualizar si el email es diferente al actual
-      if (email !== emailActual) {
-        if (columnasExistentes.includes('email')) {
-          updates.push('email = ?');
-          values.push(email);
-        } else if (columnasExistentes.includes('mail')) {
-          updates.push('mail = ?');
-          values.push(email);
-        }
-      } else {
+      // Solo actualizar email si es diferente al actual
+      if (email !== emailActual && columnasExistentes.includes('mail')) {
+        updates.push('mail = ?');
+        values.push(email);
+      } else if (email === emailActual) {
         console.log('  ℹ️ Email no cambió, omitiendo actualización');
       }
     }
