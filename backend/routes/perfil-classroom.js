@@ -295,15 +295,16 @@ router.put("/perfil/:userId", async (req, res) => {
     }
     if (telefono !== undefined && columnasExistentes.includes('telefono')) {
       updates.push('telefono = ?');
-      values.push(telefono);
+      values.push(telefono || null);
     }
     if (fecha_nacimiento !== undefined && columnasExistentes.includes('fecha_nacimiento')) {
       updates.push('fecha_nacimiento = ?');
-      values.push(fecha_nacimiento);
+      // Si fecha_nacimiento está vacía, enviar NULL en lugar de cadena vacía
+      values.push(fecha_nacimiento && fecha_nacimiento.trim() !== '' ? fecha_nacimiento : null);
     }
     if (direccion !== undefined && columnasExistentes.includes('direccion')) {
       updates.push('direccion = ?');
-      values.push(direccion);
+      values.push(direccion || null);
     }
     if (biografia !== undefined && columnasExistentes.includes('biografia')) {
       updates.push('biografia = ?');
