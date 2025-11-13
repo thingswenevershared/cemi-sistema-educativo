@@ -266,47 +266,55 @@ router.put("/perfil/:userId", async (req, res) => {
       console.log(`  ⚠️ No se encontró usuario, asumiendo userId=${userId} es id_persona`);
     }
 
-    // Construir query dinámica solo con campos proporcionados
+    // Verificar qué columnas existen en la tabla personas
+    const [columnas] = await pool.query('SHOW COLUMNS FROM personas');
+    const columnasExistentes = columnas.map(col => col.Field);
+    console.log('  → Columnas existentes en personas:', columnasExistentes);
+
+    // Construir query dinámica solo con campos proporcionados Y que existen en la tabla
     const updates = [];
     const values = [];
 
-    if (nombre !== undefined) {
+    if (nombre !== undefined && columnasExistentes.includes('nombre')) {
       updates.push('nombre = ?');
       values.push(nombre);
     }
-    if (apellido !== undefined) {
+    if (apellido !== undefined && columnasExistentes.includes('apellido')) {
       updates.push('apellido = ?');
       values.push(apellido);
     }
     if (email !== undefined) {
-      // Actualizar solo mail (campo que siempre existe)
-      updates.push('mail = ?');
-      values.push(email);
+      // Intentar con 'email' primero, si no existe usar 'mail'
+      if (columnasExistentes.includes('email')) {
+        updates.push('email = ?');
+        values.push(email);
+      } else if (columnasExistentes.includes('mail')) {
+        updates.push('mail = ?');
+        values.push(email);
+      }
     }
-    if (telefono !== undefined) {
+    if (telefono !== undefined && columnasExistentes.includes('telefono')) {
       updates.push('telefono = ?');
       values.push(telefono);
     }
-    // Los siguientes campos son opcionales y pueden no existir en la tabla
-    // El error se manejará en el catch si la columna no existe
-    if (fecha_nacimiento !== undefined) {
+    if (fecha_nacimiento !== undefined && columnasExistentes.includes('fecha_nacimiento')) {
       updates.push('fecha_nacimiento = ?');
       values.push(fecha_nacimiento);
     }
-    if (direccion !== undefined) {
+    if (direccion !== undefined && columnasExistentes.includes('direccion')) {
       updates.push('direccion = ?');
       values.push(direccion);
     }
-    if (biografia !== undefined) {
+    if (biografia !== undefined && columnasExistentes.includes('biografia')) {
       updates.push('biografia = ?');
       values.push(biografia);
     }
 
     if (updates.length === 0) {
-      console.log('  ⚠️ No hay datos para actualizar');
+      console.log('  ⚠️ No hay datos para actualizar o las columnas no existen');
       return res.status(400).json({
         success: false,
-        message: 'No hay datos para actualizar'
+        message: 'No hay datos para actualizar o las columnas no existen en la tabla'
       });
     }
 
@@ -316,7 +324,8 @@ router.put("/perfil/:userId", async (req, res) => {
     console.log('  → Ejecutando query:', query);
     console.log('  → Valores:', values);
     
-    await pool.query(query, values);
+    const [result] = await pool.query(query, values);
+    console.log('  → Resultado:', result);
 
     console.log(`  ✅ Perfil actualizado exitosamente para id_persona=${id_persona}`);
 
@@ -327,9 +336,12 @@ router.put("/perfil/:userId", async (req, res) => {
 
   } catch (error) {
     console.error("💥 Error al actualizar perfil:", error);
+    console.error("💥 Error completo:", error.message);
+    console.error("💥 Stack:", error.stack);
     return res.status(500).json({
       success: false,
-      message: 'Error del servidor al actualizar el perfil'
+      message: 'Error del servidor al actualizar el perfil',
+      error: error.message
     });
   }
 });
@@ -363,10 +375,13 @@ router.post("/perfil/:userId/avatar", (req, res) => {
 
     try {
       console.log('✓ Archivo recibido:', req.file.filename);
+      console.log('✓ Tamaño:', req.file.size, 'bytes');
+      console.log('✓ Tipo:', req.file.mimetype);
       
       // Obtener id_persona del usuario
       let id_persona = userId;
       
+      console.log('  → Buscando id_persona para userId:', userId);
       const [checkUsuario] = await pool.query(
         'SELECT id_persona FROM usuarios WHERE id_usuario = ? OR id_persona = ?',
         [userId, userId]
@@ -374,16 +389,22 @@ router.post("/perfil/:userId/avatar", (req, res) => {
 
       if (checkUsuario.length > 0) {
         id_persona = checkUsuario[0].id_persona;
+        console.log(`  ✓ id_persona encontrado: ${id_persona}`);
+      } else {
+        console.log(`  ⚠️ No se encontró usuario en tabla usuarios, asumiendo userId=${userId} es id_persona`);
       }
 
       const avatarPath = `/uploads/avatars/${req.file.filename}`;
+      console.log('  → Avatar path:', avatarPath);
 
       // Actualizar ruta del avatar en la base de datos
-      await pool.query(
+      console.log('  → Actualizando avatar en BD...');
+      const [result] = await pool.query(
         'UPDATE personas SET avatar = ? WHERE id_persona = ?',
         [avatarPath, id_persona]
       );
-
+      
+      console.log('  → Resultado UPDATE:', result);
       console.log(`  ✅ Avatar actualizado para id_persona=${id_persona}: ${avatarPath}`);
 
       return res.json({
@@ -394,9 +415,12 @@ router.post("/perfil/:userId/avatar", (req, res) => {
 
     } catch (error) {
       console.error("💥 Error al subir avatar:", error);
+      console.error("💥 Error message:", error.message);
+      console.error("💥 Stack:", error.stack);
       return res.status(500).json({
         success: false,
-        message: 'Error del servidor al subir el avatar'
+        message: 'Error del servidor al subir el avatar',
+        error: error.message
       });
     }
   });
