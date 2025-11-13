@@ -6,6 +6,7 @@
 
 class CursadoManager {
     constructor() {
+        this.API_URL = window.API_BASE_URL || window.API_URL || 'http://localhost:3000/api';
         this.cursosDisponibles = [];
         this.misCursos = [];
         this.filtros = {
@@ -14,13 +15,12 @@ class CursadoManager {
             profesores: []
         };
         this.filtrosActivos = {
-            idioma: null,
-            nivel: null,
-            profesor: null,
             busqueda: ''
         };
         this.idAlumno = null;
-        this.init();
+        
+        // Inicializar después de un pequeño delay para asegurar que el DOM esté listo
+        setTimeout(() => this.init(), 100);
     }
 
     async init() {
@@ -47,7 +47,7 @@ class CursadoManager {
      */
     async cargarOpcionesFiltros() {
         try {
-            const response = await fetch(`${API_BASE_URL}/cursos/filtros/opciones`);
+            const response = await fetch(`${this.API_URL}/cursos/filtros/opciones`);
             const data = await response.json();
 
             if (data.success) {
@@ -64,7 +64,7 @@ class CursadoManager {
      */
     async cargarMisCursos() {
         try {
-            const response = await fetch(`${API_BASE_URL}/cursos/mis-cursos/${this.idAlumno}`);
+            const response = await fetch(`${this.API_URL}/cursos/mis-cursos/${this.idAlumno}`);
             const data = await response.json();
 
             if (data.success) {
@@ -87,7 +87,7 @@ class CursadoManager {
                 id_alumno: this.idAlumno
             });
 
-            const response = await fetch(`${API_BASE_URL}/cursos/catalogo?${params}`);
+            const response = await fetch(`${this.API_URL}/cursos/catalogo?${params}`);
             const data = await response.json();
 
             if (data.success) {
@@ -240,7 +240,7 @@ class CursadoManager {
      */
     async verDetalleCurso(idCurso) {
         try {
-            const response = await fetch(`${API_BASE_URL}/cursos/${idCurso}/detalle?id_alumno=${this.idAlumno}`);
+            const response = await fetch(`${this.API_URL}/cursos/${idCurso}/detalle?id_alumno=${this.idAlumno}`);
             const data = await response.json();
 
             if (data.success) {
