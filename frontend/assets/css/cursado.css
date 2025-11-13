@@ -57,59 +57,223 @@
 
 .mis-cursos-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 15px;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
 }
 
-.curso-inscrito-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+/* ========================================
+   CURSO CARDS - ESTILO LOCALHOST
+   ======================================== */
+
+.curso-card {
+  background: white;
   border-radius: 12px;
-  padding: 15px;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
-  transition: transform 0.2s, box-shadow 0.2s;
+  padding: 0;
+  box-shadow: 0 2px 8px rgba(66, 99, 140, 0.12);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border: 1px solid rgba(66, 99, 140, 0.1);
+  position: relative;
+  overflow: hidden;
 }
 
-.curso-inscrito-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.25);
+.curso-card::before {
+  content: none;
 }
 
-.curso-inscrito-header {
+.curso-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(91, 155, 213, 0.25);
+  border-color: #8eb8db;
+}
+
+.curso-card-header {
   display: flex;
-  justify-content: space-between;
-  align-items: start;
-  margin-bottom: 12px;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 0;
+  background: linear-gradient(135deg, #547194 0%, #7a9bbd 100%);
+  padding: 20px;
+  border-radius: 12px 12px 0 0;
 }
 
-.curso-inscrito-header h4 {
-  font-size: 1.1rem;
-  margin: 0;
+.curso-icon {
+  width: 48px;
+  height: 48px;
+  background: #5a7a99;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 22px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.curso-card-title {
+  flex: 1;
+}
+
+.curso-card-title h3 {
+  margin: 0 0 4px 0;
+  font-size: 17px;
+  color: white;
   font-weight: 600;
 }
 
-.curso-inscrito-header .badge {
-  font-size: 0.75rem;
-  padding: 4px 10px;
-  border-radius: 12px;
+.curso-card-title .idioma {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 13px;
+  font-weight: 400;
+  margin-bottom: 8px;
 }
 
-.curso-inscrito-info {
+.curso-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  background: white;
+  color: #2d3748;
+  margin-top: 6px;
+  letter-spacing: 0.3px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.curso-card-info {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  font-size: 0.9rem;
-  opacity: 0.95;
+  gap: 12px;
+  margin-bottom: 0;
+  padding: 20px;
 }
 
-.curso-inscrito-info div {
+.info-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: #4a5568;
+}
+
+.info-row i {
+  width: 20px;
+  height: 20px;
+  color: #a0aec0;
+  flex-shrink: 0;
+}
+
+.curso-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-top: 1px solid rgba(66, 99, 140, 0.08);
+  gap: 16px;
+  min-height: 68px;
+}
+
+.curso-card-footer .card-actions,
+.curso-card-footer > div:last-child {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.cupos-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.cupos-text {
+  font-size: 13px;
+  color: #718096;
+  font-weight: 500;
+}
+
+.cupos-bar {
+  width: 160px;
+  height: 6px;
+  background: #f0f0f0;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.cupos-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4caf50, #81c784);
+  transition: width 0.3s ease;
+}
+
+.cupos-bar-fill.warning {
+  background: linear-gradient(90deg, #ff9800, #ffb74d);
+}
+
+.cupos-bar-fill.danger {
+  background: linear-gradient(90deg, #f44336, #ef5350);
+}
+
+.profesor-mini {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+
+.profesor-avatar-small {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #e2e8f0;
+}
+
+.btn-view-course {
+  background: linear-gradient(135deg, #1e3c72, #2a5298);
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
   display: flex;
   align-items: center;
   gap: 8px;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(30, 60, 114, 0.3);
 }
 
-.curso-inscrito-info i {
-  width: 18px;
+.btn-view-course:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(30, 60, 114, 0.4);
+}
+
+.icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  color: #4a5568;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-btn:hover {
+  background: #f7fafc;
+  border-color: #cbd5e0;
+  transform: translateY(-2px);
 }
 
 /* ========================================

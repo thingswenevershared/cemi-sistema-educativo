@@ -198,6 +198,11 @@ class CursadoManager {
         }
 
         container.innerHTML = this.cursosDisponibles.map(curso => this.crearCursoCard(curso)).join('');
+        
+        // Inicializar iconos lucide
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
     }
 
     /**
@@ -210,50 +215,45 @@ class CursadoManager {
         const avatarProfesor = curso.profesor.avatar || '/images/default-avatar.png';
 
         return `
-            <div class="curso-card" data-curso-id="${curso.id_curso}">
+            <div class="curso-card">
                 <div class="curso-card-header">
-                    <div class="curso-idioma-icon">${this.getIdiomaIcon(curso.idioma.nombre)}</div>
-                    <h3 class="curso-nombre">${curso.nombre_curso}</h3>
-                    <span class="curso-nivel-badge">${curso.nivel.descripcion}</span>
+                    <div class="curso-icon">
+                        <i data-lucide="book-open"></i>
+                    </div>
+                    <div class="curso-card-title">
+                        <h3>${curso.nombre_curso}</h3>
+                        <div class="idioma">${curso.idioma.nombre}</div>
+                        <span class="curso-badge">${curso.nivel.descripcion}</span>
+                    </div>
                 </div>
 
-                <div class="curso-card-body">
-                    <div class="curso-info-item">
-                        <i class="fas fa-chalkboard-teacher"></i>
-                        <div class="curso-profesor-info">
-                            <img src="${avatarProfesor}" alt="${curso.profesor.nombre}" class="curso-profesor-avatar">
-                            <div>
-                                <div class="profesor-nombre">${curso.profesor.nombre}</div>
-                                <div class="profesor-especialidad">${curso.profesor.especialidad}</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="curso-info-item">
-                        <i class="fas fa-clock"></i>
+                <div class="curso-card-info">
+                    <div class="info-row">
+                        <i data-lucide="clock"></i>
                         <span>${curso.horario}</span>
                     </div>
 
+                    <div class="info-row">
+                        <i data-lucide="user"></i>
+                        <span>${curso.profesor.nombre}</span>
+                    </div>
+
                     ${curso.aula ? `
-                    <div class="curso-info-item">
-                        <i class="fas fa-door-open"></i>
-                        <span>${curso.aula.nombre} ${curso.aula.ubicacion ? `- ${curso.aula.ubicacion}` : ''}</span>
+                    <div class="info-row">
+                        <i data-lucide="door-open"></i>
+                        <span>${curso.aula.nombre}</span>
                     </div>
                     ` : ''}
-
-                    <div class="curso-cupos">
-                        <div class="cupos-header">
-                            <span><i class="fas fa-users"></i> Cupos</span>
-                            <span class="cupos-numeros">${curso.inscriptos_actuales}/${curso.cupo_maximo}</span>
-                        </div>
-                        <div class="cupos-barra-container">
-                            <div class="cupos-barra" style="width: ${porcentajeBarra}%; background-color: ${barraColor}"></div>
-                        </div>
-                        <div class="cupos-disponibles">${curso.cupos_disponibles} cupos disponibles</div>
-                    </div>
                 </div>
 
                 <div class="curso-card-footer">
+                    <div class="cupos-info">
+                        <div class="cupos-bar">
+                            <div class="cupos-bar-fill ${curso.porcentaje_ocupacion >= 80 ? 'warning' : ''}" 
+                                 style="width: ${porcentajeBarra}%"></div>
+                        </div>
+                        <span class="cupos-text">${curso.cupos_disponibles} cupos disponibles</span>
+                    </div>
                     ${estadoBadge}
                 </div>
             </div>
