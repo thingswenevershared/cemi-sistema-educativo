@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="assets/css/dashboard_alumno_extras.css" />
   <link rel="stylesheet" href="assets/css/credit-card.css" />
   <link rel="stylesheet" href="assets/css/user-chat-manager.css" />
+  <link rel="stylesheet" href="assets/css/cursado.css" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   
@@ -38,6 +39,7 @@
     </div>
     <nav class="sidebar-menu">
       <button id="btnCursos"><i data-lucide="book-open"></i> Mis Cursos</button>
+      <button id="btnCursado"><i data-lucide="graduation-cap"></i> Cursado</button>
       <button id="btnNotas"><i data-lucide="clipboard-list"></i> Mis Calificaciones</button>
       <button id="btnPagos"><i data-lucide="credit-card"></i> Mis Pagos</button>
       <button id="btnPerfil"><i data-lucide="user"></i> Mi Perfil</button>
@@ -256,6 +258,140 @@
           <div class="error-container">
             <i data-lucide="alert-circle"></i>
             <h3>Error al cargar los cursos</h3>
+            <p>Por favor, intenta nuevamente más tarde.</p>
+          </div>
+        `;
+        lucide.createIcons();
+        loader.classList.add("hidden");
+        setTimeout(() => mainContent.classList.add("active"), 100);
+      }
+    },
+
+    btnCursado: async () => {
+      loader.classList.remove("hidden");
+      mainContent.classList.remove("active");
+
+      try {
+        mainContent.innerHTML = `
+          <div id="cursado-section" class="cursado-container">
+            <div class="section-header-alumno">
+              <div class="header-title">
+                <i data-lucide="graduation-cap"></i>
+                <h2>Catálogo de Cursos</h2>
+              </div>
+              <p class="section-subtitle">Explora todos los cursos disponibles y solicita tu inscripción</p>
+            </div>
+
+            <!-- Mis Cursos Actuales -->
+            <div class="mis-cursos-actuales">
+              <h3><i data-lucide="book-open"></i> Mis Cursos Actuales</h3>
+              <div id="mis-cursos-container" class="mis-cursos-grid">
+                <div class="loading-container">
+                  <div class="spinner-border text-primary" role="status"></div>
+                  <p>Cargando tus cursos...</p>
+                </div>
+              </div>
+            </div>
+
+            <hr class="section-divider">
+
+            <!-- Filtros y Búsqueda -->
+            <div class="filtros-section">
+              <h3><i data-lucide="filter"></i> Filtrar Cursos</h3>
+              <div class="filtros-grid">
+                <div class="form-group">
+                  <label for="busqueda-curso">
+                    <i data-lucide="search"></i> Buscar
+                  </label>
+                  <input 
+                    type="text" 
+                    id="busqueda-curso" 
+                    class="form-control" 
+                    placeholder="Buscar por nombre, idioma o profesor...">
+                </div>
+
+                <div class="form-group">
+                  <label for="filtro-idioma">
+                    <i data-lucide="globe"></i> Idioma
+                  </label>
+                  <select id="filtro-idioma" class="form-control">
+                    <option value="">Todos los idiomas</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="filtro-nivel">
+                    <i data-lucide="layers"></i> Nivel
+                  </label>
+                  <select id="filtro-nivel" class="form-control">
+                    <option value="">Todos los niveles</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="filtro-profesor">
+                    <i data-lucide="user"></i> Profesor
+                  </label>
+                  <select id="filtro-profesor" class="form-control">
+                    <option value="">Todos los profesores</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <button id="limpiar-filtros" class="btn btn-secondary">
+                    <i data-lucide="x"></i> Limpiar Filtros
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Contador de resultados -->
+            <div class="resultados-header">
+              <h3><i data-lucide="book"></i> Cursos Disponibles</h3>
+              <span id="total-cursos-count" class="resultados-count">Cargando...</span>
+            </div>
+
+            <!-- Catálogo de Cursos -->
+            <div id="catalogo-cursos-container" class="catalogo-cursos-grid">
+              <div class="loading-container">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p>Cargando catálogo de cursos...</p>
+              </div>
+            </div>
+          </div>
+        `;
+
+        lucide.createIcons();
+        loader.classList.add("hidden");
+        setTimeout(() => mainContent.classList.add("active"), 100);
+
+        // Cargar el script del manager si no está cargado
+        if (typeof CursadoManager === 'undefined') {
+          const script = document.createElement('script');
+          script.src = `assets/js/cursado-manager.js?v=${Date.now()}`;
+          script.onload = () => {
+            console.log('✅ cursado-manager.js cargado correctamente');
+          };
+          script.onerror = () => {
+            console.error('❌ Error al cargar cursado-manager.js');
+            mainContent.innerHTML = `
+              <div class="error-container">
+                <i data-lucide="alert-circle"></i>
+                <h3>Error al cargar la sección</h3>
+                <p>No se pudo cargar el módulo de cursado. Por favor, recarga la página.</p>
+              </div>
+            `;
+            lucide.createIcons();
+          };
+          document.head.appendChild(script);
+        }
+
+      } catch (error) {
+        console.error("Error al cargar sección Cursado:", error);
+        mainContent.innerHTML = `
+          <div class="error-container">
+            <i data-lucide="alert-circle"></i>
+            <h3>Error al cargar el catálogo</h3>
             <p>Por favor, intenta nuevamente más tarde.</p>
           </div>
         `;

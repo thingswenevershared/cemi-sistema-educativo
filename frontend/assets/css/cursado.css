@@ -1,0 +1,822 @@
+/**
+ * Cursado.css - Estilos para la sección de Catálogo de Cursos
+ * Dashboard Alumno - CEMI Sistema Educativo
+ * @version 1.0
+ */
+
+/* ========================================
+   CONTENEDOR PRINCIPAL
+   ======================================== */
+
+.cursado-container {
+  padding: 20px;
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ========================================
+   SECTION DIVIDER
+   ======================================== */
+
+.section-divider {
+  border: none;
+  border-top: 2px solid #e2e8f0;
+  margin: 30px 0;
+}
+
+/* ========================================
+   MIS CURSOS ACTUALES
+   ======================================== */
+
+.mis-cursos-actuales {
+  margin-bottom: 30px;
+}
+
+.mis-cursos-actuales h3 {
+  font-size: 1.3rem;
+  color: #2d3748;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mis-cursos-actuales h3 i {
+  color: #667eea;
+}
+
+.mis-cursos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 15px;
+}
+
+.curso-inscrito-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.curso-inscrito-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.25);
+}
+
+.curso-inscrito-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  margin-bottom: 12px;
+}
+
+.curso-inscrito-header h4 {
+  font-size: 1.1rem;
+  margin: 0;
+  font-weight: 600;
+}
+
+.curso-inscrito-header .badge {
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  border-radius: 12px;
+}
+
+.curso-inscrito-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 0.9rem;
+  opacity: 0.95;
+}
+
+.curso-inscrito-info div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.curso-inscrito-info i {
+  width: 18px;
+}
+
+/* ========================================
+   FILTROS
+   ======================================== */
+
+.filtros-section {
+  background: #f7fafc;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 25px;
+}
+
+.filtros-section h3 {
+  font-size: 1.2rem;
+  color: #2d3748;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.filtros-section h3 i {
+  color: #667eea;
+}
+
+.filtros-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  align-items: end;
+}
+
+.filtros-grid .form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.filtros-grid label {
+  font-size: 0.9rem;
+  color: #4a5568;
+  margin-bottom: 6px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.filtros-grid label i {
+  width: 16px;
+  height: 16px;
+  color: #667eea;
+}
+
+.filtros-grid .form-control {
+  padding: 10px 12px;
+  border: 1px solid #cbd5e0;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: all 0.2s;
+}
+
+.filtros-grid .form-control:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+#limpiar-filtros {
+  padding: 10px 16px;
+  background: #e2e8f0;
+  color: #2d3748;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+#limpiar-filtros:hover {
+  background: #cbd5e0;
+}
+
+/* ========================================
+   RESULTADOS HEADER
+   ======================================== */
+
+.resultados-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.resultados-header h3 {
+  font-size: 1.3rem;
+  color: #2d3748;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.resultados-header h3 i {
+  color: #667eea;
+}
+
+.resultados-count {
+  font-size: 0.95rem;
+  color: #718096;
+  background: #edf2f7;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-weight: 500;
+}
+
+/* ========================================
+   CATÁLOGO DE CURSOS
+   ======================================== */
+
+.catalogo-cursos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.curso-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+}
+
+.curso-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  border-color: #667eea;
+}
+
+.curso-card-header {
+  padding: 20px;
+  background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.curso-idioma-icon {
+  font-size: 2rem;
+}
+
+.curso-nombre {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin: 0 0 4px 0;
+  flex: 1;
+}
+
+.curso-nivel-badge {
+  background: #667eea;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.curso-card-body {
+  padding: 20px;
+}
+
+.curso-info-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  color: #4a5568;
+  font-size: 0.95rem;
+}
+
+.curso-info-item i {
+  color: #667eea;
+  width: 18px;
+  flex-shrink: 0;
+}
+
+.curso-profesor-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+
+.curso-profesor-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #667eea;
+}
+
+.profesor-nombre {
+  font-weight: 600;
+  color: #2d3748;
+  font-size: 0.95rem;
+}
+
+.profesor-especialidad {
+  font-size: 0.85rem;
+  color: #718096;
+}
+
+/* Cupos */
+
+.curso-cupos {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.cupos-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+  color: #4a5568;
+}
+
+.cupos-numeros {
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.cupos-barra-container {
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.cupos-barra {
+  height: 100%;
+  transition: width 0.4s ease;
+  border-radius: 4px;
+}
+
+.cupos-disponibles {
+  font-size: 0.85rem;
+  color: #718096;
+  text-align: right;
+}
+
+.curso-card-footer {
+  padding: 16px 20px;
+  background: #f7fafc;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Badges de Estado */
+
+.badge {
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.badge-success {
+  background: #c6f6d5;
+  color: #22543d;
+}
+
+.badge-warning {
+  background: #feebc8;
+  color: #744210;
+}
+
+.badge-danger {
+  background: #fed7d7;
+  color: #742a2a;
+}
+
+.badge i {
+  font-size: 1rem;
+}
+
+/* Botones de acción */
+
+.btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-primary {
+  background: #667eea;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #5568d3;
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: #e2e8f0;
+  color: #2d3748;
+}
+
+.btn-secondary:hover {
+  background: #cbd5e0;
+}
+
+.btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 0.85rem;
+}
+
+.btn-lg {
+  padding: 12px 24px;
+  font-size: 1rem;
+}
+
+/* ========================================
+   MODAL DETALLE CURSO
+   ======================================== */
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 20px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modal-detalle-curso {
+  background: white;
+  border-radius: 16px;
+  max-width: 800px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-header {
+  padding: 24px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 16px 16px 0 0;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.modal-close {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.modal-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: rotate(90deg);
+}
+
+.modal-body {
+  padding: 24px;
+}
+
+.detalle-curso-grid {
+  display: grid;
+  gap: 24px;
+}
+
+.detalle-seccion {
+  background: #f7fafc;
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.detalle-seccion h3 {
+  font-size: 1.1rem;
+  color: #2d3748;
+  margin: 0 0 16px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.detalle-seccion h3 i {
+  color: #667eea;
+}
+
+.detalle-item {
+  margin-bottom: 12px;
+  line-height: 1.6;
+  color: #4a5568;
+}
+
+.detalle-item strong {
+  color: #2d3748;
+  margin-right: 8px;
+}
+
+.profesor-detalle {
+  display: flex;
+  gap: 16px;
+  align-items: start;
+}
+
+.profesor-detalle-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 3px solid #667eea;
+  flex-shrink: 0;
+}
+
+.profesor-detalle h4 {
+  margin: 0 0 4px 0;
+  color: #2d3748;
+  font-size: 1.1rem;
+}
+
+.profesor-biografia {
+  color: #718096;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin-top: 8px;
+}
+
+.detalle-cupos {
+  text-align: center;
+}
+
+.cupos-detalle {
+  margin-top: 16px;
+}
+
+.cupos-numero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.cupos-numero-grande {
+  font-size: 3rem;
+  font-weight: 700;
+  color: #667eea;
+  line-height: 1;
+}
+
+.cupos-texto {
+  font-size: 1rem;
+  color: #4a5568;
+  margin-top: 4px;
+}
+
+.cupos-total {
+  font-size: 0.9rem;
+  color: #718096;
+  margin-bottom: 12px;
+}
+
+.modal-footer {
+  padding: 20px 24px;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  background: #f7fafc;
+  border-radius: 0 0 16px 16px;
+}
+
+.modal-footer .text-warning {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #744210;
+  font-size: 0.9rem;
+}
+
+/* ========================================
+   LOADING & EMPTY STATES
+   ======================================== */
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: #718096;
+}
+
+.spinner-border {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #e2e8f0;
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-container p {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.alert {
+  padding: 16px 20px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.95rem;
+}
+
+.alert i {
+  font-size: 1.2rem;
+}
+
+.alert-info {
+  background: #bee3f8;
+  color: #2c5282;
+}
+
+.alert-warning {
+  background: #feebc8;
+  color: #744210;
+}
+
+.alert-danger {
+  background: #fed7d7;
+  color: #742a2a;
+}
+
+/* ========================================
+   NOTIFICACIONES
+   ======================================== */
+
+.notificacion {
+  position: fixed;
+  bottom: -100px;
+  right: 24px;
+  background: white;
+  padding: 16px 20px;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 400px;
+  z-index: 10001;
+  transition: bottom 0.3s ease-out;
+}
+
+.notificacion.show {
+  bottom: 24px;
+}
+
+.notificacion-success {
+  border-left: 4px solid #48bb78;
+}
+
+.notificacion-info {
+  border-left: 4px solid #667eea;
+}
+
+.notificacion i {
+  font-size: 1.3rem;
+  color: #667eea;
+}
+
+.notificacion-success i {
+  color: #48bb78;
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+
+@media (max-width: 768px) {
+  .cursado-container {
+    padding: 16px;
+  }
+
+  .mis-cursos-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .filtros-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .catalogo-cursos-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .resultados-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .modal-detalle-curso {
+    margin: 0;
+    border-radius: 0;
+    max-height: 100vh;
+  }
+
+  .profesor-detalle {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 480px) {
+  .curso-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .curso-idioma-icon {
+    font-size: 1.5rem;
+  }
+
+  .modal-overlay {
+    padding: 0;
+  }
+
+  .modal-header {
+    border-radius: 0;
+  }
+}

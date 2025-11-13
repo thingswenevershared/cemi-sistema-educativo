@@ -1,0 +1,601 @@
+/**
+ * Cursado Manager - Gestión del catálogo de cursos para alumnos
+ * Permite explorar cursos disponibles y solicitar inscripción vía chat
+ * @version 1.0
+ */
+
+class CursadoManager {
+    constructor() {
+        this.cursosDisponibles = [];
+        this.misCursos = [];
+        this.filtros = {
+            idiomas: [],
+            niveles: [],
+            profesores: []
+        };
+        this.filtrosActivos = {
+            idioma: null,
+            nivel: null,
+            profesor: null,
+            busqueda: ''
+        };
+        this.idAlumno = null;
+        this.init();
+    }
+
+    async init() {
+        console.log('📚 Inicializando Cursado Manager...');
+        
+        // Obtener ID del alumno del localStorage
+        const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+        this.idAlumno = userInfo.id_alumno;
+
+        if (!this.idAlumno) {
+            console.error('❌ No se encontró ID de alumno');
+            this.mostrarError('No se pudo cargar tu información de alumno');
+            return;
+        }
+
+        await this.cargarOpcionesFiltros();
+        await this.cargarMisCursos();
+        await this.cargarCatalogoCursos();
+        this.setupEventListeners();
+    }
+
+    /**
+     * Cargar opciones para filtros
+     */
+    async cargarOpcionesFiltros() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/cursos/filtros/opciones`);
+            const data = await response.json();
+
+            if (data.success) {
+                this.filtros = data.filtros;
+                this.renderizarFiltros();
+            }
+        } catch (error) {
+            console.error('Error al cargar filtros:', error);
+        }
+    }
+
+    /**
+     * Cargar cursos en los que el alumno ya está inscrito
+     */
+    async cargarMisCursos() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/cursos/mis-cursos/${this.idAlumno}`);
+            const data = await response.json();
+
+            if (data.success) {
+                this.misCursos = data.cursos;
+                this.renderizarMisCursos();
+            }
+        } catch (error) {
+            console.error('Error al cargar mis cursos:', error);
+        }
+    }
+
+    /**
+     * Cargar catálogo de cursos disponibles
+     */
+    async cargarCatalogoCursos() {
+        try {
+            this.mostrarCargando(true);
+
+            const params = new URLSearchParams({
+                id_alumno: this.idAlumno
+            });
+
+            // Agregar filtros activos
+            if (this.filtrosActivos.idioma) params.append('idioma', this.filtrosActivos.idioma);
+            if (this.filtrosActivos.nivel) params.append('nivel', this.filtrosActivos.nivel);
+            if (this.filtrosActivos.profesor) params.append('profesor', this.filtrosActivos.profesor);
+
+            const response = await fetch(`${API_BASE_URL}/cursos/catalogo?${params}`);
+            const data = await response.json();
+
+            if (data.success) {
+                this.cursosDisponibles = data.cursos;
+                this.aplicarFiltroBusqueda();
+            } else {
+                throw new Error(data.error || 'Error al cargar cursos');
+            }
+        } catch (error) {
+            console.error('Error al cargar catálogo:', error);
+            this.mostrarError('Error al cargar el catálogo de cursos');
+        } finally {
+            this.mostrarCargando(false);
+        }
+    }
+
+    /**
+     * Renderizar filtros en el DOM
+     */
+    renderizarFiltros() {
+        // Filtro de idiomas
+        const selectIdioma = document.getElementById('filtro-idioma');
+        if (selectIdioma) {
+            selectIdioma.innerHTML = '<option value="">Todos los idiomas</option>';
+            this.filtros.idiomas.forEach(idioma => {
+                selectIdioma.innerHTML += `
+                    <option value="${idioma.id_idioma}">${idioma.nombre_idioma}</option>
+                `;
+            });
+        }
+
+        // Filtro de niveles
+        const selectNivel = document.getElementById('filtro-nivel');
+        if (selectNivel) {
+            selectNivel.innerHTML = '<option value="">Todos los niveles</option>';
+            this.filtros.niveles.forEach(nivel => {
+                selectNivel.innerHTML += `
+                    <option value="${nivel.id_nivel}">${nivel.nombre_idioma} - ${nivel.descripcion}</option>
+                `;
+            });
+        }
+
+        // Filtro de profesores
+        const selectProfesor = document.getElementById('filtro-profesor');
+        if (selectProfesor) {
+            selectProfesor.innerHTML = '<option value="">Todos los profesores</option>';
+            this.filtros.profesores.forEach(profesor => {
+                selectProfesor.innerHTML += `
+                    <option value="${profesor.id_profesor}">${profesor.nombre_completo}</option>
+                `;
+            });
+        }
+    }
+
+    /**
+     * Renderizar mis cursos actuales
+     */
+    renderizarMisCursos() {
+        const container = document.getElementById('mis-cursos-container');
+        if (!container) return;
+
+        if (this.misCursos.length === 0) {
+            container.innerHTML = `
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> No estás inscrito en ningún curso actualmente
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = this.misCursos.map(curso => `
+            <div class="curso-inscrito-card">
+                <div class="curso-inscrito-header">
+                    <h4>${curso.nombre_curso}</h4>
+                    <span class="badge badge-success">Cursando</span>
+                </div>
+                <div class="curso-inscrito-info">
+                    <div><i class="fas fa-language"></i> ${curso.idioma} ${curso.nivel}</div>
+                    <div><i class="fas fa-chalkboard-teacher"></i> ${curso.profesor.nombre}</div>
+                    <div><i class="fas fa-clock"></i> ${curso.horario}</div>
+                    ${curso.aula ? `<div><i class="fas fa-door-open"></i> ${curso.aula}</div>` : ''}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    /**
+     * Renderizar catálogo de cursos
+     */
+    renderizarCatalogo() {
+        const container = document.getElementById('catalogo-cursos-container');
+        const contador = document.getElementById('total-cursos-count');
+        
+        if (!container) return;
+
+        if (contador) {
+            contador.textContent = `Mostrando ${this.cursosDisponibles.length} ${this.cursosDisponibles.length === 1 ? 'curso' : 'cursos'}`;
+        }
+
+        if (this.cursosDisponibles.length === 0) {
+            container.innerHTML = `
+                <div class="alert alert-warning">
+                    <i class="fas fa-search"></i> No se encontraron cursos disponibles con los filtros aplicados
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = this.cursosDisponibles.map(curso => this.crearCursoCard(curso)).join('');
+    }
+
+    /**
+     * Crear HTML de card de curso
+     */
+    crearCursoCard(curso) {
+        const estadoBadge = this.getEstadoBadge(curso.estado);
+        const porcentajeBarra = Math.min(curso.porcentaje_ocupacion, 100);
+        const barraColor = this.getBarraColor(curso.porcentaje_ocupacion);
+        const avatarProfesor = curso.profesor.avatar || '/images/default-avatar.png';
+
+        const botonAccion = curso.estado === 'completo' 
+            ? '<button class="btn btn-secondary btn-sm" disabled><i class="fas fa-ban"></i> Completo</button>'
+            : `<button class="btn btn-primary btn-sm" onclick="cursadoManager.verDetalleCurso(${curso.id_curso})">
+                   <i class="fas fa-eye"></i> Ver Detalle
+               </button>`;
+
+        return `
+            <div class="curso-card" data-curso-id="${curso.id_curso}">
+                <div class="curso-card-header">
+                    <div class="curso-idioma-icon">${this.getIdiomaIcon(curso.idioma.nombre)}</div>
+                    <h3 class="curso-nombre">${curso.nombre_curso}</h3>
+                    <span class="curso-nivel-badge">${curso.nivel.descripcion}</span>
+                </div>
+
+                <div class="curso-card-body">
+                    <div class="curso-info-item">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                        <div class="curso-profesor-info">
+                            <img src="${avatarProfesor}" alt="${curso.profesor.nombre}" class="curso-profesor-avatar">
+                            <div>
+                                <div class="profesor-nombre">${curso.profesor.nombre}</div>
+                                <div class="profesor-especialidad">${curso.profesor.especialidad}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="curso-info-item">
+                        <i class="fas fa-clock"></i>
+                        <span>${curso.horario}</span>
+                    </div>
+
+                    ${curso.aula ? `
+                    <div class="curso-info-item">
+                        <i class="fas fa-door-open"></i>
+                        <span>${curso.aula.nombre} ${curso.aula.ubicacion ? `- ${curso.aula.ubicacion}` : ''}</span>
+                    </div>
+                    ` : ''}
+
+                    <div class="curso-cupos">
+                        <div class="cupos-header">
+                            <span><i class="fas fa-users"></i> Cupos</span>
+                            <span class="cupos-numeros">${curso.inscriptos_actuales}/${curso.cupo_maximo}</span>
+                        </div>
+                        <div class="cupos-barra-container">
+                            <div class="cupos-barra" style="width: ${porcentajeBarra}%; background-color: ${barraColor}"></div>
+                        </div>
+                        <div class="cupos-disponibles">${curso.cupos_disponibles} cupos disponibles</div>
+                    </div>
+                </div>
+
+                <div class="curso-card-footer">
+                    ${estadoBadge}
+                    ${botonAccion}
+                </div>
+            </div>
+        `;
+    }
+
+    /**
+     * Ver detalle del curso en modal
+     */
+    async verDetalleCurso(idCurso) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/cursos/${idCurso}/detalle?id_alumno=${this.idAlumno}`);
+            const data = await response.json();
+
+            if (data.success) {
+                this.mostrarModalDetalle(data.curso);
+            } else {
+                throw new Error(data.error || 'Error al cargar detalle');
+            }
+        } catch (error) {
+            console.error('Error al cargar detalle:', error);
+            this.mostrarError('Error al cargar información del curso');
+        }
+    }
+
+    /**
+     * Mostrar modal con detalle del curso
+     */
+    mostrarModalDetalle(curso) {
+        const avatarProfesor = curso.profesor.avatar || '/images/default-avatar.png';
+        const estadoBadge = this.getEstadoBadge(curso.estado);
+        
+        const modalHtml = `
+            <div class="modal-overlay" id="modal-detalle-curso">
+                <div class="modal-detalle-curso">
+                    <div class="modal-header">
+                        <h2>${curso.nombre_curso}</h2>
+                        <button class="modal-close" onclick="cursadoManager.cerrarModal()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="detalle-curso-grid">
+                            <!-- Información principal -->
+                            <div class="detalle-seccion">
+                                <h3><i class="fas fa-info-circle"></i> Información del Curso</h3>
+                                <div class="detalle-item">
+                                    <strong>Idioma:</strong> ${curso.idioma.nombre}
+                                </div>
+                                <div class="detalle-item">
+                                    <strong>Nivel:</strong> ${curso.nivel.descripcion}
+                                </div>
+                                <div class="detalle-item">
+                                    <strong>Horario:</strong> ${curso.horario}
+                                </div>
+                                ${curso.aula ? `
+                                <div class="detalle-item">
+                                    <strong>Aula:</strong> ${curso.aula.nombre}${curso.aula.ubicacion ? ` - ${curso.aula.ubicacion}` : ''}
+                                </div>
+                                <div class="detalle-item">
+                                    <strong>Capacidad del aula:</strong> ${curso.aula.capacidad} personas
+                                </div>
+                                ` : ''}
+                            </div>
+
+                            <!-- Información del profesor -->
+                            <div class="detalle-seccion">
+                                <h3><i class="fas fa-chalkboard-teacher"></i> Profesor</h3>
+                                <div class="profesor-detalle">
+                                    <img src="${avatarProfesor}" alt="${curso.profesor.nombre}" class="profesor-detalle-avatar">
+                                    <div>
+                                        <h4>${curso.profesor.nombre}</h4>
+                                        <p class="profesor-especialidad">${curso.profesor.especialidad}</p>
+                                        ${curso.profesor.biografia ? `<p class="profesor-biografia">${curso.profesor.biografia}</p>` : ''}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Cupos disponibles -->
+                            <div class="detalle-seccion detalle-cupos">
+                                <h3><i class="fas fa-users"></i> Disponibilidad</h3>
+                                ${estadoBadge}
+                                <div class="cupos-detalle">
+                                    <div class="cupos-numero">
+                                        <span class="cupos-numero-grande">${curso.cupos_disponibles}</span>
+                                        <span class="cupos-texto">cupos disponibles</span>
+                                    </div>
+                                    <div class="cupos-total">
+                                        de ${curso.cupo_maximo} totales
+                                    </div>
+                                    <div class="cupos-barra-container">
+                                        <div class="cupos-barra" style="width: ${curso.porcentaje_ocupacion}%; background-color: ${this.getBarraColor(curso.porcentaje_ocupacion)}"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        ${curso.estado === 'completo' 
+                            ? '<p class="text-warning"><i class="fas fa-exclamation-triangle"></i> Este curso no tiene cupos disponibles</p>'
+                            : `<button class="btn btn-primary btn-lg" onclick="cursadoManager.solicitarInscripcion(${curso.id_curso}, '${curso.nombre_curso.replace(/'/g, "\\'")}', '${curso.profesor.nombre.replace(/'/g, "\\'")}', '${curso.horario.replace(/'/g, "\\'")}')">
+                                   <i class="fas fa-comment"></i> Solicitar Inscripción por Chat
+                               </button>`
+                        }
+                        <button class="btn btn-secondary" onclick="cursadoManager.cerrarModal()">Cerrar</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+    }
+
+    /**
+     * Solicitar inscripción al curso vía chat
+     */
+    solicitarInscripcion(idCurso, nombreCurso, nombreProfesor, horario) {
+        this.cerrarModal();
+
+        const mensajePrecargado = `Hola, me gustaría inscribirme al curso "${nombreCurso}" con el profesor ${nombreProfesor}. Horario: ${horario}`;
+
+        // Cambiar a la sección de chat
+        const chatTab = document.querySelector('[data-section="chat"]');
+        if (chatTab) {
+            chatTab.click();
+        }
+
+        // Esperar un momento para que el chat se cargue
+        setTimeout(() => {
+            const chatInput = document.getElementById('messageInput');
+            if (chatInput) {
+                chatInput.value = mensajePrecargado;
+                chatInput.focus();
+            }
+
+            // Mostrar notificación
+            this.mostrarNotificacion('Mensaje pre-cargado en el chat. Envíalo para solicitar tu inscripción.', 'success');
+        }, 300);
+    }
+
+    /**
+     * Cerrar modal
+     */
+    cerrarModal() {
+        const modal = document.getElementById('modal-detalle-curso');
+        if (modal) {
+            modal.remove();
+        }
+    }
+
+    /**
+     * Aplicar filtro de búsqueda
+     */
+    aplicarFiltroBusqueda() {
+        let cursosFiltrados = [...this.cursosDisponibles];
+
+        if (this.filtrosActivos.busqueda) {
+            const busqueda = this.filtrosActivos.busqueda.toLowerCase();
+            cursosFiltrados = cursosFiltrados.filter(curso => 
+                curso.nombre_curso.toLowerCase().includes(busqueda) ||
+                curso.idioma.nombre.toLowerCase().includes(busqueda) ||
+                curso.profesor.nombre.toLowerCase().includes(busqueda)
+            );
+        }
+
+        this.cursosDisponibles = cursosFiltrados;
+        this.renderizarCatalogo();
+    }
+
+    /**
+     * Setup event listeners
+     */
+    setupEventListeners() {
+        // Filtros
+        const filtroIdioma = document.getElementById('filtro-idioma');
+        const filtroNivel = document.getElementById('filtro-nivel');
+        const filtroProfesor = document.getElementById('filtro-profesor');
+        const inputBusqueda = document.getElementById('busqueda-curso');
+
+        if (filtroIdioma) {
+            filtroIdioma.addEventListener('change', (e) => {
+                this.filtrosActivos.idioma = e.target.value || null;
+                this.cargarCatalogoCursos();
+            });
+        }
+
+        if (filtroNivel) {
+            filtroNivel.addEventListener('change', (e) => {
+                this.filtrosActivos.nivel = e.target.value || null;
+                this.cargarCatalogoCursos();
+            });
+        }
+
+        if (filtroProfesor) {
+            filtroProfesor.addEventListener('change', (e) => {
+                this.filtrosActivos.profesor = e.target.value || null;
+                this.cargarCatalogoCursos();
+            });
+        }
+
+        if (inputBusqueda) {
+            inputBusqueda.addEventListener('input', (e) => {
+                this.filtrosActivos.busqueda = e.target.value;
+                this.aplicarFiltroBusqueda();
+            });
+        }
+
+        // Limpiar filtros
+        const btnLimpiar = document.getElementById('limpiar-filtros');
+        if (btnLimpiar) {
+            btnLimpiar.addEventListener('click', () => {
+                this.limpiarFiltros();
+            });
+        }
+    }
+
+    /**
+     * Limpiar todos los filtros
+     */
+    limpiarFiltros() {
+        this.filtrosActivos = {
+            idioma: null,
+            nivel: null,
+            profesor: null,
+            busqueda: ''
+        };
+
+        document.getElementById('filtro-idioma')?.selectedIndex = 0;
+        document.getElementById('filtro-nivel')?.selectedIndex = 0;
+        document.getElementById('filtro-profesor')?.selectedIndex = 0;
+        const inputBusqueda = document.getElementById('busqueda-curso');
+        if (inputBusqueda) inputBusqueda.value = '';
+
+        this.cargarCatalogoCursos();
+    }
+
+    /**
+     * Obtener badge de estado
+     */
+    getEstadoBadge(estado) {
+        const badges = {
+            'disponible': '<span class="badge badge-success"><i class="fas fa-check-circle"></i> Disponible</span>',
+            'cupos_limitados': '<span class="badge badge-warning"><i class="fas fa-exclamation-circle"></i> Cupos Limitados</span>',
+            'completo': '<span class="badge badge-danger"><i class="fas fa-ban"></i> Completo</span>'
+        };
+        return badges[estado] || badges.disponible;
+    }
+
+    /**
+     * Obtener color de barra según porcentaje
+     */
+    getBarraColor(porcentaje) {
+        if (porcentaje >= 100) return '#dc3545'; // Rojo
+        if (porcentaje >= 80) return '#ffc107';  // Amarillo
+        return '#28a745'; // Verde
+    }
+
+    /**
+     * Obtener ícono de idioma
+     */
+    getIdiomaIcon(idioma) {
+        const iconos = {
+            'Ingles': '🇬🇧',
+            'Frances': '🇫🇷',
+            'Aleman': '🇩🇪',
+            'Japones': '🇯🇵',
+            'Portugues': '🇵🇹',
+            'Italiano': '🇮🇹'
+        };
+        return iconos[idioma] || '🌍';
+    }
+
+    /**
+     * Mostrar indicador de carga
+     */
+    mostrarCargando(mostrar) {
+        const container = document.getElementById('catalogo-cursos-container');
+        if (!container) return;
+
+        if (mostrar) {
+            container.innerHTML = `
+                <div class="loading-container">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="sr-only">Cargando...</span>
+                    </div>
+                    <p>Cargando cursos disponibles...</p>
+                </div>
+            `;
+        }
+    }
+
+    /**
+     * Mostrar error
+     */
+    mostrarError(mensaje) {
+        const container = document.getElementById('catalogo-cursos-container');
+        if (container) {
+            container.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle"></i> ${mensaje}
+                </div>
+            `;
+        }
+    }
+
+    /**
+     * Mostrar notificación temporal
+     */
+    mostrarNotificacion(mensaje, tipo = 'info') {
+        const notif = document.createElement('div');
+        notif.className = `notificacion notificacion-${tipo}`;
+        notif.innerHTML = `
+            <i class="fas fa-${tipo === 'success' ? 'check-circle' : 'info-circle'}"></i>
+            ${mensaje}
+        `;
+        document.body.appendChild(notif);
+
+        setTimeout(() => notif.classList.add('show'), 100);
+        setTimeout(() => {
+            notif.classList.remove('show');
+            setTimeout(() => notif.remove(), 300);
+        }, 3000);
+    }
+}
+
+// Inicializar cuando el DOM esté listo
+let cursadoManager;
+document.addEventListener('DOMContentLoaded', () => {
+    if (document.getElementById('cursado-section')) {
+        cursadoManager = new CursadoManager();
+    }
+});

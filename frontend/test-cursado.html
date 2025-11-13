@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Cursado - CEMI</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 {
+            color: #667eea;
+        }
+        .test-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .test-section h2 {
+            color: #2d3748;
+            margin-top: 0;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+        pre {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            padding: 15px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        .success {
+            color: #48bb78;
+            font-weight: bold;
+        }
+        .error {
+            color: #f56565;
+            font-weight: bold;
+        }
+        .info {
+            color: #4299e1;
+            font-style: italic;
+        }
+        input {
+            padding: 8px;
+            border: 1px solid #cbd5e0;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+    </style>
+    <script src="assets/js/config.js"></script>
+</head>
+<body>
+    <h1>🧪 Test de Endpoints - Cursado CEMI</h1>
+    
+    <div class="test-section">
+        <h2>Configuración</h2>
+        <label>ID Alumno:</label>
+        <input type="number" id="idAlumno" value="1" min="1">
+        <button onclick="updateAlumnoId()">Actualizar ID</button>
+        <p class="info">ID actual: <span id="currentId">1</span></p>
+    </div>
+
+    <div class="test-section">
+        <h2>1. GET /api/cursos/filtros/opciones</h2>
+        <button onclick="testFiltrosOpciones()">🧪 Probar Endpoint</button>
+        <div id="result1"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. GET /api/cursos/mis-cursos/:id_alumno</h2>
+        <button onclick="testMisCursos()">🧪 Probar Endpoint</button>
+        <div id="result2"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. GET /api/cursos/catalogo?id_alumno=X</h2>
+        <button onclick="testCatalogo()">🧪 Probar Endpoint</button>
+        <button onclick="testCatalogoConFiltros()">🧪 Con Filtros (Inglés)</button>
+        <div id="result3"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>4. GET /api/cursos/:id/detalle?id_alumno=X</h2>
+        <label>ID Curso:</label>
+        <input type="number" id="idCurso" value="1" min="1">
+        <button onclick="testDetalleCurso()">🧪 Probar Endpoint</button>
+        <div id="result4"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>5. Verificar Filtrado de Inscritos</h2>
+        <button onclick="verificarFiltrado()">🔍 Verificar Lógica</button>
+        <div id="result5"></div>
+    </div>
+
+    <script>
+        let currentAlumnoId = 1;
+
+        function updateAlumnoId() {
+            currentAlumnoId = parseInt(document.getElementById('idAlumno').value);
+            document.getElementById('currentId').textContent = currentAlumnoId;
+            console.log('ID Alumno actualizado:', currentAlumnoId);
+        }
+
+        async function testFiltrosOpciones() {
+            const resultDiv = document.getElementById('result1');
+            resultDiv.innerHTML = '<p>⏳ Cargando...</p>';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/cursos/filtros/opciones`);
+                const data = await response.json();
+
+                if (data.success) {
+                    resultDiv.innerHTML = `
+                        <p class="success">✅ Success: ${data.success}</p>
+                        <p><strong>Idiomas encontrados:</strong> ${data.filtros.idiomas.length}</p>
+                        <p><strong>Niveles encontrados:</strong> ${data.filtros.niveles.length}</p>
+                        <p><strong>Profesores encontrados:</strong> ${data.filtros.profesores.length}</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<p class="error">❌ Error en respuesta</p><pre>${JSON.stringify(data, null, 2)}</pre>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">❌ Error: ${error.message}</p>`;
+            }
+        }
+
+        async function testMisCursos() {
+            const resultDiv = document.getElementById('result2');
+            resultDiv.innerHTML = '<p>⏳ Cargando...</p>';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/cursos/mis-cursos/${currentAlumnoId}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    resultDiv.innerHTML = `
+                        <p class="success">✅ Success: ${data.success}</p>
+                        <p><strong>Total de cursos inscritos:</strong> ${data.total}</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<p class="error">❌ Error en respuesta</p><pre>${JSON.stringify(data, null, 2)}</pre>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">❌ Error: ${error.message}</p>`;
+            }
+        }
+
+        async function testCatalogo() {
+            const resultDiv = document.getElementById('result3');
+            resultDiv.innerHTML = '<p>⏳ Cargando...</p>';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/cursos/catalogo?id_alumno=${currentAlumnoId}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    const cursosInscritos = data.cursos.filter(c => c.ya_inscrito);
+                    const cursosDisponibles = data.cursos.filter(c => !c.ya_inscrito);
+
+                    resultDiv.innerHTML = `
+                        <p class="success">✅ Success: ${data.success}</p>
+                        <p><strong>Total de cursos:</strong> ${data.total}</p>
+                        <p><strong>Cursos donde YA está inscrito:</strong> ${cursosInscritos.length}</p>
+                        <p><strong>Cursos disponibles (NO inscrito):</strong> ${cursosDisponibles.length}</p>
+                        <p class="info">💡 La lógica de filtrado debe mostrar solo los ${cursosDisponibles.length} cursos disponibles</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<p class="error">❌ Error en respuesta</p><pre>${JSON.stringify(data, null, 2)}</pre>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">❌ Error: ${error.message}</p>`;
+            }
+        }
+
+        async function testCatalogoConFiltros() {
+            const resultDiv = document.getElementById('result3');
+            resultDiv.innerHTML = '<p>⏳ Cargando con filtro idioma=1 (Inglés)...</p>';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/cursos/catalogo?id_alumno=${currentAlumnoId}&idioma=1`);
+                const data = await response.json();
+
+                if (data.success) {
+                    resultDiv.innerHTML = `
+                        <p class="success">✅ Success con filtro de Inglés</p>
+                        <p><strong>Total de cursos de Inglés:</strong> ${data.total}</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<p class="error">❌ Error en respuesta</p><pre>${JSON.stringify(data, null, 2)}</pre>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">❌ Error: ${error.message}</p>`;
+            }
+        }
+
+        async function testDetalleCurso() {
+            const resultDiv = document.getElementById('result4');
+            const idCurso = document.getElementById('idCurso').value;
+            resultDiv.innerHTML = '<p>⏳ Cargando...</p>';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/cursos/${idCurso}/detalle?id_alumno=${currentAlumnoId}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    resultDiv.innerHTML = `
+                        <p class="success">✅ Success: ${data.success}</p>
+                        <p><strong>Curso:</strong> ${data.curso.nombre_curso}</p>
+                        <p><strong>Profesor:</strong> ${data.curso.profesor.nombre}</p>
+                        <p><strong>Ya inscrito:</strong> ${data.curso.ya_inscrito ? '✅ SÍ' : '❌ NO'}</p>
+                        <p><strong>Estado:</strong> ${data.curso.estado}</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<p class="error">❌ Error en respuesta</p><pre>${JSON.stringify(data, null, 2)}</pre>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">❌ Error: ${error.message}</p>`;
+            }
+        }
+
+        async function verificarFiltrado() {
+            const resultDiv = document.getElementById('result5');
+            resultDiv.innerHTML = '<p>⏳ Verificando lógica de filtrado...</p>';
+
+            try {
+                // 1. Obtener mis cursos
+                const misCursosRes = await fetch(`${API_BASE_URL}/cursos/mis-cursos/${currentAlumnoId}`);
+                const misCursosData = await misCursosRes.json();
+
+                // 2. Obtener catálogo completo
+                const catalogoRes = await fetch(`${API_BASE_URL}/cursos/catalogo?id_alumno=${currentAlumnoId}`);
+                const catalogoData = await catalogoRes.json();
+
+                const misCursosIds = misCursosData.cursos.map(c => c.id_curso);
+                const catalogoCompleto = catalogoData.cursos;
+                const cursosInscritos = catalogoCompleto.filter(c => c.ya_inscrito);
+                const cursosDisponibles = catalogoCompleto.filter(c => !c.ya_inscrito);
+
+                let html = `
+                    <p class="success">✅ Verificación completada</p>
+                    <h3>Resumen:</h3>
+                    <ul>
+                        <li><strong>Cursos en los que estoy inscrito:</strong> ${misCursosData.total}</li>
+                        <li><strong>Cursos en catálogo con ya_inscrito=true:</strong> ${cursosInscritos.length}</li>
+                        <li><strong>Cursos disponibles para inscripción:</strong> ${cursosDisponibles.length}</li>
+                    </ul>
+                `;
+
+                if (misCursosData.total === cursosInscritos.length) {
+                    html += '<p class="success">✅ La lógica es correcta: el backend marca correctamente los cursos inscritos</p>';
+                } else {
+                    html += '<p class="error">⚠️ Advertencia: Hay discrepancia en el conteo</p>';
+                }
+
+                html += '<h3>IDs de mis cursos:</h3>';
+                html += `<pre>${JSON.stringify(misCursosIds, null, 2)}</pre>`;
+
+                html += '<h3>Cursos que debo ver en el catálogo (NO inscritos):</h3>';
+                html += `<pre>${JSON.stringify(cursosDisponibles.map(c => ({
+                    id: c.id_curso,
+                    nombre: c.nombre_curso,
+                    ya_inscrito: c.ya_inscrito
+                })), null, 2)}</pre>`;
+
+                resultDiv.innerHTML = html;
+
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">❌ Error: ${error.message}</p>`;
+            }
+        }
+
+        // Auto-test al cargar
+        console.log('Test page loaded. API_BASE_URL:', API_BASE_URL);
+    </script>
+</body>
+</html>
