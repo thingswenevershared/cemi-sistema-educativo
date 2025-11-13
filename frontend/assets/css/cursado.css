@@ -119,12 +119,12 @@
 .curso-card-title h3 {
   margin: 0 0 4px 0;
   font-size: 17px;
-  color: white;
+  color: #2d3748;
   font-weight: 600;
 }
 
 .curso-card-title .idioma {
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(45, 55, 72, 0.7);
   font-size: 13px;
   font-weight: 400;
   margin-bottom: 8px;

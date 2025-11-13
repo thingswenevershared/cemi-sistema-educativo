@@ -128,10 +128,12 @@ class CursadoManager {
         }
 
         container.innerHTML = this.misCursos.map(curso => {
-            const avatarProfesor = curso.profesor?.avatar || '/images/default-avatar.png';
+            // Simular promedio y progreso (en producción vendría del backend)
+            const promedio = 0; // Sin calificaciones por defecto
+            const progreso = promedio > 0 ? Math.min((promedio / 10) * 100, 100) : 0;
             
             return `
-                <div class="curso-card">
+                <div class="curso-card" onclick="window.location.href='/frontend/classroom.html?curso=${curso.id_curso}'">
                     <div class="curso-card-header">
                         <div class="curso-icon">
                             <i data-lucide="book-open"></i>
@@ -148,22 +150,38 @@ class CursadoManager {
                             <i data-lucide="clock"></i>
                             <span>${curso.horario || 'Por confirmar'}</span>
                         </div>
-                        ${curso.aula ? `
+                        ${promedio > 0 ? `
                         <div class="info-row">
-                            <i data-lucide="door-open"></i>
-                            <span>${curso.aula}</span>
+                            <i data-lucide="trending-up"></i>
+                            <span>Promedio: <strong style="color: ${promedio >= 7 ? '#4caf50' : promedio >= 5 ? '#ff9800' : '#f44336'}">${promedio.toFixed(1)}</strong></span>
                         </div>
-                        ` : ''}
+                        ` : `
+                        <div class="info-row">
+                            <i data-lucide="alert-circle"></i>
+                            <span style="color: #718096;">Sin calificaciones</span>
+                        </div>
+                        `}
                     </div>
 
                     <div class="curso-card-footer">
-                        <div class="profesor-mini">
-                            <img src="${avatarProfesor}" alt="${curso.profesor?.nombre || 'Profesor'}" class="profesor-avatar-small">
-                            <span>${curso.profesor?.nombre || 'Sin profesor'}</span>
+                        ${promedio > 0 ? `
+                        <div class="cupos-info">
+                            <div class="cupos-bar">
+                                <div class="cupos-bar-fill ${promedio >= 7 ? '' : promedio >= 5 ? 'warning' : 'danger'}" 
+                                     style="width: ${progreso}%"></div>
+                            </div>
+                            <span class="cupos-text">Progreso: ${progreso.toFixed(0)}%</span>
                         </div>
-                        <button class="btn-view-course" onclick="window.location.href='/frontend/classroom.html?curso=${curso.id_curso}'">
-                            <i data-lucide="eye"></i> Ver Curso
-                        </button>
+                        ` : `
+                        <div class="cupos-info">
+                            <span class="cupos-text" style="color: #718096;">Sin progreso registrado</span>
+                        </div>
+                        `}
+                        <div class="card-actions">
+                            <button class="icon-btn" onclick="event.stopPropagation(); window.location.href='/frontend/classroom.html?curso=${curso.id_curso}'" title="Ver detalles">
+                                <i data-lucide="eye"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
             `;
