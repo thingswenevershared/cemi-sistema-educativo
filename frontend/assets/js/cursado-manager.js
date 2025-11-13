@@ -177,12 +177,6 @@ class CursadoManager {
         const barraColor = this.getBarraColor(curso.porcentaje_ocupacion);
         const avatarProfesor = curso.profesor.avatar || '/images/default-avatar.png';
 
-        const botonAccion = curso.estado === 'completo' 
-            ? '<button class="btn btn-secondary btn-sm" disabled><i class="fas fa-ban"></i> Completo</button>'
-            : `<button class="btn btn-primary btn-sm" onclick="cursadoManager.verDetalleCurso(${curso.id_curso})">
-                   <i class="fas fa-eye"></i> Ver Detalle
-               </button>`;
-
         return `
             <div class="curso-card" data-curso-id="${curso.id_curso}">
                 <div class="curso-card-header">
@@ -229,29 +223,9 @@ class CursadoManager {
 
                 <div class="curso-card-footer">
                     ${estadoBadge}
-                    ${botonAccion}
                 </div>
             </div>
         `;
-    }
-
-    /**
-     * Ver detalle del curso en modal
-     */
-    async verDetalleCurso(idCurso) {
-        try {
-            const response = await fetch(`${this.API_URL}/cursos/${idCurso}/detalle?id_alumno=${this.idAlumno}`);
-            const data = await response.json();
-
-            if (data.success) {
-                this.mostrarModalDetalle(data.curso);
-            } else {
-                throw new Error(data.error || 'Error al cargar detalle');
-            }
-        } catch (error) {
-            console.error('Error al cargar detalle:', error);
-            this.mostrarError('Error al cargar información del curso');
-        }
     }
 
     /**
