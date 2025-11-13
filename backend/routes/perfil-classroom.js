@@ -270,9 +270,10 @@ router.put("/perfil/:userId", async (req, res) => {
     }
 
     // Verificar qué columnas existen en la tabla personas
+    console.log('  → Verificando columnas de la tabla personas...');
     const [columnas] = await pool.query('SHOW COLUMNS FROM personas');
     const columnasExistentes = columnas.map(col => col.Field);
-    console.log('  → Columnas existentes en personas:', columnasExistentes);
+    console.log('  → Columnas existentes en personas:', columnasExistentes.join(', '));
 
     // Construir query dinámica solo con campos proporcionados Y que existen en la tabla
     const updates = [];
@@ -321,6 +322,20 @@ router.put("/perfil/:userId", async (req, res) => {
       });
     }
 
+    // Verificar que id_persona existe en la tabla
+    const [personaExists] = await pool.query(
+      'SELECT id_persona FROM personas WHERE id_persona = ?',
+      [id_persona]
+    );
+
+    if (personaExists.length === 0) {
+      console.log(`  ❌ No existe persona con id_persona=${id_persona}`);
+      return res.status(404).json({
+        success: false,
+        message: 'Persona no encontrada en la base de datos'
+      });
+    }
+
     values.push(id_persona);
 
     const query = `UPDATE personas SET ${updates.join(', ')} WHERE id_persona = ?`;
@@ -329,6 +344,15 @@ router.put("/perfil/:userId", async (req, res) => {
     
     const [result] = await pool.query(query, values);
     console.log('  → Resultado:', result);
+    console.log('  → Filas afectadas:', result.affectedRows);
+
+    if (result.affectedRows === 0) {
+      console.log('  ⚠️ No se actualizó ninguna fila');
+      return res.status(400).json({
+        success: false,
+        message: 'No se pudo actualizar el perfil'
+      });
+    }
 
     console.log(`  ✅ Perfil actualizado exitosamente para id_persona=${id_persona}`);
 
