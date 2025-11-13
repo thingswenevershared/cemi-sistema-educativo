@@ -82,6 +82,271 @@ router.get("/profesor/:idProfesor", async (req, res) => {
   }
 });
 
+// =====================================================
+// RUTAS ESPECÍFICAS (DEBEN IR ANTES DE /:id)
+// =====================================================
+
+// GET /catalogo - Catálogo de cursos disponibles
+router.get('/catalogo', async (req, res) => {
+    try {
+        const { id_alumno, idioma, nivel, profesor } = req.query;
+
+        if (!id_alumno) {
+            return res.status(400).json({ 
+                success: false,
+                error: 'El parámetro id_alumno es requerido' 
+            });
+        }
+
+        // Query base: obtener todos los cursos con información completa
+        let query = `
+            SELECT 
+                c.id_curso,
+                c.nombre_curso,
+                c.horario,
+                c.cupo_maximo,
+                c.id_idioma,
+                c.id_nivel,
+                
+                -- Datos del idioma
+                i.nombre_idioma,
+                
+                -- Datos del nivel
+                n.descripcion as nivel_descripcion,
+                
+                -- Datos del profesor
+                c.id_profesor,
+                CONCAT(pp.nombre, ' ', pp.apellido) as nombre_profesor,
+                prof.especialidad as especialidad_profesor,
+                pp.avatar as avatar_profesor,
+                
+                -- Datos del aula
+                a.nombre_aula,
+                a.ubicacion as ubicacion_aula,
+                
+                -- Cantidad de inscriptos actuales
+                (SELECT COUNT(*) 
+                 FROM inscripciones 
+                 WHERE id_curso = c.id_curso 
+                 AND estado = 'activo') as inscriptos_actuales,
+                
+                -- Verificar si el alumno ya está inscrito
+                EXISTS(
+                    SELECT 1 
+                    FROM inscripciones 
+                    WHERE id_curso = c.id_curso 
+                    AND id_alumno = ? 
+                    AND estado = 'activo'
+                ) as ya_inscrito
+                
+            FROM cursos c
+            INNER JOIN idiomas i ON c.id_idioma = i.id_idioma
+            INNER JOIN niveles n ON c.id_nivel = n.id_nivel
+            INNER JOIN profesores prof ON c.id_profesor = prof.id_profesor
+            INNER JOIN personas pp ON prof.id_persona = pp.id_persona
+            LEFT JOIN aulas a ON c.id_aula = a.id_aula
+            WHERE 1=1
+        `;
+
+        const params = [id_alumno];
+
+        // Aplicar filtros opcionales
+        if (idioma) {
+            query += ' AND c.id_idioma = ?';
+            params.push(idioma);
+        }
+
+        if (nivel) {
+            query += ' AND c.id_nivel = ?';
+            params.push(nivel);
+        }
+
+        if (profesor) {
+            query += ' AND c.id_profesor = ?';
+            params.push(profesor);
+        }
+
+        query += ' ORDER BY i.nombre_idioma, n.descripcion, c.nombre_curso';
+
+        const [cursos] = await pool.query(query, params);
+
+        // Filtrar SOLO cursos en los que NO está inscrito
+        const cursosDisponibles = cursos.filter(curso => !curso.ya_inscrito);
+
+        // Calcular estado de cada curso
+        const cursosConEstado = cursosDisponibles.map(curso => {
+            const porcentajeOcupacion = (curso.inscriptos_actuales / curso.cupo_maximo) * 100;
+            let estado = 'disponible';
+            
+            if (curso.inscriptos_actuales >= curso.cupo_maximo) {
+                estado = 'completo';
+            } else if (porcentajeOcupacion >= 80) {
+                estado = 'cupos_limitados';
+            }
+
+            return {
+                id_curso: curso.id_curso,
+                nombre_curso: curso.nombre_curso,
+                horario: curso.horario,
+                cupo_maximo: curso.cupo_maximo,
+                inscriptos_actuales: curso.inscriptos_actuales,
+                cupos_disponibles: curso.cupo_maximo - curso.inscriptos_actuales,
+                porcentaje_ocupacion: Math.round(porcentajeOcupacion),
+                estado: estado,
+                
+                idioma: {
+                    id_idioma: curso.id_idioma,
+                    nombre: curso.nombre_idioma
+                },
+                
+                nivel: {
+                    id_nivel: curso.id_nivel,
+                    descripcion: curso.nivel_descripcion
+                },
+                
+                profesor: {
+                    id_profesor: curso.id_profesor,
+                    nombre: curso.nombre_profesor,
+                    especialidad: curso.especialidad_profesor,
+                    avatar: curso.avatar_profesor
+                },
+                
+                aula: curso.nombre_aula ? {
+                    nombre: curso.nombre_aula,
+                    ubicacion: curso.ubicacion_aula
+                } : null
+            };
+        });
+
+        res.json({
+            success: true,
+            total: cursosConEstado.length,
+            cursos: cursosConEstado
+        });
+
+    } catch (error) {
+        console.error('Error al obtener catálogo de cursos:', error);
+        res.status(500).json({ 
+            success: false,
+            error: 'Error al cargar el catálogo de cursos',
+            details: error.message 
+        });
+    }
+});
+
+// GET /filtros/opciones - Opciones para filtros
+router.get('/filtros/opciones', async (req, res) => {
+    try {
+        // Obtener idiomas
+        const [idiomas] = await pool.query(`
+            SELECT DISTINCT i.id_idioma, i.nombre_idioma
+            FROM idiomas i
+            INNER JOIN cursos c ON i.id_idioma = c.id_idioma
+            ORDER BY i.nombre_idioma
+        `);
+
+        // Obtener niveles
+        const [niveles] = await pool.query(`
+            SELECT DISTINCT n.id_nivel, n.descripcion, i.nombre_idioma
+            FROM niveles n
+            INNER JOIN idiomas i ON n.id_idioma = i.id_idioma
+            INNER JOIN cursos c ON n.id_nivel = c.id_nivel
+            ORDER BY i.nombre_idioma, n.descripcion
+        `);
+
+        // Obtener profesores
+        const [profesores] = await pool.query(`
+            SELECT DISTINCT 
+                prof.id_profesor,
+                CONCAT(p.nombre, ' ', p.apellido) as nombre_completo,
+                prof.especialidad
+            FROM profesores prof
+            INNER JOIN personas p ON prof.id_persona = p.id_persona
+            INNER JOIN cursos c ON prof.id_profesor = c.id_profesor
+            ORDER BY nombre_completo
+        `);
+
+        res.json({
+            success: true,
+            filtros: {
+                idiomas,
+                niveles,
+                profesores
+            }
+        });
+
+    } catch (error) {
+        console.error('Error al obtener opciones de filtros:', error);
+        res.status(500).json({ 
+            success: false,
+            error: 'Error al cargar opciones de filtros',
+            details: error.message 
+        });
+    }
+});
+
+// GET /mis-cursos/:id_alumno - Cursos del alumno
+router.get('/mis-cursos/:id_alumno', async (req, res) => {
+    try {
+        const { id_alumno } = req.params;
+
+        const query = `
+            SELECT 
+                c.id_curso,
+                c.nombre_curso,
+                c.horario,
+                i.nombre_idioma,
+                n.descripcion as nivel_descripcion,
+                CONCAT(pp.nombre, ' ', pp.apellido) as nombre_profesor,
+                pp.avatar as avatar_profesor,
+                a.nombre_aula,
+                ins.fecha_inscripcion
+            FROM inscripciones ins
+            INNER JOIN cursos c ON ins.id_curso = c.id_curso
+            INNER JOIN idiomas i ON c.id_idioma = i.id_idioma
+            INNER JOIN niveles n ON c.id_nivel = n.id_nivel
+            INNER JOIN profesores prof ON c.id_profesor = prof.id_profesor
+            INNER JOIN personas pp ON prof.id_persona = pp.id_persona
+            LEFT JOIN aulas a ON c.id_aula = a.id_aula
+            WHERE ins.id_alumno = ? 
+            AND ins.estado = 'activo'
+            ORDER BY ins.fecha_inscripcion DESC
+        `;
+
+        const [cursos] = await pool.query(query, [id_alumno]);
+
+        res.json({
+            success: true,
+            total: cursos.length,
+            cursos: cursos.map(curso => ({
+                id_curso: curso.id_curso,
+                nombre_curso: curso.nombre_curso,
+                horario: curso.horario,
+                idioma: curso.nombre_idioma,
+                nivel: curso.nivel_descripcion,
+                profesor: {
+                    nombre: curso.nombre_profesor,
+                    avatar: curso.avatar_profesor
+                },
+                aula: curso.nombre_aula,
+                fecha_inscripcion: curso.fecha_inscripcion
+            }))
+        });
+
+    } catch (error) {
+        console.error('Error al obtener mis cursos:', error);
+        res.status(500).json({ 
+            success: false,
+            error: 'Error al cargar tus cursos',
+            details: error.message 
+        });
+    }
+});
+
+// =====================================================
+// RUTAS CON PARÁMETROS DINÁMICOS (DEBEN IR DESPUÉS)
+// =====================================================
+
 // Obtener un curso específico por ID
 router.get("/:id", async (req, res) => {
   try {
@@ -416,403 +681,6 @@ router.delete("/:id", async (req, res) => {
       message: error.message || "Error al eliminar curso" 
     });
   }
-});
-
-// =====================================================
-// GET /catalogo
-// Retorna cursos disponibles EXCLUYENDO aquellos en los que el alumno ya está inscrito
-// =====================================================
-router.get('/catalogo', async (req, res) => {
-    try {
-        const { id_alumno, idioma, nivel, profesor } = req.query;
-
-        if (!id_alumno) {
-            return res.status(400).json({ 
-                error: 'El parámetro id_alumno es requerido' 
-            });
-        }
-
-        // Query base: obtener todos los cursos con información completa
-        let query = `
-            SELECT 
-                c.id_curso,
-                c.nombre_curso,
-                c.horario,
-                c.cupo_maximo,
-                c.id_idioma,
-                c.id_nivel,
-                
-                -- Datos del idioma
-                i.nombre_idioma,
-                
-                -- Datos del nivel
-                n.descripcion as nivel_descripcion,
-                
-                -- Datos del profesor
-                c.id_profesor,
-                CONCAT(pp.nombre, ' ', pp.apellido) as nombre_profesor,
-                prof.especialidad as especialidad_profesor,
-                pp.avatar as avatar_profesor,
-                
-                -- Datos del aula
-                a.nombre_aula,
-                a.ubicacion as ubicacion_aula,
-                
-                -- Cantidad de inscriptos actuales
-                (SELECT COUNT(*) 
-                 FROM inscripciones 
-                 WHERE id_curso = c.id_curso 
-                 AND estado = 'activo') as inscriptos_actuales,
-                
-                -- Verificar si el alumno ya está inscrito
-                EXISTS(
-                    SELECT 1 
-                    FROM inscripciones 
-                    WHERE id_curso = c.id_curso 
-                    AND id_alumno = ? 
-                    AND estado = 'activo'
-                ) as ya_inscrito
-                
-            FROM cursos c
-            INNER JOIN idiomas i ON c.id_idioma = i.id_idioma
-            INNER JOIN niveles n ON c.id_nivel = n.id_nivel
-            INNER JOIN profesores prof ON c.id_profesor = prof.id_profesor
-            INNER JOIN personas pp ON prof.id_persona = pp.id_persona
-            LEFT JOIN aulas a ON c.id_aula = a.id_aula
-            WHERE 1=1
-        `;
-
-        const params = [id_alumno];
-
-        // Aplicar filtros opcionales
-        if (idioma) {
-            query += ' AND c.id_idioma = ?';
-            params.push(idioma);
-        }
-
-        if (nivel) {
-            query += ' AND c.id_nivel = ?';
-            params.push(nivel);
-        }
-
-        if (profesor) {
-            query += ' AND c.id_profesor = ?';
-            params.push(profesor);
-        }
-
-        query += ' ORDER BY i.nombre_idioma, n.descripcion, c.nombre_curso';
-
-        const [cursos] = await pool.query(query, params);
-
-        // Filtrar SOLO cursos en los que NO está inscrito
-        const cursosDisponibles = cursos.filter(curso => !curso.ya_inscrito);
-
-        // Calcular estado de cada curso
-        const cursosConEstado = cursosDisponibles.map(curso => {
-            const porcentajeOcupacion = (curso.inscriptos_actuales / curso.cupo_maximo) * 100;
-            let estado = 'disponible';
-            
-            if (curso.inscriptos_actuales >= curso.cupo_maximo) {
-                estado = 'completo';
-            } else if (porcentajeOcupacion >= 80) {
-                estado = 'cupos_limitados';
-            }
-
-            return {
-                id_curso: curso.id_curso,
-                nombre_curso: curso.nombre_curso,
-                horario: curso.horario,
-                cupo_maximo: curso.cupo_maximo,
-                inscriptos_actuales: curso.inscriptos_actuales,
-                cupos_disponibles: curso.cupo_maximo - curso.inscriptos_actuales,
-                porcentaje_ocupacion: Math.round(porcentajeOcupacion),
-                estado: estado, // disponible | cupos_limitados | completo
-                
-                idioma: {
-                    id_idioma: curso.id_idioma,
-                    nombre: curso.nombre_idioma
-                },
-                
-                nivel: {
-                    id_nivel: curso.id_nivel,
-                    descripcion: curso.nivel_descripcion
-                },
-                
-                profesor: {
-                    id_profesor: curso.id_profesor,
-                    nombre: curso.nombre_profesor,
-                    especialidad: curso.especialidad_profesor,
-                    avatar: curso.avatar_profesor
-                },
-                
-                aula: curso.nombre_aula ? {
-                    nombre: curso.nombre_aula,
-                    ubicacion: curso.ubicacion_aula
-                } : null
-            };
-        });
-
-        res.json({
-            success: true,
-            total: cursosConEstado.length,
-            cursos: cursosConEstado
-        });
-
-    } catch (error) {
-        console.error('Error al obtener catálogo de cursos:', error);
-        res.status(500).json({ 
-            error: 'Error al cargar el catálogo de cursos',
-            details: error.message 
-        });
-    }
-});
-
-// =====================================================
-// GET /:id/detalle
-// Retorna información detallada de un curso específico
-// =====================================================
-router.get('/:id/detalle', async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { id_alumno } = req.query;
-
-        const query = `
-            SELECT 
-                c.id_curso,
-                c.nombre_curso,
-                c.horario,
-                c.cupo_maximo,
-                c.fecha_creacion,
-                
-                -- Datos del idioma
-                i.id_idioma,
-                i.nombre_idioma,
-                
-                -- Datos del nivel
-                n.id_nivel,
-                n.descripcion as nivel_descripcion,
-                
-                -- Datos completos del profesor
-                c.id_profesor,
-                CONCAT(pp.nombre, ' ', pp.apellido) as nombre_profesor,
-                prof.especialidad as especialidad_profesor,
-                pp.avatar as avatar_profesor,
-                pp.biografia as biografia_profesor,
-                pp.mail as mail_profesor,
-                
-                -- Datos del aula
-                a.nombre_aula,
-                a.capacidad as capacidad_aula,
-                a.ubicacion as ubicacion_aula,
-                
-                -- Cantidad de inscriptos
-                (SELECT COUNT(*) 
-                 FROM inscripciones 
-                 WHERE id_curso = c.id_curso 
-                 AND estado = 'activo') as inscriptos_actuales,
-                
-                -- Verificar si el alumno está inscrito
-                ${id_alumno ? `
-                EXISTS(
-                    SELECT 1 
-                    FROM inscripciones 
-                    WHERE id_curso = c.id_curso 
-                    AND id_alumno = ? 
-                    AND estado = 'activo'
-                ) as ya_inscrito
-                ` : '0 as ya_inscrito'}
-                
-            FROM cursos c
-            INNER JOIN idiomas i ON c.id_idioma = i.id_idioma
-            INNER JOIN niveles n ON c.id_nivel = n.id_nivel
-            INNER JOIN profesores prof ON c.id_profesor = prof.id_profesor
-            INNER JOIN personas pp ON prof.id_persona = pp.id_persona
-            LEFT JOIN aulas a ON c.id_aula = a.id_aula
-            WHERE c.id_curso = ?
-        `;
-
-        const params = id_alumno ? [id_alumno, id] : [id];
-        const [cursos] = await pool.query(query, params);
-
-        if (cursos.length === 0) {
-            return res.status(404).json({ 
-                error: 'Curso no encontrado' 
-            });
-        }
-
-        const curso = cursos[0];
-        const porcentajeOcupacion = (curso.inscriptos_actuales / curso.cupo_maximo) * 100;
-        let estado = 'disponible';
-        
-        if (curso.inscriptos_actuales >= curso.cupo_maximo) {
-            estado = 'completo';
-        } else if (porcentajeOcupacion >= 80) {
-            estado = 'cupos_limitados';
-        }
-
-        const detalle = {
-            id_curso: curso.id_curso,
-            nombre_curso: curso.nombre_curso,
-            horario: curso.horario,
-            cupo_maximo: curso.cupo_maximo,
-            inscriptos_actuales: curso.inscriptos_actuales,
-            cupos_disponibles: curso.cupo_maximo - curso.inscriptos_actuales,
-            porcentaje_ocupacion: Math.round(porcentajeOcupacion),
-            estado: estado,
-            fecha_creacion: curso.fecha_creacion,
-            ya_inscrito: Boolean(curso.ya_inscrito),
-            
-            idioma: {
-                id_idioma: curso.id_idioma,
-                nombre: curso.nombre_idioma
-            },
-            
-            nivel: {
-                id_nivel: curso.id_nivel,
-                descripcion: curso.nivel_descripcion
-            },
-            
-            profesor: {
-                id_profesor: curso.id_profesor,
-                nombre: curso.nombre_profesor,
-                especialidad: curso.especialidad_profesor,
-                avatar: curso.avatar_profesor,
-                biografia: curso.biografia_profesor,
-                email: curso.mail_profesor
-            },
-            
-            aula: curso.nombre_aula ? {
-                nombre: curso.nombre_aula,
-                capacidad: curso.capacidad_aula,
-                ubicacion: curso.ubicacion_aula
-            } : null
-        };
-
-        res.json({
-            success: true,
-            curso: detalle
-        });
-
-    } catch (error) {
-        console.error('Error al obtener detalle del curso:', error);
-        res.status(500).json({ 
-            error: 'Error al cargar el detalle del curso',
-            details: error.message 
-        });
-    }
-});
-
-// =====================================================
-// GET /filtros/opciones
-// Retorna opciones para filtros (idiomas, niveles, profesores)
-// =====================================================
-router.get('/filtros/opciones', async (req, res) => {
-    try {
-        // Obtener idiomas
-        const [idiomas] = await pool.query(`
-            SELECT DISTINCT i.id_idioma, i.nombre_idioma
-            FROM idiomas i
-            INNER JOIN cursos c ON i.id_idioma = c.id_idioma
-            ORDER BY i.nombre_idioma
-        `);
-
-        // Obtener niveles
-        const [niveles] = await pool.query(`
-            SELECT DISTINCT n.id_nivel, n.descripcion, i.nombre_idioma
-            FROM niveles n
-            INNER JOIN idiomas i ON n.id_idioma = i.id_idioma
-            INNER JOIN cursos c ON n.id_nivel = c.id_nivel
-            ORDER BY i.nombre_idioma, n.descripcion
-        `);
-
-        // Obtener profesores
-        const [profesores] = await pool.query(`
-            SELECT DISTINCT 
-                prof.id_profesor,
-                CONCAT(p.nombre, ' ', p.apellido) as nombre_completo,
-                prof.especialidad
-            FROM profesores prof
-            INNER JOIN personas p ON prof.id_persona = p.id_persona
-            INNER JOIN cursos c ON prof.id_profesor = c.id_profesor
-            ORDER BY nombre_completo
-        `);
-
-        res.json({
-            success: true,
-            filtros: {
-                idiomas,
-                niveles,
-                profesores
-            }
-        });
-
-    } catch (error) {
-        console.error('Error al obtener opciones de filtros:', error);
-        res.status(500).json({ 
-            error: 'Error al cargar opciones de filtros',
-            details: error.message 
-        });
-    }
-});
-
-// =====================================================
-// GET /mis-cursos/:id_alumno
-// Retorna cursos en los que el alumno está actualmente inscrito
-// =====================================================
-router.get('/mis-cursos/:id_alumno', async (req, res) => {
-    try {
-        const { id_alumno } = req.params;
-
-        const query = `
-            SELECT 
-                c.id_curso,
-                c.nombre_curso,
-                c.horario,
-                i.nombre_idioma,
-                n.descripcion as nivel_descripcion,
-                CONCAT(pp.nombre, ' ', pp.apellido) as nombre_profesor,
-                pp.avatar as avatar_profesor,
-                a.nombre_aula,
-                ins.fecha_inscripcion
-            FROM inscripciones ins
-            INNER JOIN cursos c ON ins.id_curso = c.id_curso
-            INNER JOIN idiomas i ON c.id_idioma = i.id_idioma
-            INNER JOIN niveles n ON c.id_nivel = n.id_nivel
-            INNER JOIN profesores prof ON c.id_profesor = prof.id_profesor
-            INNER JOIN personas pp ON prof.id_persona = pp.id_persona
-            LEFT JOIN aulas a ON c.id_aula = a.id_aula
-            WHERE ins.id_alumno = ? 
-            AND ins.estado = 'activo'
-            ORDER BY ins.fecha_inscripcion DESC
-        `;
-
-        const [cursos] = await pool.query(query, [id_alumno]);
-
-        res.json({
-            success: true,
-            total: cursos.length,
-            cursos: cursos.map(curso => ({
-                id_curso: curso.id_curso,
-                nombre_curso: curso.nombre_curso,
-                horario: curso.horario,
-                idioma: curso.nombre_idioma,
-                nivel: curso.nivel_descripcion,
-                profesor: {
-                    nombre: curso.nombre_profesor,
-                    avatar: curso.avatar_profesor
-                },
-                aula: curso.nombre_aula,
-                fecha_inscripcion: curso.fecha_inscripcion
-            }))
-        });
-
-    } catch (error) {
-        console.error('Error al obtener mis cursos:', error);
-        res.status(500).json({ 
-            error: 'Error al cargar tus cursos',
-            details: error.message 
-        });
-    }
 });
 
 export default router;
