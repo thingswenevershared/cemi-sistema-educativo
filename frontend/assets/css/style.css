@@ -3379,7 +3379,7 @@ footer i {
 
 /* ===== BOTÓN ACCESO ADMINISTRATIVO ===== */
 .login-btn-admin {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
   color: white;
   border: none;
   padding: 8px 18px;
@@ -3391,13 +3391,13 @@ footer i {
   display: flex;
   align-items: center;
   gap: 6px;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4px 12px rgba(30, 60, 114, 0.3);
 }
 
 .login-btn-admin:hover {
   transform: scale(1.05);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
-  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+  box-shadow: 0 6px 20px rgba(30, 60, 114, 0.5);
+  background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
 }
 
 .login-btn-admin:active {
@@ -3406,7 +3406,7 @@ footer i {
 
 /* ===== PANEL ADMINISTRATIVO ===== */
 .admin-panel {
-  background-image: linear-gradient(135deg, rgba(102, 126, 234, 0.9), rgba(118, 75, 162, 0.9)), 
+  background-image: linear-gradient(135deg, rgba(30, 60, 114, 0.9), rgba(42, 82, 152, 0.9)), 
                     url('../../images/STOCK3.webp');
 }
 
@@ -3461,12 +3461,12 @@ footer i {
 }
 
 .admin-submit {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
 }
 
 .admin-submit:hover {
-  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+  background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
+  box-shadow: 0 8px 24px rgba(30, 60, 114, 0.4);
 }
 
 .form-label {
