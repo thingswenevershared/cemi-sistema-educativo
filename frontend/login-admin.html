@@ -204,12 +204,16 @@
         const data = await response.json();
         
         if (response.ok && data.success) {
-          // Verificar que sea administrador
-          if (data.rol !== 'administrador') {
+          console.log('🔍 Rol recibido del backend:', data.rol);
+          console.log('📦 Data completa:', data);
+          
+          // Verificar que sea administrador (normalizar comparación)
+          const rolNormalizado = (data.rol || '').toLowerCase().trim();
+          if (rolNormalizado !== 'administrador' && rolNormalizado !== 'admin') {
             Swal.fire({
               icon: 'error',
               title: 'Acceso Denegado',
-              text: 'Este panel es exclusivo para administradores',
+              text: `Este panel es exclusivo para administradores (Rol detectado: ${data.rol})`,
               confirmButtonColor: '#dc3545'
             });
             return;
