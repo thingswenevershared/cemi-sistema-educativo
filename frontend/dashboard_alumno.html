@@ -1174,19 +1174,19 @@
           <div class="metodo-pago-selector">
             <label><i data-lucide="credit-card"></i> Selecciona el medio de pago:</label>
             <div class="metodos-pago-grid">
-              <div class="metodo-option" onclick="seleccionarMetodo(this, 'Tarjeta de Crédito')">
+              <div class="metodo-option" data-metodo="Tarjeta de Crédito">
                 <i data-lucide="credit-card"></i>
                 <span>Tarjeta de Crédito</span>
               </div>
-              <div class="metodo-option" onclick="seleccionarMetodo(this, 'Tarjeta de Débito')">
+              <div class="metodo-option" data-metodo="Tarjeta de Débito">
                 <i data-lucide="credit-card"></i>
                 <span>Tarjeta de Débito</span>
               </div>
-              <div class="metodo-option" onclick="seleccionarMetodo(this, 'Transferencia')">
+              <div class="metodo-option" data-metodo="Transferencia">
                 <i data-lucide="arrow-right-left"></i>
                 <span>Transferencia</span>
               </div>
-              <div class="metodo-option" onclick="seleccionarMetodo(this, 'Efectivo')">
+              <div class="metodo-option" data-metodo="Efectivo">
                 <i data-lucide="banknote"></i>
                 <span>Efectivo</span>
               </div>
@@ -1235,6 +1235,20 @@
     
     document.body.appendChild(modal);
     lucide.createIcons();
+    
+    // Agregar event listeners a las opciones de pago DESPUÉS de crear el modal
+    const opciones = modal.querySelectorAll('.metodo-option');
+    console.log('🔧 Opciones de pago encontradas:', opciones.length);
+    
+    opciones.forEach((opcion, index) => {
+      const metodo = opcion.getAttribute('data-metodo');
+      console.log(`🔧 Agregando listener ${index + 1}: ${metodo}`);
+      
+      opcion.addEventListener('click', function() {
+        console.log('🔍 Click detectado en:', metodo);
+        seleccionarMetodo(this, metodo);
+      });
+    });
   };
 
   window.cerrarModalPago = function() {
