@@ -2387,15 +2387,24 @@ function filterProfesores() {
 
 // Modal para editar profesor
 function ensureEditarProfesorModal() {
-  // Eliminar modal existente si existe
-  const existingModal = document.getElementById('modalEditarProfesor');
-  if (existingModal) {
-    console.log('🔴 Removiendo modal viejo de profesor');
-    existingModal.remove();
-  }
+  // ELIMINACIÓN AGRESIVA - Eliminar TODOS los modales de profesor existentes
+  document.querySelectorAll('#modalEditarProfesor').forEach(m => {
+    console.log('🗑️ Eliminando modal viejo por ID');
+    m.remove();
+  });
+  
+  // Eliminar también por clase modal (por si quedó alguno sin ID)
+  document.querySelectorAll('.modal').forEach(m => {
+    if (m.innerHTML && m.innerHTML.includes('Editar Profesor')) {
+      console.log('🗑️ Eliminando modal viejo por contenido');
+      m.remove();
+    }
+  });
 
-  console.log('🟢 Creando nuevo modal de profesor con botón de credenciales');
-  console.log('⚠️ VERSIÓN CON DNI - Si no ves el campo DNI, limpia el cache (Ctrl+Shift+Delete)');
+  const timestamp = Date.now();
+  console.log(`🟢 CREANDO MODAL PROFESOR - Timestamp: ${timestamp}`);
+  console.log('⚠️ Si NO ves el campo DNI después de esto, el problema es CACHE del navegador');
+  console.log('📍 Verificar en Elements: buscar id="editProfesorDNI"');
 
   const modalHtml = `
     <div id="modalEditarProfesor" class="modal" style="z-index: 3000;">
