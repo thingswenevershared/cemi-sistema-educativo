@@ -158,7 +158,12 @@ router.get('/catalogo', async (req, res) => {
 
         // Calcular estado de cada curso
         const cursosConEstado = cursosDisponibles.map(curso => {
-            const porcentajeOcupacion = (curso.inscriptos_actuales / curso.cupo_maximo) * 100;
+            // Evitar división por cero
+            const porcentajeOcupacion = curso.cupo_maximo > 0 
+                ? (curso.inscriptos_actuales / curso.cupo_maximo) * 100 
+                : 0;
+            const porcentajeDisponible = 100 - porcentajeOcupacion;
+            
             let estado = 'disponible';
             
             if (curso.inscriptos_actuales >= curso.cupo_maximo) {
@@ -175,6 +180,7 @@ router.get('/catalogo', async (req, res) => {
                 inscriptos_actuales: curso.inscriptos_actuales,
                 cupos_disponibles: curso.cupo_maximo - curso.inscriptos_actuales,
                 porcentaje_ocupacion: Math.round(porcentajeOcupacion),
+                porcentaje_disponible: Math.round(porcentajeDisponible),
                 estado: estado,
                 
                 idioma: {

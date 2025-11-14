@@ -203,8 +203,14 @@ class CursadoManager {
      */
     crearCursoCard(curso) {
         const estadoBadge = this.getEstadoBadge(curso.estado);
-        const porcentajeBarra = Math.min(curso.porcentaje_ocupacion, 100);
-        const barraColor = this.getBarraColor(curso.porcentaje_ocupacion);
+        
+        // Calcular porcentaje de disponibilidad (barra verde = cupos libres)
+        const porcentajeOcupacion = curso.porcentaje_ocupacion || 0;
+        const porcentajeDisponible = curso.porcentaje_disponible !== undefined 
+            ? curso.porcentaje_disponible 
+            : (100 - porcentajeOcupacion);
+        const porcentajeBarra = Math.max(0, Math.min(porcentajeDisponible, 100));
+        
         const avatarProfesor = curso.profesor.avatar || '/images/default-avatar.png';
 
         return `
@@ -242,7 +248,7 @@ class CursadoManager {
                 <div class="curso-card-footer">
                     <div class="cupos-info">
                         <div class="cupos-bar">
-                            <div class="cupos-bar-fill ${curso.porcentaje_ocupacion >= 80 ? 'warning' : ''}" 
+                            <div class="cupos-bar-fill ${porcentajeBarra <= 20 ? 'danger' : porcentajeBarra <= 50 ? 'warning' : ''}" 
                                  style="width: ${porcentajeBarra}%"></div>
                         </div>
                         <span class="cupos-text">${curso.cupos_disponibles} cupos disponibles</span>
