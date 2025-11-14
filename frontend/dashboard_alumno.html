@@ -1246,7 +1246,7 @@
       
       opcion.addEventListener('click', function() {
         console.log('🔍 Click detectado en:', metodo);
-        seleccionarMetodo(this, metodo);
+        window.seleccionarMetodo(this, metodo);
       });
     });
   };
@@ -1271,7 +1271,7 @@
     // Si es efectivo, mostrar ticket
     if (metodo === 'Efectivo') {
       console.log('✅ Detectado pago en efectivo, llamando a mostrarTicketEfectivo()');
-      mostrarTicketEfectivo();
+      window.mostrarTicketEfectivo();
       return;
     }
     
