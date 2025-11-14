@@ -4305,17 +4305,17 @@ function ensureEditarAlumnoModal() {
       const idAlumno = document.getElementById('editAlumnoId').value;
       
       const formData = {
-        nombre: document.getElementById('editAlumnoNombre').value,
-        apellido: document.getElementById('editAlumnoApellido').value,
-        mail: document.getElementById('editAlumnoMail').value,
-        dni: document.getElementById('editAlumnoDNI').value,
-        legajo: document.getElementById('editAlumnoLegajo').value,
-        telefono: document.getElementById('editAlumnoTelefono').value,
+        nombre: document.getElementById('editAlumnoNombre').value.trim(),
+        apellido: document.getElementById('editAlumnoApellido').value.trim(),
+        mail: document.getElementById('editAlumnoMail').value.trim(),
+        dni: document.getElementById('editAlumnoDNI').value.trim(),
+        legajo: document.getElementById('editAlumnoLegajo').value.trim(),
+        telefono: document.getElementById('editAlumnoTelefono').value.trim(),
         estado: document.getElementById('editAlumnoEstado').value
       };
       
-      if (!formData.nombre || !formData.apellido || !formData.mail || !formData.legajo) {
-        Swal.fire('Error', 'Nombre, apellido, mail y legajo son obligatorios', 'error');
+      if (!formData.nombre || !formData.apellido || !formData.mail || !formData.dni || !formData.legajo || !formData.telefono) {
+        Swal.fire('Error', 'Todos los campos son obligatorios', 'error');
         return;
       }
       
