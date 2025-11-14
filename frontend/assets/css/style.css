@@ -54,6 +54,7 @@ html {
   padding: 12px 6%;
   max-width: 1400px;
   margin: 0 auto;
+  gap: 20px;
 }
 
 .logo {
@@ -61,6 +62,8 @@ html {
   align-items: center;
   gap: 10px;
   transition: opacity 0.3s ease;
+  flex-shrink: 0;
+  min-width: 120px;
 }
 
 .logo:hover {
@@ -85,6 +88,10 @@ html {
   display: flex;
   list-style: none;
   gap: 32px;
+  flex: 1;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
 }
 
 .nav-links a {
@@ -98,6 +105,15 @@ html {
 
 .nav-links a:hover {
   opacity: 0.6;
+}
+
+.nav-buttons {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: flex-end;
+  flex-shrink: 0;
+  min-width: 300px;
 }
 
 .login-btn {
