@@ -71,7 +71,13 @@ router.get("/", async (req, res) => {
     });
   } catch (error) {
     console.error("Error al obtener pagos:", error);
-    res.status(500).json({ message: "Error al obtener pagos" });
+    console.error("Error completo:", error.message);
+    console.error("Stack:", error.stack);
+    res.status(500).json({ 
+      message: "Error al obtener pagos",
+      error: error.message,
+      hint: "Si el error menciona 'archivado', ejecuta el script SQL: backend/sql/agregar_campo_archivado.sql"
+    });
   }
 });
 
