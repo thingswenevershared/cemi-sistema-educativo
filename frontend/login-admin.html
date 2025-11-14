@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Acceso Administrativo - CEMI</title>
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="login-body">
+
+  <div class="login-wrapper">
+    <!-- Sección de bienvenida lateral -->
+    <div class="login-side-panel admin-panel">
+      <div class="side-panel-content">
+        <div class="side-panel-icon admin-icon">
+          <i data-lucide="shield-check"></i>
+        </div>
+        <h2>Acceso Administrativo</h2>
+        <p>Panel de Control del Sistema CEMI</p>
+        
+        <div class="login-features">
+          <div class="login-feature-item">
+            <i data-lucide="lock"></i>
+            <span>Acceso Restringido</span>
+          </div>
+          <div class="login-feature-item">
+            <i data-lucide="database"></i>
+            <span>Gestión Completa</span>
+          </div>
+          <div class="login-feature-item">
+            <i data-lucide="activity"></i>
+            <span>Monitoreo en Tiempo Real</span>
+          </div>
+        </div>
+
+        <div class="admin-warning">
+          <i data-lucide="alert-triangle"></i>
+          <p>Este acceso está destinado únicamente para personal autorizado del sistema.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Formulario de login administrativo -->
+    <div class="login-box">
+      <div class="login-header">
+        <img src="images/logo.png" alt="Logo CEMI" class="login-logo" onclick="window.location.href='index.html'" style="cursor: pointer;">
+        <h1>CEMI Admin</h1>
+        <p>Acceso al Panel Administrativo</p>
+      </div>
+
+      <form id="loginAdminForm">
+        <div class="form-group">
+          <label class="form-label">Usuario Administrativo</label>
+          <div class="input-wrapper">
+            <input type="text" id="username" placeholder="Ingrese su usuario" required autocomplete="username" />
+            <i data-lucide="user-cog" class="input-icon"></i>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Contraseña</label>
+          <div class="input-wrapper">
+            <input type="password" id="password" placeholder="Ingrese su contraseña" required autocomplete="current-password" />
+            <i data-lucide="key" class="input-icon"></i>
+            <button type="button" class="toggle-password" onclick="togglePassword()">
+              <i data-lucide="eye" id="toggleIcon"></i>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="login-submit admin-submit">
+          <span>Acceder al Panel</span>
+          <i data-lucide="shield-check"></i>
+        </button>
+      </form>
+
+      <p id="loginMessage" class="login-message"></p>
+
+      <div class="login-footer">
+        <a href="index.html" class="back-link">
+          <i data-lucide="arrow-left"></i>
+          Volver al inicio
+        </a>
+        
+        <div class="login-help">
+          <a href="#" onclick="showHelp(event)">
+            <i data-lucide="help-circle"></i>
+            Ayuda
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Config JS - MUST be first -->
+  <script src="assets/js/config.js"></script>
+  
+  <script>
+    // Inicializar Lucide Icons
+    lucide.createIcons();
+
+    // Toggle password visibility
+    function togglePassword() {
+      const passwordInput = document.getElementById('password');
+      const toggleIcon = document.getElementById('toggleIcon');
+      const toggleButton = document.querySelector('.toggle-password');
+      
+      if (passwordInput.type === 'password') {
+        toggleButton.classList.add('eye-closing');
+        
+        setTimeout(() => {
+          passwordInput.type = 'text';
+          
+          const newIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+          newIcon.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+          newIcon.setAttribute('width', '18');
+          newIcon.setAttribute('height', '18');
+          newIcon.setAttribute('viewBox', '0 0 24 24');
+          newIcon.setAttribute('fill', 'none');
+          newIcon.setAttribute('stroke', 'currentColor');
+          newIcon.setAttribute('stroke-width', '2');
+          newIcon.setAttribute('stroke-linecap', 'round');
+          newIcon.setAttribute('stroke-linejoin', 'round');
+          
+          const path1 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          path1.setAttribute('d', 'M9.88 9.88a3 3 0 1 0 4.24 4.24');
+          const path2 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          path2.setAttribute('d', 'M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68');
+          const path3 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          path3.setAttribute('d', 'M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61');
+          const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+          line.setAttribute('x1', '2');
+          line.setAttribute('x2', '22');
+          line.setAttribute('y1', '2');
+          line.setAttribute('y2', '22');
+          
+          newIcon.appendChild(path1);
+          newIcon.appendChild(path2);
+          newIcon.appendChild(path3);
+          newIcon.appendChild(line);
+          
+          toggleIcon.parentNode.replaceChild(newIcon, toggleIcon);
+          newIcon.id = 'toggleIcon';
+          
+          toggleButton.classList.remove('eye-closing');
+        }, 150);
+      } else {
+        toggleButton.classList.add('eye-closing');
+        
+        setTimeout(() => {
+          passwordInput.type = 'password';
+          lucide.createIcons();
+          toggleButton.classList.remove('eye-closing');
+        }, 150);
+      }
+    }
+
+    // Mostrar ayuda
+    function showHelp(e) {
+      e.preventDefault();
+      Swal.fire({
+        title: 'Ayuda - Acceso Administrativo',
+        html: `
+          <div style="text-align: left;">
+            <p><strong>¿Problemas para acceder?</strong></p>
+            <ul style="margin-top: 10px;">
+              <li>Este acceso está reservado para administradores del sistema</li>
+              <li>Debe usar las credenciales proporcionadas por IT</li>
+              <li>Si olvidó su contraseña, contacte al administrador principal</li>
+            </ul>
+            <p style="margin-top: 15px;"><strong>Contacto:</strong></p>
+            <p>Email: admin@cemi.edu.ar</p>
+            <p>Tel: (011) 4XXX-XXXX</p>
+          </div>
+        `,
+        icon: 'info',
+        confirmButtonColor: '#1e3c72'
+      });
+    }
+
+    // Manejar el formulario de login
+    document.getElementById('loginAdminForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      const messageEl = document.getElementById('loginMessage');
+      
+      if (!username || !password) {
+        messageEl.textContent = 'Por favor, complete todos los campos';
+        messageEl.className = 'login-message error';
+        return;
+      }
+      
+      try {
+        const response = await fetch(`${API_URL}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+          // Verificar que sea administrador
+          if (data.rol !== 'administrador') {
+            Swal.fire({
+              icon: 'error',
+              title: 'Acceso Denegado',
+              text: 'Este panel es exclusivo para administradores',
+              confirmButtonColor: '#dc3545'
+            });
+            return;
+          }
+          
+          // Guardar sesión
+          sessionStorage.setItem('usuario', data.username);
+          sessionStorage.setItem('nombre', data.nombre);
+          sessionStorage.setItem('rol', data.rol);
+          sessionStorage.setItem('idUsuario', data.id_usuario);
+          sessionStorage.setItem('idPersona', data.id_persona);
+          
+          messageEl.textContent = '¡Bienvenido! Redirigiendo...';
+          messageEl.className = 'login-message success';
+          
+          // Redirigir al dashboard admin
+          setTimeout(() => {
+            window.location.href = 'dashboard_admin.html';
+          }, 1000);
+        } else {
+          messageEl.textContent = data.message || 'Usuario o contraseña incorrectos';
+          messageEl.className = 'login-message error';
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        messageEl.textContent = 'Error de conexión. Intente nuevamente.';
+        messageEl.className = 'login-message error';
+      }
+    });
+  </script>
+</body>
+</html>
