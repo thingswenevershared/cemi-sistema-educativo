@@ -8,6 +8,13 @@ const router = express.Router();
 // GET /pagos - Lista de pagos con estadísticas y filtros
 router.get("/", async (req, res) => {
   try {
+    const { archivo } = req.query; // archivo=true para pagos anulados
+    
+    // Filtro de estado según parámetro
+    const filtroEstado = archivo === 'true' 
+      ? "AND pa.estado_pago = 'anulado'" 
+      : "AND pa.estado_pago != 'anulado'";
+    
     // Obtener lista de pagos con información completa
     const [rows] = await pool.query(`
       SELECT 
@@ -35,6 +42,7 @@ router.get("/", async (req, res) => {
       JOIN conceptos_pago cp ON pa.id_concepto = cp.id_concepto
       JOIN medios_pago mp ON pa.id_medio_pago = mp.id_medio_pago
       LEFT JOIN administrativos ad ON pa.id_administrativo = ad.id_administrativo
+      WHERE 1=1 ${filtroEstado}
       ORDER BY pa.fecha_pago DESC, pa.fecha_vencimiento DESC
     `);
 
@@ -243,10 +251,10 @@ router.post("/realizar",
   try {
     const { id_alumno, id_curso, mes_cuota, monto, medio_pago } = req.body;
 
-    // Verificar que no exista ya un pago para este curso y mes
+    // Verificar que no exista ya un pago activo (no anulado) para este curso y mes
     const [pagoExistente] = await pool.query(
-      'SELECT id_pago FROM pagos WHERE id_alumno = ? AND id_curso = ? AND mes_cuota = ?',
-      [id_alumno, id_curso, mes_cuota]
+      'SELECT id_pago FROM pagos WHERE id_alumno = ? AND id_curso = ? AND mes_cuota = ? AND estado_pago != ?',
+      [id_alumno, id_curso, mes_cuota, 'anulado']
     );
 
     if (pagoExistente.length > 0) {
