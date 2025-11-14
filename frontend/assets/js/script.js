@@ -4018,7 +4018,7 @@ async function openNuevoAlumnoModal() {
           <input id="legajo" class="swal2-input" placeholder="Ej: A0001" oninput="this.value=this.value.replace(/[^a-zA-Z0-9]/g,'').toUpperCase()" pattern="[A-Z0-9]*" style="width: 100%; margin: 0;">
         </div>
         <div style="margin-bottom: 15px;">
-          <label style="display: block; margin-bottom: 5px; font-weight: 600;">Teléfono (opcional)</label>
+          <label style="display: block; margin-bottom: 5px; font-weight: 600;">Teléfono</label>
           <input id="telefono" type="tel" class="swal2-input" placeholder="Ej: 1234567890" oninput="this.value=this.value.replace(/[^0-9]/g,'')" pattern="[0-9]*" inputmode="numeric" style="width: 100%; margin: 0;">
         </div>
       </div>
@@ -4055,6 +4055,10 @@ async function openNuevoAlumnoModal() {
       }
       if (!legajo) {
         Swal.showValidationMessage('El legajo es obligatorio');
+        return false;
+      }
+      if (!telefono) {
+        Swal.showValidationMessage('El teléfono es obligatorio');
         return false;
       }
       return { nombre, apellido, dni, mail, legajo, telefono };
