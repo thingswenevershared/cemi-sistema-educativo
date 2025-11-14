@@ -2395,6 +2395,7 @@ function ensureEditarProfesorModal() {
   }
 
   console.log('🟢 Creando nuevo modal de profesor con botón de credenciales');
+  console.log('⚠️ VERSIÓN CON DNI - Si no ves el campo DNI, limpia el cache (Ctrl+Shift+Delete)');
 
   const modalHtml = `
     <div id="modalEditarProfesor" class="modal" style="z-index: 3000;">
@@ -2428,7 +2429,7 @@ function ensureEditarProfesorModal() {
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
               <div>
                 <label for="editProfesorDNI">DNI:</label>
-                <input type="text" id="editProfesorDNI" maxlength="8" oninput="this.value=this.value.replace(/[^0-9]/g,'')" pattern="[0-9]*" inputmode="numeric" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                <input type="text" id="editProfesorDNI" placeholder="Ej: 12345678" maxlength="8" oninput="this.value=this.value.replace(/[^0-9]/g,'')" pattern="[0-9]*" inputmode="numeric" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
               </div>
               
               <div>
