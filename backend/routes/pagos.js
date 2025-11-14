@@ -90,7 +90,7 @@ router.get("/alumno/:id", async (req, res) => {
 
     console.log(`[pagos] Cursos activos encontrados: ${cursosActivos.length}`);
 
-    // Meses académicos (Matrícula + Marzo-Noviembre)
+    // Meses academicos (Matricula + Marzo-Noviembre)
     const mesesAcademicos = [
       'Matricula', 'Marzo', 'Abril', 'Mayo', 'Junio', 
       'Julio', 'Agosto', 'Septiembre', 
@@ -132,7 +132,7 @@ router.get("/alumno/:id", async (req, res) => {
           const hoy = new Date();
           const mesActual = hoy.getMonth(); // 0-11
           
-          // Matrícula (index 0) siempre se considera impaga si no está pagada
+          // Matricula (index 0) siempre se considera impaga si no esta pagada
           if (index === 0 && mes === 'Matricula') {
             return {
               mes,
@@ -145,7 +145,7 @@ router.get("/alumno/:id", async (req, res) => {
           
           // Para los demás meses (Marzo=index 1, Abril=index 2, etc.)
           const mesAcademicoActual = mesActual - 2; // Marzo = 0, Abril = 1, etc.
-          const indexMesReal = index - 1; // Ajustar por Matrícula
+          const indexMesReal = index - 1; // Ajustar por Matricula
           
           let estado = 'pendiente';
           if (indexMesReal < mesAcademicoActual) {
@@ -183,7 +183,7 @@ router.get("/alumno/:id", async (req, res) => {
           cuotas_impagas: cuotasImpagas,
           cuotas_pendientes: cuotasPendientes,
           total_pagado: totalPagado,
-          total_pendiente: (10 - cuotasPagadas) * parseFloat(curso.costo_mensual) // 10 = Matrícula + 9 meses
+          total_pendiente: (10 - cuotasPagadas) * parseFloat(curso.costo_mensual) // 10 = Matricula + 9 meses
         }
       };
     }));
@@ -288,17 +288,17 @@ router.post("/realizar",
     const id_medio_pago = medios[0].id_medio_pago;
 
     // Obtener id del concepto
-    // Matrícula = 1, Cuota Mensual = 2
+    // Matricula = 1, Cuota Mensual = 2
     const id_concepto = mes_cuota === 'Matricula' ? 1 : 2;
 
     // Generar detalle del pago
     const detalle_pago = mes_cuota === 'Matricula' 
-      ? `Matrícula - ${cursoInfo[0].idioma} ${cursoInfo[0].nivel}`
+      ? `Matricula - ${cursoInfo[0].idioma} ${cursoInfo[0].nivel}`
       : `Cuota ${mes_cuota} - ${cursoInfo[0].idioma} ${cursoInfo[0].nivel}`;
 
     // Calcular periodo en formato YYYY-MM
     const mesesMap = {
-      'Matricula': '02', // Febrero para matrícula
+      'Matricula': '02', // Febrero para matricula
       'Marzo': '03', 'Abril': '04', 'Mayo': '05', 'Junio': '06',
       'Julio': '07', 'Agosto': '08', 'Septiembre': '09', 
       'Octubre': '10', 'Noviembre': '11'

@@ -3582,7 +3582,7 @@ async function openRegistrarPagoModal() {
           const mesesPagados = pagosPorCurso[idCurso] || [];
           console.log(`Curso seleccionado: ${idCurso}, Meses pagados:`, mesesPagados);
           
-          // Todos los meses académicos (incluyendo Matrícula)
+          // Todos los meses academicos (incluyendo Matricula)
           const todosMeses = ['Matricula', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre'];
           
           // Crear opciones de meses (solo disponibles)
@@ -3592,7 +3592,7 @@ async function openRegistrarPagoModal() {
           if (mesesDisponibles.length === 0) {
             mesSelect.innerHTML = '<option value="">Todas las cuotas están pagadas</option>';
             mesSelect.disabled = true;
-            mesesPagadosInfo.innerHTML = '<div style="color: #43a047; background: #e8f5e9; padding: 8px; border-radius: 4px;"><i class="lucide-check-circle" style="width: 14px; height: 14px;"></i> ✓ Todas las cuotas de este curso están pagadas (incluyendo matrícula)</div>';
+            mesesPagadosInfo.innerHTML = '<div style="color: #43a047; background: #e8f5e9; padding: 8px; border-radius: 4px;"><i class="lucide-check-circle" style="width: 14px; height: 14px;"></i> ✓ Todas las cuotas de este curso estan pagadas (incluyendo matricula)</div>';
           } else {
             mesSelect.innerHTML = '<option value="">Seleccionar mes...</option>' + 
               mesesDisponibles.map(mes => `<option value="${mes}">${mes}</option>`).join('');
@@ -3604,7 +3604,7 @@ async function openRegistrarPagoModal() {
                 <i class="lucide-info" style="width: 14px; height: 14px;"></i> Ya pagado: ${mesesPagados.join(', ')}
               </div>`;
             } else {
-              mesesPagadosInfo.innerHTML = '<div style="color: #757575;">No hay cuotas pagadas aún (ni matrícula)</div>';
+              mesesPagadosInfo.innerHTML = '<div style="color: #757575;">No hay cuotas pagadas aun (ni matricula)</div>';
             }
           }
 
