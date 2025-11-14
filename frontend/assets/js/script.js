@@ -4989,12 +4989,16 @@ async function editarProfesor(id) {
             <input id="mail" type="email" class="swal2-input" value="${profesor.mail}" style="width: 100%; margin: 0;">
           </div>
           <div style="margin-bottom: 15px;">
+            <label style="display: block; margin-bottom: 5px; font-weight: 600;">DNI</label>
+            <input id="dni" class="swal2-input" placeholder="Ej: 12345678" maxlength="8" oninput="this.value=this.value.replace(/[^0-9]/g,'')" pattern="[0-9]*" inputmode="numeric" value="${profesor.dni || ''}" style="width: 100%; margin: 0;">
+          </div>
+          <div style="margin-bottom: 15px;">
             <label style="display: block; margin-bottom: 5px; font-weight: 600;">Especialidad</label>
             <input id="especialidad" class="swal2-input" value="${profesor.especialidad || ''}" style="width: 100%; margin: 0;">
           </div>
           <div style="margin-bottom: 15px;">
             <label style="display: block; margin-bottom: 5px; font-weight: 600;">Teléfono</label>
-            <input id="telefono" class="swal2-input" value="${profesor.telefono || ''}" style="width: 100%; margin: 0;">
+            <input id="telefono" type="tel" class="swal2-input" oninput="this.value=this.value.replace(/[^0-9]/g,'')" pattern="[0-9]*" inputmode="numeric" value="${profesor.telefono || ''}" style="width: 100%; margin: 0;">
           </div>
           <div style="margin-bottom: 15px;">
             <label style="display: block; margin-bottom: 5px; font-weight: 600;">Estado</label>
@@ -5022,18 +5026,19 @@ async function editarProfesor(id) {
         }
       },
       preConfirm: () => {
-        const nombre = document.getElementById('nombre').value;
-        const apellido = document.getElementById('apellido').value;
-        const mail = document.getElementById('mail').value;
-        const especialidad = document.getElementById('especialidad').value;
-        const telefono = document.getElementById('telefono').value;
+        const nombre = document.getElementById('nombre').value.trim();
+        const apellido = document.getElementById('apellido').value.trim();
+        const mail = document.getElementById('mail').value.trim();
+        const dni = document.getElementById('dni').value.trim();
+        const especialidad = document.getElementById('especialidad').value.trim();
+        const telefono = document.getElementById('telefono').value.trim();
         const estado = document.getElementById('estado').value;
         
-        if (!nombre || !apellido || !mail || !especialidad) {
-          Swal.showValidationMessage('Nombre, apellido, mail y especialidad son obligatorios');
+        if (!nombre || !apellido || !mail || !dni || !especialidad || !telefono) {
+          Swal.showValidationMessage('Todos los campos son obligatorios');
           return false;
         }
-        return { nombre, apellido, mail, especialidad, telefono, estado };
+        return { nombre, apellido, mail, dni, especialidad, telefono, estado };
       }
     });
 
