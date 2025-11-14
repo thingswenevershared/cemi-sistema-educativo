@@ -305,6 +305,24 @@ window.onload = function() {
     btnTransferPayment.addEventListener('click', openTransferModal);
   }
   
+  // Botón de pago en efectivo
+  const btnCashPayment = document.getElementById('btnCashPayment');
+  if (btnCashPayment) {
+    btnCashPayment.addEventListener('click', function() {
+      console.log('👍 Click en botón Efectivo detectado');
+      closePaymentMethodModal();
+      
+      setTimeout(() => {
+        if (typeof window.mostrarTicketEfectivo === 'function') {
+          console.log('✅ Llamando a window.mostrarTicketEfectivo()');
+          window.mostrarTicketEfectivo();
+        } else {
+          console.error('❌ window.mostrarTicketEfectivo no está definida');
+        }
+      }, 100);
+    });
+  }
+  
   const closeTransferBtn = document.getElementById('closeTransferModal');
   if (closeTransferBtn) {
     closeTransferBtn.addEventListener('click', closeTransferModal);
