@@ -18,6 +18,7 @@ class CursadoManager {
             busqueda: ''
         };
         this.idAlumno = null;
+        this.initialized = false;
         
         // Inicializar después de un pequeño delay para asegurar que el DOM esté listo
         setTimeout(() => this.init(), 100);
@@ -36,10 +37,22 @@ class CursadoManager {
         }
 
         console.log('✅ ID Alumno:', this.idAlumno);
+        
+        // Limpiar listeners previos si ya fue inicializado
+        if (this.initialized) {
+            const searchInput = document.getElementById('busqueda-curso');
+            if (searchInput) {
+                const newInput = searchInput.cloneNode(true);
+                searchInput.parentNode.replaceChild(newInput, searchInput);
+            }
+        }
+        
         await this.cargarOpcionesFiltros();
         await this.cargarMisCursos();
         await this.cargarCatalogoCursos();
         this.setupEventListeners();
+        
+        this.initialized = true;
     }
 
     /**
@@ -112,7 +125,7 @@ class CursadoManager {
     }
 
     /**
-     * Renderizar mis cursos actuales
+     * Renderizar mis cursos actuales (versión mini)
      */
     renderizarMisCursos() {
         const container = document.getElementById('mis-cursos-container');
@@ -127,61 +140,23 @@ class CursadoManager {
             return;
         }
 
+        // Versión mini: badges compactos en lugar de cards masivas
         container.innerHTML = this.misCursos.map(curso => {
-            // Simular promedio y progreso (en producción vendría del backend)
-            const promedio = 0; // Sin calificaciones por defecto
-            const progreso = promedio > 0 ? Math.min((promedio / 10) * 100, 100) : 0;
-            
             return `
-                <div class="curso-card" onclick="window.location.href='/frontend/classroom.html?curso=${curso.id_curso}'">
-                    <div class="curso-card-header">
-                        <div class="curso-icon">
-                            <i data-lucide="book-open"></i>
-                        </div>
-                        <div class="curso-card-title">
-                            <h3>${curso.nombre_curso}</h3>
-                            <div class="idioma">${curso.idioma || 'Curso'}</div>
-                            <span class="curso-badge">${curso.nivel || 'N/A'}</span>
+                <div class="curso-mini-badge" onclick="window.location.href='/frontend/classroom.html?curso=${curso.id_curso}'" title="Ver en Classroom">
+                    <div class="mini-badge-icon">
+                        <i data-lucide="book-open"></i>
+                    </div>
+                    <div class="mini-badge-content">
+                        <h4>${curso.nombre_curso}</h4>
+                        <div class="mini-badge-meta">
+                            <span class="mini-idioma">${curso.idioma || 'Curso'}</span>
+                            <span class="mini-nivel">${curso.nivel || 'N/A'}</span>
+                            ${curso.horario ? `<span class="mini-horario"><i data-lucide="clock"></i>${curso.horario}</span>` : ''}
                         </div>
                     </div>
-                    
-                    <div class="curso-card-info">
-                        <div class="info-row">
-                            <i data-lucide="clock"></i>
-                            <span>${curso.horario || 'Por confirmar'}</span>
-                        </div>
-                        ${promedio > 0 ? `
-                        <div class="info-row">
-                            <i data-lucide="trending-up"></i>
-                            <span>Promedio: <strong style="color: ${promedio >= 7 ? '#4caf50' : promedio >= 5 ? '#ff9800' : '#f44336'}">${promedio.toFixed(1)}</strong></span>
-                        </div>
-                        ` : `
-                        <div class="info-row">
-                            <i data-lucide="alert-circle"></i>
-                            <span style="color: #718096;">Sin calificaciones</span>
-                        </div>
-                        `}
-                    </div>
-
-                    <div class="curso-card-footer">
-                        ${promedio > 0 ? `
-                        <div class="cupos-info">
-                            <div class="cupos-bar">
-                                <div class="cupos-bar-fill ${promedio >= 7 ? '' : promedio >= 5 ? 'warning' : 'danger'}" 
-                                     style="width: ${progreso}%"></div>
-                            </div>
-                            <span class="cupos-text">Progreso: ${progreso.toFixed(0)}%</span>
-                        </div>
-                        ` : `
-                        <div class="cupos-info">
-                            <span class="cupos-text" style="color: #718096;">Sin progreso registrado</span>
-                        </div>
-                        `}
-                        <div class="card-actions">
-                            <button class="icon-btn" onclick="event.stopPropagation(); window.location.href='/frontend/classroom.html?curso=${curso.id_curso}'" title="Ver detalles">
-                                <i data-lucide="eye"></i>
-                            </button>
-                        </div>
+                    <div class="mini-badge-action">
+                        <i data-lucide="chevron-right"></i>
                     </div>
                 </div>
             `;

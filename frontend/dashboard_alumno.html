@@ -282,13 +282,13 @@
               <p class="section-subtitle">Explora todos los cursos disponibles y solicita tu inscripción</p>
             </div>
 
-            <!-- Mis Cursos Actuales -->
-            <div class="mis-cursos-actuales">
+            <!-- Mis Cursos Actuales - Versión Mini -->
+            <div class="mis-cursos-actuales-mini">
               <h3><i data-lucide="book-open"></i> Mis Cursos Actuales</h3>
-              <div id="mis-cursos-container" class="mis-cursos-grid">
+              <div id="mis-cursos-container" class="mis-cursos-mini-grid">
                 <div class="loading-container">
                   <div class="spinner-border text-primary" role="status"></div>
-                  <p>Cargando tus cursos...</p>
+                  <p>Cargando...</p>
                 </div>
               </div>
             </div>
@@ -330,24 +330,30 @@
         loader.classList.add("hidden");
         setTimeout(() => mainContent.classList.add("active"), 100);
 
-        // Cargar el script del manager
-        const script = document.createElement('script');
-        script.src = `assets/js/cursado-manager.js?v=${Date.now()}`;
-        script.onload = () => {
-          console.log('✅ cursado-manager.js cargado correctamente');
-        };
-        script.onerror = () => {
-          console.error('❌ Error al cargar cursado-manager.js');
-          mainContent.innerHTML = `
-            <div class="error-container">
-              <i data-lucide="alert-circle"></i>
-              <h3>Error al cargar la sección</h3>
-              <p>No se pudo cargar el módulo de cursado. Por favor, recarga la página.</p>
-            </div>
-          `;
-          lucide.createIcons();
-        };
-        document.head.appendChild(script);
+        // Cargar/Reinicializar el manager (evitar duplicados)
+        if (!window.cursadoManagerLoaded) {
+          const script = document.createElement('script');
+          script.src = `assets/js/cursado-manager.js?v=${Date.now()}`;
+          script.onload = () => {
+            console.log('✅ cursado-manager.js cargado correctamente');
+            window.cursadoManagerLoaded = true;
+          };
+          script.onerror = () => {
+            console.error('❌ Error al cargar cursado-manager.js');
+            mainContent.innerHTML = `
+              <div class="error-container">
+                <i data-lucide="alert-circle"></i>
+                <h3>Error al cargar la sección</h3>
+                <p>No se pudo cargar el módulo de cursado. Por favor, recarga la página.</p>
+              </div>
+            `;
+            lucide.createIcons();
+          };
+          document.head.appendChild(script);
+        } else if (window.cursadoManager) {
+          // Si ya está cargado, reinicializar
+          window.cursadoManager.init();
+        }
 
       } catch (error) {
         console.error("Error al cargar sección Cursado:", error);

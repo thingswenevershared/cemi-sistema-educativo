@@ -412,3 +412,163 @@
     width: 120px;
   }
 }
+
+/* ========================================
+   VERSIÓN MINI - MIS CURSOS ACTUALES
+   ======================================== */
+
+.mis-cursos-actuales-mini {
+  margin-bottom: 32px;
+  padding: 24px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(66, 99, 140, 0.08);
+}
+
+.mis-cursos-actuales-mini h3 {
+  color: #2d3748;
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mis-cursos-actuales-mini h3 i {
+  color: #547194;
+}
+
+.mis-cursos-mini-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.curso-mini-badge {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 18px;
+  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+  border: 1.5px solid rgba(66, 99, 140, 0.15);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.curso-mini-badge:hover {
+  border-color: #547194;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  box-shadow: 0 4px 12px rgba(84, 113, 148, 0.15);
+  transform: translateY(-2px);
+}
+
+.mini-badge-icon {
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  background: linear-gradient(135deg, #547194 0%, #7a9bbd 100%);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.mini-badge-icon i {
+  width: 22px;
+  height: 22px;
+  stroke-width: 2.5;
+}
+
+.mini-badge-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.mini-badge-content h4 {
+  color: #2d3748;
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0 0 6px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mini-badge-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+}
+
+.mini-idioma,
+.mini-nivel {
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.75rem;
+  letter-spacing: 0.3px;
+}
+
+.mini-idioma {
+  background: linear-gradient(135deg, #e6f3ff 0%, #cce7ff 100%);
+  color: #2563eb;
+  border: 1px solid rgba(37, 99, 235, 0.2);
+}
+
+.mini-nivel {
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  color: #15803d;
+  border: 1px solid rgba(21, 128, 61, 0.2);
+}
+
+.mini-horario {
+  color: #718096;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.78rem;
+}
+
+.mini-horario i {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2;
+}
+
+.mini-badge-action {
+  flex-shrink: 0;
+  color: #94a3b8;
+  transition: all 0.3s ease;
+}
+
+.mini-badge-action i {
+  width: 20px;
+  height: 20px;
+  stroke-width: 2.5;
+}
+
+.curso-mini-badge:hover .mini-badge-action {
+  color: #547194;
+  transform: translateX(4px);
+}
+
+/* Responsivo para mini badges */
+@media (max-width: 768px) {
+  .curso-mini-badge {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  
+  .mini-badge-content h4 {
+    white-space: normal;
+  }
+  
+  .mini-badge-action {
+    display: none;
+  }
+}
