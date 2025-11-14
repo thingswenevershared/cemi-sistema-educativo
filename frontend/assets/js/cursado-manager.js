@@ -251,7 +251,7 @@ class CursadoManager {
                             <div class="cupos-bar-fill ${porcentajeBarra <= 20 ? 'danger' : porcentajeBarra <= 50 ? 'warning' : ''}" 
                                  style="width: ${porcentajeBarra}%"></div>
                         </div>
-                        <span class="cupos-text">${curso.cupos_disponibles} cupos disponibles</span>
+                        <span class="cupos-text">${curso.cupos_disponibles} cupos disponibles de ${curso.cupo_maximo}</span>
                     </div>
                     ${estadoBadge}
                 </div>
