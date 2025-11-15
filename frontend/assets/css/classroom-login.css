@@ -270,6 +270,38 @@ body {
   border: 2px solid rgba(255, 255, 255, 0.4);
   opacity: 0;
   animation: bounceIn 1s cubic-bezier(0.4, 0, 0.2, 1) 0.4s forwards;
+  position: relative;
+}
+
+/* Efecto de pulso/ondulación para classroom */
+.brand-logo::before,
+.brand-logo::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  border-radius: 20px;
+  transform: translate(-50%, -50%);
+  animation: pulseLogo 2s ease-out infinite;
+  opacity: 0;
+}
+
+.brand-logo::after {
+  animation-delay: 1s;
+}
+
+@keyframes pulseLogo {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.5);
+    opacity: 0;
+  }
 }
 
 @keyframes bounceIn {
