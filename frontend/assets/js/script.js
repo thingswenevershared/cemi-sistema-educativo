@@ -2527,7 +2527,7 @@ function ensureEditarProfesorModal() {
 
   const modalHtml = `
     <div id="modalEditarProfesor" class="modal" style="z-index: 3000;">
-      <div class="modal-content" style="max-width: 600px;">
+      <div class="modal-content" style="max-width: 600px; max-height: 90vh; overflow-y: auto;">
         <div class="modal-header">
           <h2>Editar Profesor</h2>
           <button class="close-modal">&times;</button>
