@@ -112,10 +112,10 @@ router.get("/:id", async (req, res) => {
         AND (cal.parcial1 IS NOT NULL OR cal.parcial2 IS NOT NULL OR cal.final IS NOT NULL)
     `, [req.params.id]);
 
-    // Idiomas que enseña (desde tabla profesor_idiomas)
+    // Idiomas que enseña (desde tabla profesores_idiomas)
     const [idiomasRows] = await pool.query(`
       SELECT i.id_idioma, i.nombre_idioma
-      FROM profesor_idiomas pi
+      FROM profesores_idiomas pi
       JOIN idiomas i ON pi.id_idioma = i.id_idioma
       WHERE pi.id_profesor = ?
     `, [req.params.id]);
@@ -175,13 +175,13 @@ router.put("/:id", async (req, res) => {
     // Actualizar idiomas del profesor
     if (idiomas && Array.isArray(idiomas)) {
       // Eliminar idiomas anteriores
-      await pool.query('DELETE FROM profesor_idiomas WHERE id_profesor = ?', [id]);
+      await pool.query('DELETE FROM profesores_idiomas WHERE id_profesor = ?', [id]);
       
       // Insertar nuevos idiomas
       if (idiomas.length > 0) {
         const values = idiomas.map(id_idioma => [id, id_idioma]);
         await pool.query(
-          'INSERT INTO profesor_idiomas (id_profesor, id_idioma) VALUES ?',
+          'INSERT INTO profesores_idiomas (id_profesor, id_idioma) VALUES ?',
           [values]
         );
       }
@@ -298,7 +298,7 @@ router.post("/", async (req, res) => {
     if (idiomas && Array.isArray(idiomas) && idiomas.length > 0) {
       const values = idiomas.map(id_idioma => [id_persona, id_idioma]);
       await pool.query(
-        'INSERT INTO profesor_idiomas (id_profesor, id_idioma) VALUES ?',
+        'INSERT INTO profesores_idiomas (id_profesor, id_idioma) VALUES ?',
         [values]
       );
     }
