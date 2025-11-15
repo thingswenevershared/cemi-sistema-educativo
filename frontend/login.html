@@ -64,15 +64,17 @@
 
       <form id="loginForm">
         <div class="form-group">
+          <label class="form-label">Usuario</label>
           <div class="input-wrapper">
-            <input type="text" id="username" placeholder="Ingrese su usuario" required />
+            <input type="text" id="username" placeholder="Ingrese su usuario" required autocomplete="username" />
             <i data-lucide="user" class="input-icon"></i>
           </div>
         </div>
 
         <div class="form-group">
+          <label class="form-label">Contraseña</label>
           <div class="input-wrapper">
-            <input type="password" id="password" placeholder="Ingrese su contraseña" required />
+            <input type="password" id="password" placeholder="Ingrese su contraseña" required autocomplete="current-password" />
             <i data-lucide="lock" class="input-icon"></i>
             <button type="button" class="toggle-password" onclick="togglePassword()">
               <i data-lucide="eye" id="toggleIcon"></i>
