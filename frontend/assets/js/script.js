@@ -2582,11 +2582,11 @@ function ensureEditarProfesorModal() {
               </div>
             </div>
             
-            <div style="margin-bottom: 16px;">
-              <label style="display: block; margin-bottom: 8px; font-weight: 600;">Idiomas que enseña:</label>
+            <div style="margin-bottom: 16px; background: #fff3cd; padding: 15px; border: 2px solid #ff0000; border-radius: 8px;">
+              <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #000;">🔴 IDIOMAS QUE ENSEÑA (CAMPO DE PRUEBA):</label>
               <div id="idiomasMultiSelect" style="position: relative;">
-                <div id="idiomasSelectedDisplay" style="min-height: 42px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; background: white; display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
-                  <span style="color: #999; font-size: 14px;" id="idiomasPlaceholder">Seleccionar idiomas...</span>
+                <div id="idiomasSelectedDisplay" style="min-height: 42px; padding: 8px; border: 2px solid #ff0000; border-radius: 4px; cursor: pointer; background: white; display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
+                  <span style="color: #ff0000; font-size: 14px; font-weight: bold;" id="idiomasPlaceholder">Seleccionar idiomas...</span>
                 </div>
                 <div id="idiomasDropdown" style="display: none; position: absolute; z-index: 1000; width: 100%; max-height: 200px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px; background: white; margin-top: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
                   <!-- Se llenarán los idiomas dinámicamente -->
