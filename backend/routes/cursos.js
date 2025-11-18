@@ -684,8 +684,15 @@ router.put("/:id/cuotas", async (req, res) => {
     const { id } = req.params;
     const { cuotas } = req.body; // Array: ['Matricula', 'Marzo', 'Abril', ...]
     
+    console.log('\n=== PUT /cursos/:id/cuotas ===');
+    console.log('ID curso:', id);
+    console.log('Body recibido:', req.body);
+    console.log('Cuotas recibidas:', cuotas);
+    console.log('Tipo de cuotas:', typeof cuotas, Array.isArray(cuotas));
+    
     // Validar que cuotas sea un array
     if (!Array.isArray(cuotas)) {
+      console.log('ERROR: cuotas no es un array');
       return res.status(400).json({ 
         success: false, 
         message: "El campo 'cuotas' debe ser un array" 
@@ -834,9 +841,12 @@ router.get("/:id/cuotas", async (req, res) => {
     
   } catch (error) {
     console.error("Error al obtener cuotas del curso:", error);
+    console.error("Error completo:", error.message);
+    console.error("Stack:", error.stack);
     res.status(500).json({ 
       success: false, 
-      message: "Error al obtener cuotas del curso" 
+      message: "Error al obtener cuotas del curso",
+      error: error.message
     });
   }
 });
