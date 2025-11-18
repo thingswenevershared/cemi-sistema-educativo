@@ -3277,6 +3277,12 @@ function renderPagosTable(pagos) {
     } else if (estado === 'pagado') {
       botonesAccion = `
         <button 
+          class="btn-print-ticket" 
+          onclick="event.stopPropagation(); generarComprobantePago(${p.id_pago})"
+          title="Generar comprobante">
+          <i data-lucide="file-text"></i>
+        </button>
+        <button 
           class="btn-delete-pago" 
           onclick="event.stopPropagation(); anularPago(${p.id_pago}, '${p.alumno}', '${p.concepto}')"
           title="Anular pago">
@@ -7153,3 +7159,183 @@ async function descargarPDFProfesores() {
   }
 }
 
+// ===== GENERACIÓN DE COMPROBANTE DE PAGO ===== //
+
+async function generarComprobantePago(idPago) {
+  try {
+    const { jsPDF } = window.jspdf;
+    
+    // Obtener datos del pago
+    const response = await fetch(`${API_URL}/pagos/${idPago}`);
+    const pago = await response.json();
+    
+    if (!pago || !pago.id_pago) {
+      throw new Error('No se encontró el pago');
+    }
+    
+    // Crear PDF en formato ticket (más angosto)
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: [80, 200] // Ancho de ticket térmico
+    });
+    
+    let yPos = 15;
+    
+    // Logo (más pequeño para ticket)
+    const img = new Image();
+    img.src = '/images/logo.png';
+    await new Promise((resolve) => {
+      img.onload = () => {
+        doc.addImage(img, 'PNG', 25, yPos, 30, 30);
+        resolve();
+      };
+      img.onerror = resolve;
+    });
+    
+    yPos += 35;
+    
+    // Título
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text('COMPROBANTE DE PAGO', 40, yPos, { align: 'center' });
+    yPos += 8;
+    
+    // Línea separadora
+    doc.setDrawColor(200);
+    doc.line(10, yPos, 70, yPos);
+    yPos += 8;
+    
+    // Número de comprobante
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text('N° Comprobante:', 40, yPos, { align: 'center' });
+    yPos += 5;
+    doc.setFontSize(14);
+    doc.setTextColor(25, 118, 210);
+    doc.text(pago.numero_comprobante || `#${String(pago.id_pago).padStart(6, '0')}`, 40, yPos, { align: 'center' });
+    doc.setTextColor(0);
+    yPos += 10;
+    
+    // Fecha
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Fecha: ${new Date(pago.fecha_pago || pago.fecha_registro).toLocaleDateString('es-ES', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })}`, 40, yPos, { align: 'center' });
+    yPos += 10;
+    
+    // Línea separadora
+    doc.line(10, yPos, 70, yPos);
+    yPos += 7;
+    
+    // Información del alumno
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text('DATOS DEL ALUMNO', 40, yPos, { align: 'center' });
+    yPos += 6;
+    
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.text('Alumno:', 12, yPos);
+    doc.setFont('helvetica', 'bold');
+    doc.text(pago.alumno || '-', 68, yPos, { align: 'right' });
+    yPos += 5;
+    
+    doc.setFont('helvetica', 'normal');
+    doc.text('Legajo:', 12, yPos);
+    doc.setFont('helvetica', 'bold');
+    doc.text(pago.legajo || '-', 68, yPos, { align: 'right' });
+    yPos += 5;
+    
+    doc.setFont('helvetica', 'normal');
+    doc.text('DNI:', 12, yPos);
+    doc.setFont('helvetica', 'bold');
+    doc.text(pago.dni || '-', 68, yPos, { align: 'right' });
+    yPos += 8;
+    
+    // Línea separadora
+    doc.line(10, yPos, 70, yPos);
+    yPos += 7;
+    
+    // Detalles del pago
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text('DETALLES DEL PAGO', 40, yPos, { align: 'center' });
+    yPos += 6;
+    
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.text('Concepto:', 12, yPos);
+    yPos += 4;
+    doc.setFont('helvetica', 'bold');
+    const conceptoLines = doc.splitTextToSize(pago.concepto || '-', 56);
+    doc.text(conceptoLines, 12, yPos);
+    yPos += conceptoLines.length * 4 + 2;
+    
+    if (pago.periodo) {
+      doc.setFont('helvetica', 'normal');
+      doc.text('Período:', 12, yPos);
+      doc.setFont('helvetica', 'bold');
+      doc.text(pago.periodo, 68, yPos, { align: 'right' });
+      yPos += 5;
+    }
+    
+    doc.setFont('helvetica', 'normal');
+    doc.text('Medio de Pago:', 12, yPos);
+    doc.setFont('helvetica', 'bold');
+    doc.text(pago.medio_pago || '-', 68, yPos, { align: 'right' });
+    yPos += 8;
+    
+    // Monto destacado
+    doc.setFillColor(25, 118, 210);
+    doc.rect(10, yPos, 60, 12, 'F');
+    doc.setTextColor(255);
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.text('TOTAL PAGADO', 15, yPos + 5);
+    doc.setFontSize(14);
+    doc.text(`$${parseFloat(pago.monto).toLocaleString('es-AR', {minimumFractionDigits: 2})}`, 65, yPos + 8, { align: 'right' });
+    doc.setTextColor(0);
+    yPos += 18;
+    
+    // Estado
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(76, 175, 80);
+    doc.text('✓ PAGO CONFIRMADO', 40, yPos, { align: 'center' });
+    doc.setTextColor(0);
+    yPos += 10;
+    
+    // Línea separadora
+    doc.setDrawColor(200);
+    doc.line(10, yPos, 70, yPos);
+    yPos += 7;
+    
+    // Información adicional
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'italic');
+    doc.setTextColor(100);
+    doc.text('Centro de Enseñanza de', 40, yPos, { align: 'center' });
+    yPos += 3;
+    doc.text('Mandarín e Idiomas - CEMI', 40, yPos, { align: 'center' });
+    yPos += 5;
+    doc.text(`Comprobante generado el ${new Date().toLocaleDateString('es-ES')}`, 40, yPos, { align: 'center' });
+    yPos += 4;
+    doc.setFontSize(6);
+    doc.text('Este documento es un comprobante válido de pago', 40, yPos, { align: 'center' });
+    
+    // Descargar
+    const nombreArchivo = `Comprobante_${pago.numero_comprobante || pago.id_pago}_${pago.alumno.replace(/\s+/g, '_')}.pdf`;
+    doc.save(nombreArchivo);
+    
+    showToast('Comprobante generado exitosamente', 'success');
+  } catch (error) {
+    console.error('Error al generar comprobante:', error);
+    showToast('Error al generar el comprobante', 'error');
+  }
+}
