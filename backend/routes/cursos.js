@@ -835,14 +835,25 @@ router.get("/:id/cuotas", async (req, res) => {
     if (rawCuotas === null || rawCuotas === undefined) {
       // null = todas habilitadas
       cuotasHabilitadas = null;
+    } else if (typeof rawCuotas === 'object' && Array.isArray(rawCuotas)) {
+      // Ya es un array (MySQL lo parsea automáticamente si es JSON válido)
+      cuotasHabilitadas = rawCuotas;
     } else {
-      // Parsear JSON (puede ser [] o ["Marzo", "Abril", ...])
+      // Es string, intentar parsearlo
       try {
+        // Primero intentar como JSON válido
         cuotasHabilitadas = JSON.parse(rawCuotas);
       } catch (error) {
-        console.error('Error parseando cuotas_habilitadas:', rawCuotas);
-        // Si no es JSON válido, asumir que todas están habilitadas
-        cuotasHabilitadas = null;
+        // Si falla, puede ser formato de array de JavaScript: [ 'item1', 'item2' ]
+        // Convertirlo a JSON válido reemplazando comillas simples por dobles
+        try {
+          const jsonString = rawCuotas.replace(/'/g, '"');
+          cuotasHabilitadas = JSON.parse(jsonString);
+        } catch (error2) {
+          console.error('Error parseando cuotas_habilitadas:', rawCuotas);
+          // Si todo falla, asumir que todas están habilitadas
+          cuotasHabilitadas = null;
+        }
       }
     }
 

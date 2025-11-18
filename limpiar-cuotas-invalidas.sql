@@ -1,23 +1,21 @@
 -- =====================================================
--- LIMPIAR VALORES INVÁLIDOS EN cuotas_habilitadas
+-- LIMPIAR Y CORREGIR TODOS LOS VALORES DE CUOTAS
 -- =====================================================
--- Este script convierte todos los valores no-JSON a NULL
--- para que el sistema funcione correctamente
 
--- Ver valores actuales (para verificar antes de limpiar)
-SELECT id_curso, nombre_curso, cuotas_habilitadas
+-- 1. Ver valores actuales (para verificar el problema)
+SELECT id_curso, nombre_curso, 
+       cuotas_habilitadas,
+       LENGTH(cuotas_habilitadas) as longitud,
+       SUBSTRING(cuotas_habilitadas, 1, 50) as primeros_50_chars
 FROM cursos
 WHERE cuotas_habilitadas IS NOT NULL;
 
--- Limpiar: convertir todos los valores no-NULL a NULL
--- Esto hará que todas las cuotas estén habilitadas por defecto
-UPDATE cursos
-SET cuotas_habilitadas = NULL
-WHERE cuotas_habilitadas IS NOT NULL;
+-- 2. Limpiar TODOS los valores incorrectos (establecer NULL)
+UPDATE cursos SET cuotas_habilitadas = NULL;
 
--- Verificar que se limpiaron
+-- 3. Verificar que se limpiaron
 SELECT id_curso, nombre_curso, cuotas_habilitadas
 FROM cursos;
 
--- Mensaje final
-SELECT 'Limpieza completada. Ahora puedes gestionar las cuotas desde el dashboard.' AS mensaje;
+-- 4. Mensaje
+SELECT 'Todos los valores limpiados. Ahora prueba guardar cuotas desde el dashboard.' AS resultado;
