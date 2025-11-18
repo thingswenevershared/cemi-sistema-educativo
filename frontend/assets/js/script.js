@@ -6698,10 +6698,13 @@ async function gestionarCuotasCurso(idCurso, nombreCurso) {
           return false;
         }
         
-        // Contraseña correcta - animación de apertura
-        lockIcon.textContent = '🔓';
-        lockIcon.classList.add('unlock-animation');
-        lockIcon.style.color = '#10b981';
+        // Contraseña correcta - animación de apertura suave
+        setTimeout(() => {
+          lockIcon.textContent = '🔓';
+          lockIcon.classList.add('unlock-animation');
+          lockIcon.style.color = '#10b981';
+        }, 200);
+        
         return password;
       }
     });
