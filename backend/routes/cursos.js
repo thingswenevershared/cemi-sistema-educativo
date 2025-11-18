@@ -719,8 +719,10 @@ router.put("/:id/cuotas", async (req, res) => {
     }
 
     // Actualizar cuotas habilitadas
-    // Si el array está vacío, establecer NULL (todas habilitadas)
-    const valor = cuotas.length > 0 ? JSON.stringify(cuotas) : null;
+    // NULL = todas habilitadas (por defecto)
+    // Array vacío [] = ninguna habilitada
+    // Array con valores = solo esas cuotas habilitadas
+    const valor = JSON.stringify(cuotas);
     
     await pool.query(
       'UPDATE cursos SET cuotas_habilitadas = ? WHERE id_curso = ?',
@@ -730,7 +732,7 @@ router.put("/:id/cuotas", async (req, res) => {
     res.json({ 
       success: true, 
       message: `Cuotas actualizadas para el curso "${curso[0].nombre_curso}"`,
-      cuotas_habilitadas: cuotas.length > 0 ? cuotas : 'Todas las cuotas'
+      cuotas_habilitadas: cuotas
     });
     
   } catch (error) {

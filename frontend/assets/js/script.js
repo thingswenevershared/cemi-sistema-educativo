@@ -6617,7 +6617,7 @@ async function gestionarCuotasCurso(idCurso, nombreCurso) {
     });
 
     if (result.isConfirmed) {
-      const cuotasSeleccionadas = result.value;
+      const cuotasSeleccionadas = result.value || [];
 
       // Guardar cuotas
       const saveResponse = await fetch(`${API_URL}/cursos/${idCurso}/cuotas`, {
