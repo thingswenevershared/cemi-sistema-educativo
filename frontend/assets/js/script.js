@@ -6626,13 +6626,33 @@ async function gestionarCuotasCurso(idCurso, nombreCurso) {
     const claveCorrecta = passwordData.password || 'tesoreria';
 
     const { value: claveIngresada } = await Swal.fire({
-      title: '<div style="display: flex; align-items: center; gap: 12px;"><i class="lucide-shield-check" style="width: 28px; height: 28px; color: #1976d2;"></i> COBRANZAS</div>',
+      title: 'COBRANZAS',
       html: `
-        <div style="text-align: left; padding: 10px;">
-          <p style="margin-bottom: 20px; color: #6b7280; text-align: center;">
+        <style>
+          @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
+            20%, 40%, 60%, 80% { transform: translateX(10px); }
+          }
+          @keyframes unlock {
+            0% { transform: rotate(0deg); }
+            50% { transform: rotate(-15deg); }
+            100% { transform: rotate(0deg); }
+          }
+          .lock-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+          }
+          .shake { animation: shake 0.5s; }
+          .unlock-animation { animation: unlock 0.6s ease; }
+        </style>
+        <div style="text-align: center; padding: 20px;">
+          <div id="lock-icon" class="lock-icon">🔒</div>
+          <p style="margin-bottom: 24px; color: #6b7280; font-size: 15px;">
             Ingrese la clave asignada para ingresar
           </p>
-          <input id="swal-password" type="password" class="swal2-input" placeholder="Clave de acceso" style="width: 100%; margin: 0; text-align: center; font-size: 16px;" autocomplete="off">
+          <input id="swal-password" type="password" class="swal2-input" placeholder="••••••••" style="width: 100%; margin: 0; text-align: center; font-size: 18px; letter-spacing: 2px;" autocomplete="off">
         </div>
       `,
       width: '450px',
@@ -6652,27 +6672,42 @@ async function gestionarCuotasCurso(idCurso, nombreCurso) {
       },
       preConfirm: () => {
         const password = document.getElementById('swal-password').value;
+        const lockIcon = document.getElementById('lock-icon');
+        
         if (!password) {
+          lockIcon.classList.add('shake');
+          lockIcon.style.filter = 'brightness(0.8)';
+          setTimeout(() => {
+            lockIcon.classList.remove('shake');
+            lockIcon.style.filter = 'none';
+          }, 500);
           Swal.showValidationMessage('Debe ingresar la clave');
           return false;
         }
+        
+        // Validar contraseña
+        if (password !== claveCorrecta) {
+          lockIcon.textContent = '🔒';
+          lockIcon.classList.add('shake');
+          lockIcon.style.color = '#ef4444';
+          setTimeout(() => {
+            lockIcon.classList.remove('shake');
+            lockIcon.style.color = '';
+          }, 500);
+          Swal.showValidationMessage('❌ Clave incorrecta');
+          return false;
+        }
+        
+        // Contraseña correcta - animación de apertura
+        lockIcon.textContent = '🔓';
+        lockIcon.classList.add('unlock-animation');
+        lockIcon.style.color = '#10b981';
         return password;
       }
     });
 
     // Si canceló o no ingresó nada, salir
     if (!claveIngresada) {
-      return;
-    }
-
-    // Validar la clave
-    if (claveIngresada !== claveCorrecta) {
-      await Swal.fire({
-        icon: 'error',
-        title: 'Acceso Denegado',
-        text: 'La clave ingresada es incorrecta',
-        confirmButtonColor: '#1976d2'
-      });
       return;
     }
 
