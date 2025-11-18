@@ -156,11 +156,27 @@ function initAdminSPA() {
           break;
         case "alumnos":
           endpoint = `${API_URL}/alumnos`;
-          html = `<h2>Listado de Alumnos</h2>`;
+          html = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+              <h2 style="margin: 0;">Listado de Alumnos</h2>
+              <button onclick="descargarPDFAlumnos()" class="btn-primary" style="display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="file-down" style="width: 18px; height: 18px;"></i>
+                Descargar PDF
+              </button>
+            </div>
+          `;
           break;
         case "profesores":
           endpoint = `${API_URL}/profesores`;
-          html = `<h2>Listado de Profesores</h2>`;
+          html = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+              <h2 style="margin: 0;">Listado de Profesores</h2>
+              <button onclick="descargarPDFProfesores()" class="btn-primary" style="display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="file-down" style="width: 18px; height: 18px;"></i>
+                Descargar PDF
+              </button>
+            </div>
+          `;
           break;
         case "administradores":
           endpoint = `${API_URL}/administradores`;
@@ -6910,3 +6926,218 @@ rippleStyle.textContent = `
   }
 `;
 document.head.appendChild(rippleStyle);
+
+// ===== GENERACIÓN DE PDFs ===== //
+
+// Función para descargar PDF de Alumnos
+async function descargarPDFAlumnos() {
+  try {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    // Obtener datos de alumnos con sus inscripciones
+    const responseAlumnos = await fetch(`${API_URL}/alumnos`);
+    const alumnos = await responseAlumnos.json();
+    
+    const responseInscripciones = await fetch(`${API_URL}/inscripciones`);
+    const inscripciones = await responseInscripciones.json();
+    
+    // Agrupar inscripciones por alumno
+    const inscripcionesPorAlumno = {};
+    inscripciones.forEach(insc => {
+      if (!inscripcionesPorAlumno[insc.id_alumno]) {
+        inscripcionesPorAlumno[insc.id_alumno] = [];
+      }
+      inscripcionesPorAlumno[insc.id_alumno].push(`${insc.idioma} ${insc.nivel}`);
+    });
+    
+    // Agregar logo
+    const img = new Image();
+    img.src = '/images/logo.png';
+    await new Promise((resolve) => {
+      img.onload = () => {
+        doc.addImage(img, 'PNG', 160, 10, 30, 30);
+        resolve();
+      };
+      img.onerror = resolve; // Continuar si falla la carga del logo
+    });
+    
+    // Título
+    doc.setFontSize(20);
+    doc.setTextColor(25, 118, 210); // Azul del sistema
+    doc.text('CEMI - Listado de Alumnos', 14, 25);
+    
+    // Fecha
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Generado: ${new Date().toLocaleDateString('es-ES')}`, 14, 32);
+    
+    // Preparar datos para la tabla
+    const tableData = alumnos.map(alumno => [
+      alumno.nombre_completo || '-',
+      alumno.email || '-',
+      alumno.telefono || '-',
+      alumno.dni || '-',
+      inscripcionesPorAlumno[alumno.id_alumno]?.join(', ') || 'Sin cursos',
+      alumno.estado || '-'
+    ]);
+    
+    // Crear tabla
+    doc.autoTable({
+      startY: 45,
+      head: [['Nombre Completo', 'Email', 'Teléfono', 'DNI', 'Cursos Inscritos', 'Estado']],
+      body: tableData,
+      theme: 'grid',
+      headStyles: {
+        fillColor: [25, 118, 210], // Azul del sistema
+        textColor: 255,
+        fontStyle: 'bold',
+        fontSize: 9
+      },
+      bodyStyles: {
+        fontSize: 8
+      },
+      alternateRowStyles: {
+        fillColor: [245, 247, 250]
+      },
+      columnStyles: {
+        0: { cellWidth: 35 },
+        1: { cellWidth: 45 },
+        2: { cellWidth: 25 },
+        3: { cellWidth: 20 },
+        4: { cellWidth: 45 },
+        5: { cellWidth: 18 }
+      },
+      margin: { left: 14, right: 14 }
+    });
+    
+    // Footer
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(150);
+      doc.text(
+        `Página ${i} de ${pageCount}`,
+        doc.internal.pageSize.width / 2,
+        doc.internal.pageSize.height - 10,
+        { align: 'center' }
+      );
+    }
+    
+    // Descargar
+    doc.save(`CEMI_Alumnos_${new Date().toISOString().split('T')[0]}.pdf`);
+    
+    showToast('PDF descargado exitosamente', 'success');
+  } catch (error) {
+    console.error('Error al generar PDF de alumnos:', error);
+    showToast('Error al generar el PDF', 'error');
+  }
+}
+
+// Función para descargar PDF de Profesores
+async function descargarPDFProfesores() {
+  try {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    // Obtener datos de profesores con sus cursos
+    const responseProfesores = await fetch(`${API_URL}/profesores`);
+    const profesores = await responseProfesores.json();
+    
+    const responseCursos = await fetch(`${API_URL}/cursos`);
+    const cursos = await responseCursos.json();
+    
+    // Agrupar cursos por profesor
+    const cursosPorProfesor = {};
+    cursos.forEach(curso => {
+      if (!cursosPorProfesor[curso.id_profesor]) {
+        cursosPorProfesor[curso.id_profesor] = [];
+      }
+      cursosPorProfesor[curso.id_profesor].push(`${curso.idioma} ${curso.nivel}`);
+    });
+    
+    // Agregar logo
+    const img = new Image();
+    img.src = '/images/logo.png';
+    await new Promise((resolve) => {
+      img.onload = () => {
+        doc.addImage(img, 'PNG', 160, 10, 30, 30);
+        resolve();
+      };
+      img.onerror = resolve;
+    });
+    
+    // Título
+    doc.setFontSize(20);
+    doc.setTextColor(25, 118, 210);
+    doc.text('CEMI - Listado de Profesores', 14, 25);
+    
+    // Fecha
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Generado: ${new Date().toLocaleDateString('es-ES')}`, 14, 32);
+    
+    // Preparar datos para la tabla
+    const tableData = profesores.map(profesor => [
+      profesor.nombre_completo || '-',
+      profesor.email || '-',
+      profesor.telefono || '-',
+      profesor.especialidad || '-',
+      cursosPorProfesor[profesor.id_profesor]?.join(', ') || 'Sin cursos asignados',
+      profesor.estado || '-'
+    ]);
+    
+    // Crear tabla
+    doc.autoTable({
+      startY: 45,
+      head: [['Nombre Completo', 'Email', 'Teléfono', 'Especialidad', 'Cursos que Dicta', 'Estado']],
+      body: tableData,
+      theme: 'grid',
+      headStyles: {
+        fillColor: [25, 118, 210],
+        textColor: 255,
+        fontStyle: 'bold',
+        fontSize: 9
+      },
+      bodyStyles: {
+        fontSize: 8
+      },
+      alternateRowStyles: {
+        fillColor: [245, 247, 250]
+      },
+      columnStyles: {
+        0: { cellWidth: 35 },
+        1: { cellWidth: 45 },
+        2: { cellWidth: 25 },
+        3: { cellWidth: 30 },
+        4: { cellWidth: 45 },
+        5: { cellWidth: 18 }
+      },
+      margin: { left: 14, right: 14 }
+    });
+    
+    // Footer
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(150);
+      doc.text(
+        `Página ${i} de ${pageCount}`,
+        doc.internal.pageSize.width / 2,
+        doc.internal.pageSize.height - 10,
+        { align: 'center' }
+      );
+    }
+    
+    // Descargar
+    doc.save(`CEMI_Profesores_${new Date().toISOString().split('T')[0]}.pdf`);
+    
+    showToast('PDF descargado exitosamente', 'success');
+  } catch (error) {
+    console.error('Error al generar PDF de profesores:', error);
+    showToast('Error al generar el PDF', 'error');
+  }
+}
+
