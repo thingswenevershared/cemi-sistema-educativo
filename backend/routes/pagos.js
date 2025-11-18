@@ -264,6 +264,57 @@ router.get("/alumno/:id", async (req, res) => {
   }
 });
 
+// GET /pagos/alumno/:id/historial - Obtener historial de pagos con estadísticas
+router.get("/alumno/:id/historial", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Obtener historial de pagos realizados
+    const [pagosRealizados] = await pool.query(`
+      SELECT 
+        pa.id_pago,
+        pa.mes_cuota AS concepto,
+        pa.monto,
+        pa.fecha_pago,
+        pa.periodo,
+        mp.descripcion AS medio_pago,
+        c.nombre_curso AS curso
+      FROM pagos pa
+      JOIN cursos c ON pa.id_curso = c.id_curso
+      JOIN medios_pago mp ON pa.id_medio_pago = mp.id_medio_pago
+      WHERE pa.id_alumno = ? AND pa.estado_pago != 'anulado'
+      ORDER BY pa.fecha_pago DESC
+    `, [id]);
+
+    // Calcular estadísticas
+    const totalPagado = pagosRealizados.reduce((sum, p) => sum + parseFloat(p.monto || 0), 0);
+    const cantidadPagos = pagosRealizados.length;
+
+    // Obtener pagos pendientes/vencidos
+    const [pagosPendientes] = await pool.query(`
+      SELECT COUNT(*) as count
+      FROM inscripciones insc
+      JOIN cursos c ON insc.id_curso = c.id_curso
+      WHERE insc.id_alumno = ? AND insc.estado = 'activo'
+    `, [id]);
+
+    res.json({
+      pagos_realizados: pagosRealizados,
+      estadisticas: {
+        total_pagado: totalPagado,
+        cantidad_pagos: cantidadPagos
+      },
+      pagos_pendientes: []
+    });
+  } catch (error) {
+    console.error("Error al obtener historial de pagos:", error);
+    res.status(500).json({ 
+      message: "Error al obtener historial de pagos",
+      error: error.message 
+    });
+  }
+});
+
 // POST /pagos/realizar - Registrar un nuevo pago
 router.post("/realizar",
   // Validaciones

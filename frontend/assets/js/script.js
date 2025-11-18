@@ -3445,7 +3445,7 @@ async function openPagoPanel(idAlumno) {
     // Obtener info del alumno y pagos en paralelo
     const [alumnoResp, pagosResp] = await Promise.all([
       fetch(`${API_URL}/alumnos/${idAlumno}`),
-      fetch(`${API_URL}/pagos/alumno/${idAlumno}`)
+      fetch(`${API_URL}/pagos/alumno/${idAlumno}/historial`)
     ]);
     
     const alumno = await alumnoResp.json();
