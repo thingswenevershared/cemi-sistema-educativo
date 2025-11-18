@@ -3842,7 +3842,7 @@ async function openRegistrarPagoModal() {
         });
 
         // Evento cuando cambia el curso
-        cursoSelect.addEventListener('change', (e) => {
+        cursoSelect.addEventListener('change', async (e) => {
           const idCurso = e.target.value;
           const selectedOption = e.target.options[e.target.selectedIndex];
           const monto = selectedOption.dataset.monto;
@@ -3855,6 +3855,19 @@ async function openRegistrarPagoModal() {
             return;
           }
 
+          // Obtener cuotas habilitadas para este curso
+          let cuotasHabilitadas = [];
+          try {
+            const respCuotas = await fetch(`/api/cursos/${idCurso}/cuotas`);
+            const dataCuotas = await respCuotas.json();
+            cuotasHabilitadas = dataCuotas.cuotasHabilitadas || [];
+            console.log(`Cuotas habilitadas para curso ${idCurso}:`, cuotasHabilitadas);
+          } catch (error) {
+            console.error('Error al obtener cuotas habilitadas:', error);
+            // Si hay error, asumir todas habilitadas
+            cuotasHabilitadas = ['Matricula', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre'];
+          }
+
           // Obtener meses ya pagados para este curso
           const mesesPagados = pagosPorCurso[idCurso] || [];
           console.log(`Curso seleccionado: ${idCurso}, Meses pagados:`, mesesPagados);
@@ -3862,27 +3875,54 @@ async function openRegistrarPagoModal() {
           // Todos los meses academicos (incluyendo Matricula)
           const todosMeses = ['Matricula', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre'];
           
-          // Crear opciones de meses (solo disponibles)
-          const mesesDisponibles = todosMeses.filter(mes => !mesesPagados.includes(mes));
-          console.log('Meses disponibles para pagar:', mesesDisponibles);
+          // Crear opciones de meses - TODOS, pero algunos deshabilitados
+          const mesesNoHabilitados = todosMeses.filter(mes => !cuotasHabilitadas.includes(mes));
+          const hayAlgunMesDisponible = todosMeses.some(mes => cuotasHabilitadas.includes(mes) && !mesesPagados.includes(mes));
           
-          if (mesesDisponibles.length === 0) {
-            mesSelect.innerHTML = '<option value="">Todas las cuotas están pagadas</option>';
+          if (!hayAlgunMesDisponible) {
+            mesSelect.innerHTML = '<option value="">No hay cuotas disponibles para este curso</option>';
             mesSelect.disabled = true;
-            mesesPagadosInfo.innerHTML = '<div style="color: #43a047; background: #e8f5e9; padding: 8px; border-radius: 4px;"><i class="lucide-check-circle" style="width: 14px; height: 14px;"></i> ✓ Todas las cuotas de este curso estan pagadas (incluyendo matricula)</div>';
+            
+            if (mesesPagados.length === todosMeses.length) {
+              mesesPagadosInfo.innerHTML = '<div style="color: #43a047; background: #e8f5e9; padding: 8px; border-radius: 4px;"><i class="lucide-check-circle" style="width: 14px; height: 14px;"></i> ✓ Todas las cuotas de este curso están pagadas</div>';
+            } else if (cuotasHabilitadas.length === 0) {
+              mesesPagadosInfo.innerHTML = '<div style="color: #f57c00; background: #fff3e0; padding: 8px; border-radius: 4px;"><i class="lucide-alert-circle" style="width: 14px; height: 14px;"></i> Este curso no tiene cuotas habilitadas</div>';
+            } else {
+              mesesPagadosInfo.innerHTML = '<div style="color: #43a047; background: #e8f5e9; padding: 8px; border-radius: 4px;"><i class="lucide-check-circle" style="width: 14px; height: 14px;"></i> Todas las cuotas habilitadas están pagadas</div>';
+            }
           } else {
-            mesSelect.innerHTML = '<option value="">Seleccionar mes...</option>' + 
-              mesesDisponibles.map(mes => `<option value="${mes}">${mes}</option>`).join('');
+            // Generar opciones - mostrar TODAS pero deshabilitar las no disponibles
+            const opciones = todosMeses.map(mes => {
+              const yaPagado = mesesPagados.includes(mes);
+              const noHabilitado = !cuotasHabilitadas.includes(mes);
+              const disabled = yaPagado || noHabilitado;
+              
+              let label = mes;
+              if (yaPagado) label += ' (Ya pagado)';
+              else if (noHabilitado) label += ' (No habilitado)';
+              
+              return `<option value="${mes}" ${disabled ? 'disabled' : ''} style="${disabled ? 'color: #999; background: #f5f5f5;' : ''}">${label}</option>`;
+            }).join('');
+            
+            mesSelect.innerHTML = '<option value="">Seleccionar mes...</option>' + opciones;
             mesSelect.disabled = false;
             
-            // Mostrar información de meses pagados
+            // Mostrar información detallada
+            const infoParts = [];
             if (mesesPagados.length > 0) {
-              mesesPagadosInfo.innerHTML = `<div style="color: #1565c0; background: #e3f2fd; padding: 8px; border-radius: 4px;">
-                <i class="lucide-info" style="width: 14px; height: 14px;"></i> Ya pagado: ${mesesPagados.join(', ')}
-              </div>`;
-            } else {
-              mesesPagadosInfo.innerHTML = '<div style="color: #757575;">No hay cuotas pagadas aun (ni matricula)</div>';
+              infoParts.push(`<div style="color: #1565c0; background: #e3f2fd; padding: 8px; border-radius: 4px; margin-bottom: 4px;">
+                <i class="lucide-check" style="width: 14px; height: 14px;"></i> Ya pagado: ${mesesPagados.join(', ')}
+              </div>`);
             }
+            if (mesesNoHabilitados.length > 0) {
+              infoParts.push(`<div style="color: #f57c00; background: #fff3e0; padding: 8px; border-radius: 4px;">
+                <i class="lucide-lock" style="width: 14px; height: 14px;"></i> No habilitado: ${mesesNoHabilitados.join(', ')}
+              </div>`);
+            }
+            if (infoParts.length === 0) {
+              infoParts.push('<div style="color: #757575;">Todas las cuotas están disponibles</div>');
+            }
+            mesesPagadosInfo.innerHTML = infoParts.join('');
           }
 
           // Auto-completar monto
