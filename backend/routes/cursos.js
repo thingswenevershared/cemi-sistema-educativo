@@ -729,12 +729,22 @@ router.put("/:id/cuotas", async (req, res) => {
     // NULL = todas habilitadas (por defecto)
     // Array vacío [] = ninguna habilitada
     // Array con valores = solo esas cuotas habilitadas
-    const valor = JSON.stringify(cuotas);
+    
+    console.log('Cuotas a guardar:', cuotas);
+    console.log('Ejecutando UPDATE...');
+    
+    // Usar JSON_ARRAY de MySQL para crear JSON válido
+    const placeholders = cuotas.map(() => '?').join(', ');
+    const jsonArraySQL = cuotas.length > 0 
+      ? `CAST(JSON_ARRAY(${placeholders}) AS JSON)`
+      : 'NULL';
     
     await pool.query(
-      'UPDATE cursos SET cuotas_habilitadas = ? WHERE id_curso = ?',
-      [valor, id]
+      `UPDATE cursos SET cuotas_habilitadas = ${jsonArraySQL} WHERE id_curso = ?`,
+      [...cuotas, id]
     );
+    
+    console.log('UPDATE exitoso!');
     
     res.json({ 
       success: true, 
