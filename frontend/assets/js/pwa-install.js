@@ -57,8 +57,15 @@ window.addEventListener('beforeinstallprompt', (e) => {
   }
 });
 
+// Detectar si es Android
+function isAndroid() {
+  return /Android/i.test(navigator.userAgent);
+}
+
 // Función para mostrar banner de instalación
 function showInstallBanner() {
+  const isAndroidDevice = isAndroid();
+  
   const banner = document.createElement('div');
   banner.id = 'pwa-install-banner';
   banner.innerHTML = `
@@ -83,16 +90,31 @@ function showInstallBanner() {
         <strong style="display: block; margin-bottom: 5px;">📱 Instalar CEMI</strong>
         <span style="font-size: 13px; opacity: 0.9;">Accede más rápido instalando la app</span>
       </div>
-      <button id="pwa-install-btn" style="
-        background: white;
-        color: #1e3c72;
-        border: none;
-        padding: 8px 20px;
-        border-radius: 6px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: transform 0.2s;
-      ">Instalar</button>
+      ${isAndroidDevice ? `
+        <a href="/downloads/cemi-app.apk" download style="
+          background: white;
+          color: #1e3c72;
+          border: none;
+          padding: 8px 20px;
+          border-radius: 6px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: transform 0.2s;
+          text-decoration: none;
+          display: inline-block;
+        ">Descargar APK</a>
+      ` : `
+        <button id="pwa-install-btn" style="
+          background: white;
+          color: #1e3c72;
+          border: none;
+          padding: 8px 20px;
+          border-radius: 6px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: transform 0.2s;
+        ">Instalar</button>
+      `}
       <button id="pwa-dismiss-btn" style="
         background: transparent;
         color: white;
@@ -107,8 +129,11 @@ function showInstallBanner() {
   
   document.body.appendChild(banner);
   
-  // Botón de instalar
-  document.getElementById('pwa-install-btn').addEventListener('click', installPWA);
+  // Botón de instalar (solo si no es Android)
+  const installBtn = document.getElementById('pwa-install-btn');
+  if (installBtn) {
+    installBtn.addEventListener('click', installPWA);
+  }
   
   // Botón de cerrar
   document.getElementById('pwa-dismiss-btn').addEventListener('click', () => {
@@ -186,17 +211,24 @@ window.addEventListener('appinstalled', () => {
 // Mostrar banner solo si no fue cerrado previamente
 window.addEventListener('load', () => {
   const dismissed = localStorage.getItem('pwa-dismissed');
+  const isAndroidDevice = isAndroid();
   
   // Si el usuario ya instaló o cerró el banner, no mostrar
   if (dismissed !== 'true' && !window.matchMedia('(display-mode: standalone)').matches) {
-    // Esperar 3 segundos antes de mostrar el banner
-    setTimeout(() => {
-      if (deferredPrompt) {
-        // El evento ya se disparó, mostrar banner
-        return;
-      }
-      // Si después de 3 segundos no hay prompt, es posible que ya esté instalada
-    }, 3000);
+    // En Android, mostrar siempre el banner con opción de APK
+    if (isAndroidDevice) {
+      setTimeout(() => {
+        showInstallBanner();
+      }, 2000);
+    } else {
+      // En otros dispositivos, esperar el evento beforeinstallprompt
+      setTimeout(() => {
+        if (deferredPrompt) {
+          // El evento ya se disparó, mostrar banner
+          return;
+        }
+      }, 3000);
+    }
   }
 });
 

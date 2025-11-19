@@ -124,6 +124,7 @@ app.use('/uploads', express.static('uploads'));
 
 // 📁 Servir archivos estáticos del frontend
 app.use('/assets', express.static('frontend/assets'));
+app.use('/downloads', express.static('frontend/downloads'));
 app.use(express.static('frontend'));
 
 // =============================
