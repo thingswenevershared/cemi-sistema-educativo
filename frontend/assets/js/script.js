@@ -3614,8 +3614,8 @@ async function anularPago(idPago, nombreAlumno, concepto) {
   if (!confirmed) return;
 
   try {
-    const resp = await fetch(`${API_URL}/pagos/${idPago}`, {
-      method: 'DELETE'
+    const resp = await fetch(`${API_URL}/pagos/${idPago}/anular`, {
+      method: 'PUT'
     });
 
     const result = await resp.json();

@@ -493,7 +493,8 @@ router.post("/realizar",
 
 // DELETE /pagos/:id - Eliminar un pago
 // DELETE /pagos/:id - Anular pago (no elimina, cambia estado a 'anulado')
-router.delete("/:id",
+// PUT /pagos/:id/anular - Anular un pago (cambiar estado a anulado)
+router.put("/:id/anular",
   // Validación
   [
     param('id')
