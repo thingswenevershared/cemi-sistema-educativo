@@ -5715,42 +5715,38 @@ async function exportarTareasPDF() {
         y = 35;
       }
       
-      // Tarjeta de tarea con borde y sombra
+      // Tarjeta de tarea con borde
       doc.setFillColor(255, 255, 255);
-      doc.roundedRect(20, y - 3, 170, 5, 3, 3, 'F');
+      doc.roundedRect(20, y, 170, 10, 3, 3, 'F');
       
       doc.setDrawColor(200, 210, 220);
       doc.setLineWidth(0.8);
-      doc.roundedRect(20, y - 3, 170, 5, 3, 3, 'D');
+      doc.roundedRect(20, y, 170, 10, 3, 3, 'D');
       
-      // Número y título de la tarea
+      // Número y título de la tarea (centrado verticalmente)
       doc.setFontSize(10);
       doc.setFont(undefined, 'bold');
       doc.setTextColor(30, 60, 114);
-      doc.text(`${index + 1}. ${tarea.titulo}`, 25, y + 2);
+      doc.text(`${index + 1}. ${tarea.titulo}`, 25, y + 6);
       
-      y += 8;
+      y += 12;
       
       // Curso y Profesor en línea horizontal
       doc.setFontSize(8);
       doc.setFont(undefined, 'bold');
-      doc.setTextColor(103, 126, 234);
-      doc.text('◆', 25, y);
       doc.setTextColor(60, 60, 60);
-      doc.text('Curso:', 28, y);
+      doc.text('Curso:', 25, y);
       doc.setFont(undefined, 'normal');
       doc.setTextColor(0, 0, 0);
-      doc.text(tarea.nombre_curso, 40, y);
+      doc.text(tarea.nombre_curso, 38, y);
       
       if (tarea.profesor_nombre) {
         doc.setFont(undefined, 'bold');
-        doc.setTextColor(103, 126, 234);
-        doc.text('◆', 110, y);
         doc.setTextColor(60, 60, 60);
-        doc.text('Profesor:', 113, y);
+        doc.text('Profesor:', 110, y);
         doc.setFont(undefined, 'normal');
         doc.setTextColor(0, 0, 0);
-        doc.text(tarea.profesor_nombre, 130, y);
+        doc.text(tarea.profesor_nombre, 128, y);
       }
       
       y += 6;
@@ -6030,28 +6026,30 @@ async function exportarCalificacionesPDF() {
       
       // Tarjeta del curso
       doc.setFillColor(255, 255, 255);
-      doc.roundedRect(20, y - 3, 170, 5, 3, 3, 'F');
+      doc.roundedRect(20, y, 170, 10, 3, 3, 'F');
       
       doc.setDrawColor(200, 210, 220);
       doc.setLineWidth(0.8);
-      doc.roundedRect(20, y - 3, 170, 5, 3, 3, 'D');
+      doc.roundedRect(20, y, 170, 10, 3, 3, 'D');
       
-      // Título del curso
+      // Título del curso (centrado verticalmente)
       doc.setFontSize(10);
       doc.setFont(undefined, 'bold');
       doc.setTextColor(30, 60, 114);
-      doc.text(`${index + 1}. ${cal.nombre_curso}`, 25, y + 2);
+      doc.text(`${index + 1}. ${cal.nombre_curso}`, 25, y + 6);
       
-      y += 8;
+      y += 12;
       
       // Idioma y nivel
       const idiomaNivel = `${cal.nombre_idioma || ''}${cal.nivel ? ' - Nivel ' + cal.nivel : ''}`;
       if (idiomaNivel.trim()) {
         doc.setFontSize(8);
-        doc.setTextColor(103, 126, 234);
-        doc.text('◆', 25, y);
+        doc.setFont(undefined, 'bold');
+        doc.setTextColor(60, 60, 60);
+        doc.text('Idioma:', 25, y);
+        doc.setFont(undefined, 'normal');
         doc.setTextColor(70, 70, 70);
-        doc.text(idiomaNivel, 28, y);
+        doc.text(idiomaNivel, 40, y);
         doc.setTextColor(0, 0, 0);
         y += 6;
       }
