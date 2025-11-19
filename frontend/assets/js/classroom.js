@@ -1042,7 +1042,9 @@ function renderTareas(tareas) {
           <div class="task-actions">
             ${tarea.estado === 'entregada' 
               ? `<button class="btn-text" onclick="verDetalleEntrega(${tarea.id_tarea}, ${userId})">Ver detalles</button>` 
-              : `<button class="btn-primary-small" onclick="mostrarFormularioEntrega(${tarea.id_tarea}, '${tarea.titulo.replace(/'/g, "\\'")}')">Entregar Tarea</button>`}
+              : tarea.estado === 'vencida'
+                ? `<button class="btn-primary-small" disabled style="opacity: 0.5; cursor: not-allowed;" title="Tarea vencida">Entregar Tarea</button>`
+                : `<button class="btn-primary-small" onclick="mostrarFormularioEntrega(${tarea.id_tarea}, '${tarea.titulo.replace(/'/g, "\\'")}')">Entregar Tarea</button>`}
           </div>
         </div>
       `;
