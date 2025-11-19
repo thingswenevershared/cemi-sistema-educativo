@@ -55,32 +55,31 @@ router.get("/", async (req, res) => {
     // Calcular estadísticas
     const mesActual = new Date().toISOString().slice(0, 7); // Formato: YYYY-MM
     
-    // Total recaudado del mes actual (solo pagos confirmados)
+    // Total recaudado del mes actual (solo pagos confirmados por fecha_pago)
     const [totalMes] = await pool.query(`
       SELECT COALESCE(SUM(monto), 0) AS total
       FROM pagos
-      WHERE periodo = ? 
+      WHERE DATE_FORMAT(fecha_pago, '%Y-%m') = ?
         AND estado_pago = 'pagado'
         AND archivado = 0
     `, [mesActual]);
 
-    // Cuotas cobradas en el mes actual
+    // Cuotas cobradas en el mes actual (por fecha_pago)
     const [cuotasCobradas] = await pool.query(`
       SELECT COUNT(*) AS total
       FROM pagos
-      WHERE periodo = ? 
+      WHERE DATE_FORMAT(fecha_pago, '%Y-%m') = ?
         AND estado_pago = 'pagado'
         AND archivado = 0
     `, [mesActual]);
 
-    // Cuotas pendientes del mes actual
+    // Cuotas pendientes de todos los periodos
     const [cuotasPendientes] = await pool.query(`
       SELECT COUNT(*) AS total
       FROM pagos
-      WHERE periodo = ? 
-        AND estado_pago = 'en_proceso'
+      WHERE estado_pago = 'en_proceso'
         AND archivado = 0
-    `, [mesActual]);
+    `);
 
     // Alumnos con más de 5 cuotas sin pagar (en mora grave)
     const [alumnosMora] = await pool.query(`
