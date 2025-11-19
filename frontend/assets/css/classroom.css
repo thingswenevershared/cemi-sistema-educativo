@@ -1249,7 +1249,8 @@ body {
   height: 32px;
   color: #2d3748;
   background: none !important;
-  animation: graduationCapSpin 2s ease-in-out;
+  animation: graduationCapSpin 3s ease-in-out infinite;
+  animation-delay: 0.5s;
   transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
@@ -1259,17 +1260,17 @@ body {
 }
 
 @keyframes graduationCapSpin {
-  0% {
+  0%, 100% {
     transform: rotate(0deg) scale(1);
-    opacity: 0;
+  }
+  25% {
+    transform: rotate(90deg) scale(1.05);
   }
   50% {
-    transform: rotate(180deg) scale(1.15);
-    opacity: 0.7;
+    transform: rotate(180deg) scale(1.1);
   }
-  100% {
-    transform: rotate(360deg) scale(1);
-    opacity: 1;
+  75% {
+    transform: rotate(270deg) scale(1.05);
   }
 }
 
@@ -4090,14 +4091,14 @@ body.dark-mode .toggle-password-btn:hover {
 }
 
 .btn-config-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
   color: white;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4px 15px rgba(30, 60, 114, 0.3);
 }
 
 .btn-config-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 8px 25px rgba(30, 60, 114, 0.4);
 }
 
 .btn-config-secondary {
@@ -4107,9 +4108,9 @@ body.dark-mode .toggle-password-btn:hover {
 }
 
 .btn-config-secondary:hover {
-  border-color: #667eea;
-  color: #667eea;
-  background: rgba(102, 126, 234, 0.05);
+  border-color: #1e3c72;
+  color: #1e3c72;
+  background: rgba(30, 60, 114, 0.05);
 }
 
 .btn-config-primary i,
