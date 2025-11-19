@@ -1268,7 +1268,14 @@
         </div>
         
         <div class="modal-pago-body" style="text-align: center; padding: 30px;">
-          <div style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; padding: 30px; border-radius: 12px; margin-bottom: 20px;">
+          <div style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; padding: 30px; border-radius: 12px; margin-bottom: 20px; position: relative;">
+            <button onclick="descargarTicketPDF('${numeroTicket}')" 
+                    style="position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.2); border: none; color: white; width: 36px; height: 36px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; backdrop-filter: blur(10px);" 
+                    onmouseover="this.style.background='rgba(255,255,255,0.3)'; this.style.transform='scale(1.05)'" 
+                    onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='scale(1)'" 
+                    title="Descargar Ticket PDF">
+              <i data-lucide="download" style="width: 20px; height: 20px;"></i>
+            </button>
             <p style="margin: 0 0 15px 0; font-size: 16px; opacity: 0.9; font-weight: 500;">
               Tu número de ticket es
             </p>
@@ -1302,6 +1309,178 @@
     if (modal) {
       modal.remove();
       console.log('🗑️ Modal de ticket cerrado');
+    }
+  };
+
+  // Función para descargar ticket de pago en efectivo como PDF
+  window.descargarTicketPDF = async function(numeroTicket) {
+    try {
+      const { jsPDF } = window.jspdf;
+      
+      // Crear PDF en formato ticket (80mm de ancho)
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: [80, 150] // Ticket térmico
+      });
+      
+      let yPos = 15;
+      
+      // Logo
+      const img = new Image();
+      img.src = '/images/logo.png';
+      await new Promise((resolve) => {
+        img.onload = () => {
+          doc.addImage(img, 'PNG', 25, yPos, 30, 30);
+          resolve();
+        };
+        img.onerror = resolve;
+      });
+      
+      yPos += 35;
+      
+      // Título CEMI
+      doc.setFontSize(18);
+      doc.setFont('helvetica', 'bold');
+      doc.text('CEMI', 40, yPos, { align: 'center' });
+      yPos += 5;
+      
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text('Sistema Educativo', 40, yPos, { align: 'center' });
+      yPos += 10;
+      
+      // Línea separadora
+      doc.setDrawColor(30, 60, 114);
+      doc.setLineWidth(0.5);
+      doc.line(10, yPos, 70, yPos);
+      yPos += 8;
+      
+      // Título del ticket
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(30, 60, 114);
+      doc.text('TICKET DE PAGO', 40, yPos, { align: 'center' });
+      yPos += 6;
+      
+      doc.setFontSize(12);
+      doc.setTextColor(0);
+      doc.text('Pago en Efectivo', 40, yPos, { align: 'center' });
+      yPos += 10;
+      
+      // Línea separadora
+      doc.setDrawColor(200);
+      doc.setLineWidth(0.3);
+      doc.line(10, yPos, 70, yPos);
+      yPos += 8;
+      
+      // Número de ticket (destacado)
+      doc.setFillColor(30, 60, 114);
+      doc.roundedRect(10, yPos, 60, 18, 3, 3, 'F');
+      
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(255, 255, 255);
+      doc.text('Tu número de ticket es', 40, yPos + 5, { align: 'center' });
+      
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Nº ${numeroTicket}`, 40, yPos + 13, { align: 'center' });
+      yPos += 24;
+      
+      // Fecha y hora
+      doc.setTextColor(0);
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      const ahora = new Date();
+      const fecha = ahora.toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+      const hora = ahora.toLocaleTimeString('es-ES', {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      doc.text(`Generado: ${fecha} - ${hora}`, 40, yPos, { align: 'center' });
+      yPos += 8;
+      
+      // Línea separadora
+      doc.line(10, yPos, 70, yPos);
+      yPos += 6;
+      
+      // Instrucciones
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(30, 60, 114);
+      doc.text('INSTRUCCIONES DE PAGO', 40, yPos, { align: 'center' });
+      yPos += 6;
+      
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0);
+      
+      const instrucciones = [
+        '1. Acercate a nuestras oficinas',
+        '2. Presentá este ticket',
+        '3. Realizá el pago en efectivo',
+        '4. Recibirás tu comprobante'
+      ];
+      
+      instrucciones.forEach((linea) => {
+        doc.text(linea, 12, yPos);
+        yPos += 4;
+      });
+      yPos += 2;
+      
+      // Horarios
+      doc.setFillColor(248, 249, 250);
+      doc.roundedRect(10, yPos, 60, 12, 2, 2, 'F');
+      
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(30, 60, 114);
+      doc.text('📍 Horario de Atención', 40, yPos + 4, { align: 'center' });
+      
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(100);
+      doc.text('Lunes a Viernes', 40, yPos + 8, { align: 'center' });
+      doc.text('7:00 a 14:00 hs', 40, yPos + 11, { align: 'center' });
+      yPos += 18;
+      
+      // Footer
+      doc.setDrawColor(200);
+      doc.line(10, yPos, 70, yPos);
+      yPos += 4;
+      
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'italic');
+      doc.setTextColor(150);
+      doc.text('Conservá este ticket hasta completar el pago', 40, yPos, { align: 'center' });
+      yPos += 3;
+      doc.text('www.cemi-educativo.com', 40, yPos, { align: 'center' });
+      
+      // Descargar PDF
+      doc.save(`Ticket-Pago-Efectivo-${numeroTicket}.pdf`);
+      
+      console.log('✅ Ticket PDF generado correctamente');
+      
+      // Mostrar notificación
+      Swal.fire({
+        icon: 'success',
+        title: 'Ticket Descargado',
+        text: 'Tu ticket se ha descargado correctamente',
+        timer: 2000,
+        showConfirmButton: false
+      });
+      
+    } catch (error) {
+      console.error('❌ Error al generar ticket PDF:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se pudo generar el ticket PDF'
+      });
     }
   };
 
