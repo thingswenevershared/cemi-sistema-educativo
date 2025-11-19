@@ -70,6 +70,10 @@
       <p>Una nueva forma de enseñar y aprender.</p>
       <div class="hero-buttons">
         <button class="cta-btn" onclick="window.location.href='guia.html'">Empezar ahora</button>
+        <a href="https://cemi-sistema-educativo-production.up.railway.app/downloads/cemi-app-v3.apk" class="cta-btn-apk" id="apkDownloadBtn" style="display: none;">
+          <i data-lucide="download" style="width: 18px; height: 18px;"></i>
+          Descarga la App Android
+        </a>
         <a href="#classroom" class="link-arrow">Más información</a>
       </div>
     </div>
@@ -786,6 +790,14 @@
         confirmButtonText: 'Entendido',
         confirmButtonColor: '#1e3c72'
       });
+    }
+
+    // Mostrar botón de descarga APK solo en Android
+    if (/Android/i.test(navigator.userAgent)) {
+      const apkBtn = document.getElementById('apkDownloadBtn');
+      if (apkBtn) {
+        apkBtn.style.display = 'inline-flex';
+      }
     }
   </script>
   

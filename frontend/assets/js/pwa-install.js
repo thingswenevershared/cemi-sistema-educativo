@@ -51,10 +51,8 @@ window.addEventListener('beforeinstallprompt', (e) => {
   // Mostrar botón de instalación si existe
   if (installButton) {
     installButton.style.display = 'block';
-  } else {
-    // Si no hay botón dedicado, crear uno temporal
-    showInstallBanner();
   }
+  // Ya no mostramos el banner popup, tenemos el botón en el index
 });
 
 // Detectar si es Android
@@ -210,25 +208,10 @@ window.addEventListener('appinstalled', () => {
 
 // Mostrar banner solo si no fue cerrado previamente
 window.addEventListener('load', () => {
-  const dismissed = localStorage.getItem('pwa-dismissed');
-  const isAndroidDevice = isAndroid();
-  
-  // Si el usuario ya instaló o cerró el banner, no mostrar
-  if (dismissed !== 'true' && !window.matchMedia('(display-mode: standalone)').matches) {
-    // En Android, mostrar siempre el banner con opción de APK
-    if (isAndroidDevice) {
-      setTimeout(() => {
-        showInstallBanner();
-      }, 2000);
-    } else {
-      // En otros dispositivos, esperar el evento beforeinstallprompt
-      setTimeout(() => {
-        if (deferredPrompt) {
-          // El evento ya se disparó, mostrar banner
-          return;
-        }
-      }, 3000);
-    }
+  // Ya no mostramos el banner automático, el botón está en el index
+  // Solo mantenemos la lógica de detección de PWA instalada
+  if (!window.matchMedia('(display-mode: standalone)').matches) {
+    console.log('App ejecutándose en navegador');
   }
 });
 
