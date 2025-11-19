@@ -1249,6 +1249,28 @@ body {
   height: 32px;
   color: #2d3748;
   background: none !important;
+  animation: graduationCapSpin 2s ease-in-out;
+  transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.logo-icon:hover {
+  transform: rotate(360deg) scale(1.1);
+  color: #1e3c72;
+}
+
+@keyframes graduationCapSpin {
+  0% {
+    transform: rotate(0deg) scale(1);
+    opacity: 0;
+  }
+  50% {
+    transform: rotate(180deg) scale(1.15);
+    opacity: 0.7;
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+    opacity: 1;
+  }
 }
 
 .logo-section h1 {
