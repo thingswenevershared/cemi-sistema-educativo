@@ -2761,8 +2761,8 @@ footer i {
 
   /* Hero responsive para móviles */
   .hero-main {
-    padding: 40px 15px;
-    min-height: 70vh;
+    padding: 80px 15px 40px 15px;
+    min-height: auto;
   }
 
   .hero-logo-side {
@@ -2781,9 +2781,10 @@ footer i {
 
   .hero-buttons {
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
     width: 100%;
     align-items: center;
+    margin-top: 20px;
   }
 
   .cta-btn,
@@ -2854,11 +2855,34 @@ footer i {
   /* Cards y features */
   .card,
   .feature-card,
-  .info-card {
-    padding: 16px;
-    margin: 10px 0;
-    width: 100%;
+  .info-card,
+  .platform-card,
+  .selector-card {
+    padding: 20px 16px;
+    margin: 12px 10px;
+    width: calc(100% - 20px);
     box-sizing: border-box;
+  }
+
+  /* Cards con imagen de fondo */
+  .platform-card h3,
+  .platform-card p,
+  .selector-card h3,
+  .selector-card p,
+  .selector-card li {
+    text-shadow: 0 2px 6px rgba(0,0,0,0.7), 0 1px 3px rgba(0,0,0,0.5);
+  }
+
+  .selector-card .card-content {
+    background: rgba(0,0,0,0.3);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-radius: 12px;
+    padding: 16px;
+  }
+
+  .selector-card .card-icon {
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,0.5));
   }
 
   /* Grids responsive */
