@@ -143,7 +143,7 @@ class CursadoManager {
         // Versión mini: badges compactos en lugar de cards masivas
         container.innerHTML = this.misCursos.map(curso => {
             return `
-                <div class="curso-mini-badge" onclick="window.location.href='/frontend/classroom.html?curso=${curso.id_curso}'" title="Ver en Classroom">
+                <div class="curso-mini-badge" title="${curso.nombre_curso}">
                     <div class="mini-badge-icon">
                         <i data-lucide="book-open"></i>
                     </div>
@@ -155,9 +155,7 @@ class CursadoManager {
                             ${curso.horario ? `<span class="mini-horario"><i data-lucide="clock"></i>${curso.horario}</span>` : ''}
                         </div>
                     </div>
-                    <div class="mini-badge-action">
-                        <i data-lucide="chevron-right"></i>
-                    </div>
+                </div>
                 </div>
             `;
         }).join('');

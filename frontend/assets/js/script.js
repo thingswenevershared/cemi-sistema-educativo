@@ -3938,7 +3938,7 @@ async function openRegistrarPagoModal() {
           // Obtener cuotas habilitadas para este curso
           let cuotasHabilitadas = [];
           try {
-            const respCuotas = await fetch(`/api/cursos/${idCurso}/cuotas`);
+            const respCuotas = await fetch(`${API_URL}/cursos/${idCurso}/cuotas`);
             const dataCuotas = await respCuotas.json();
             cuotasHabilitadas = dataCuotas.cuotasHabilitadas || [];
             console.log(`Cuotas habilitadas para curso ${idCurso}:`, cuotasHabilitadas);
