@@ -7325,9 +7325,7 @@ async function generarComprobantePago(idPago) {
     doc.setFontSize(7);
     doc.setFont('helvetica', 'italic');
     doc.setTextColor(100);
-    doc.text('Centro de Enseñanza de', 40, yPos, { align: 'center' });
-    yPos += 3;
-    doc.text('Mandarín e Idiomas - CEMI', 40, yPos, { align: 'center' });
+    doc.text('Centro de enseñanza de idiomas - CEMI', 40, yPos, { align: 'center' });
     yPos += 4;
     doc.text(`Comprobante generado el ${new Date().toLocaleDateString('es-ES')}`, 40, yPos, { align: 'center' });
     yPos += 3;
