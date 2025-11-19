@@ -7213,19 +7213,17 @@ async function generarComprobantePago(idPago) {
     yPos += 5;
     doc.setFontSize(14);
     doc.setTextColor(25, 118, 210);
-    doc.text(pago.numero_comprobante || `#${String(pago.id_pago).padStart(6, '0')}`, 40, yPos, { align: 'center' });
+    doc.text(`#${String(pago.id_pago).padStart(6, '0')}`, 40, yPos, { align: 'center' });
     doc.setTextColor(0);
     yPos += 10;
     
     // Fecha
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Fecha: ${new Date(pago.fecha_pago || pago.fecha_registro).toLocaleDateString('es-ES', {
+    doc.text(`Fecha: ${new Date(pago.fecha_pago).toLocaleDateString('es-ES', {
       day: '2-digit',
       month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+      year: 'numeric'
     })}`, 40, yPos, { align: 'center' });
     yPos += 10;
     
@@ -7330,7 +7328,7 @@ async function generarComprobantePago(idPago) {
     doc.text('Este documento es un comprobante válido de pago', 40, yPos, { align: 'center' });
     
     // Descargar
-    const nombreArchivo = `Comprobante_${pago.numero_comprobante || pago.id_pago}_${pago.alumno.replace(/\s+/g, '_')}.pdf`;
+    const nombreArchivo = `Comprobante_${String(pago.id_pago).padStart(6, '0')}_${pago.alumno.replace(/\s+/g, '_')}.pdf`;
     doc.save(nombreArchivo);
     
     showToast('Comprobante generado exitosamente', 'success');

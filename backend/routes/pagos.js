@@ -331,12 +331,10 @@ router.get("/:id", async (req, res) => {
         mp.descripcion AS medio_pago,
         pa.monto,
         pa.fecha_pago,
-        pa.fecha_registro,
         pa.periodo,
         pa.mes_cuota,
         pa.fecha_vencimiento,
         pa.estado_pago,
-        pa.numero_comprobante,
         c.nombre_curso AS curso,
         ad.cargo AS administrativo
       FROM pagos pa
