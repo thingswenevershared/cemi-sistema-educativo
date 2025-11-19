@@ -737,9 +737,17 @@ router.delete("/:id",
       }
 
       // Eliminar el pago permanentemente
-      await pool.query('DELETE FROM pagos WHERE id_pago = ?', [id]);
+      const [result] = await pool.query('DELETE FROM pagos WHERE id_pago = ?', [id]);
 
-      console.log(`[pagos] Pago ${id} eliminado permanentemente`);
+      console.log(`[pagos] Pago ${id} eliminado permanentemente. Rows affected:`, result.affectedRows);
+      
+      if (result.affectedRows === 0) {
+        return res.status(500).json({ 
+          success: false,
+          message: "No se pudo eliminar el pago" 
+        });
+      }
+
       res.json({ 
         success: true, 
         message: "Pago eliminado permanentemente" 
