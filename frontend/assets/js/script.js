@@ -3736,7 +3736,11 @@ async function eliminarPagoDefinitivamente(idPago, nombreAlumno, concepto) {
 
     if (resp.ok && data.success) {
       showToast('Pago eliminado permanentemente', 'success');
+      // Forzar recarga completa
+      window.currentPagosTab = 'archivo';
       await loadPagosData('?archivo=true');
+      // Asegurar que estamos en la vista de archivo
+      switchPagosTab('archivo');
     } else {
       showToast(data.message || 'Error al eliminar pago', 'error');
     }
