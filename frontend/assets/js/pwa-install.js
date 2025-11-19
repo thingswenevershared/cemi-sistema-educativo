@@ -63,27 +63,65 @@ function isAndroid() {
 }
 
 // Función para descargar APK con cache busting
-function downloadAPK() {
+async function downloadAPK() {
   const timestamp = new Date().getTime();
   const apkUrl = `/downloads/cemi-app-v3.apk?v=${timestamp}`;
   
-  // Crear un link temporal y forzar la descarga
-  const link = document.createElement('a');
-  link.href = apkUrl;
-  link.download = `CEMI-v3-${timestamp}.apk`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  
-  // Mostrar mensaje
-  if (window.Swal) {
-    Swal.fire({
-      title: 'Descargando APK',
-      html: '<strong>Versión 3.0</strong><br>Desinstala la versión anterior antes de instalar',
-      icon: 'info',
-      timer: 4000,
-      showConfirmButton: false
-    });
+  try {
+    // Mostrar mensaje de descarga
+    if (window.Swal) {
+      Swal.fire({
+        title: 'Descargando APK',
+        html: '<strong>Versión 3.0</strong><br>Espera un momento...',
+        icon: 'info',
+        showConfirmButton: false,
+        allowOutsideClick: false
+      });
+    }
+    
+    // Descargar como blob para evitar que Chrome lo interprete como PWA
+    const response = await fetch(apkUrl);
+    const blob = await response.blob();
+    
+    // Crear URL temporal del blob
+    const blobUrl = window.URL.createObjectURL(blob);
+    
+    // Crear link de descarga
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    link.download = `CEMI-v3.0-${timestamp}.apk`;
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    
+    // Forzar descarga
+    link.click();
+    
+    // Limpiar
+    setTimeout(() => {
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+      
+      if (window.Swal) {
+        Swal.fire({
+          title: '¡APK Descargado!',
+          html: '<strong>Versión 3.0</strong><br>Desinstala la versión anterior antes de instalar',
+          icon: 'success',
+          timer: 4000,
+          showConfirmButton: false
+        });
+      }
+    }, 100);
+    
+  } catch (error) {
+    console.error('Error descargando APK:', error);
+    if (window.Swal) {
+      Swal.fire({
+        title: 'Error',
+        text: 'No se pudo descargar el APK. Intenta desde el enlace directo.',
+        icon: 'error',
+        confirmButtonText: 'OK'
+      });
+    }
   }
 }
 

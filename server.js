@@ -129,6 +129,8 @@ app.use('/assets', express.static('frontend/assets'));
 app.use('/downloads', express.static('frontend/downloads', {
   setHeaders: (res, path) => {
     if (path.endsWith('.apk')) {
+      res.setHeader('Content-Type', 'application/vnd.android.package-archive');
+      res.setHeader('Content-Disposition', 'attachment; filename="CEMI-v3.0.apk"');
       res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
       res.setHeader('Pragma', 'no-cache');
       res.setHeader('Expires', '0');
