@@ -124,7 +124,18 @@ app.use('/uploads', express.static('uploads'));
 
 // 📁 Servir archivos estáticos del frontend
 app.use('/assets', express.static('frontend/assets'));
-app.use('/downloads', express.static('frontend/downloads'));
+
+// 📁 Servir descargas sin caché (APK)
+app.use('/downloads', express.static('frontend/downloads', {
+  setHeaders: (res, path) => {
+    if (path.endsWith('.apk')) {
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+    }
+  }
+}));
+
 app.use(express.static('frontend'));
 
 // =============================

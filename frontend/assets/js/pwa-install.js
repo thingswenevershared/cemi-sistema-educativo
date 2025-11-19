@@ -62,6 +62,31 @@ function isAndroid() {
   return /Android/i.test(navigator.userAgent);
 }
 
+// Función para descargar APK con cache busting
+function downloadAPK() {
+  const timestamp = new Date().getTime();
+  const apkUrl = `/downloads/cemi-app-v2.apk?v=${timestamp}`;
+  
+  // Crear un link temporal y forzar la descarga
+  const link = document.createElement('a');
+  link.href = apkUrl;
+  link.download = `CEMI-v2-${timestamp}.apk`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
+  // Mostrar mensaje
+  if (window.Swal) {
+    Swal.fire({
+      title: 'Descargando APK',
+      html: '<strong>Versión 2</strong><br>Desinstala la versión anterior antes de instalar',
+      icon: 'info',
+      timer: 4000,
+      showConfirmButton: false
+    });
+  }
+}
+
 // Función para mostrar banner de instalación
 function showInstallBanner() {
   const isAndroidDevice = isAndroid();
@@ -91,7 +116,7 @@ function showInstallBanner() {
         <span style="font-size: 13px; opacity: 0.9;">Accede más rápido instalando la app</span>
       </div>
       ${isAndroidDevice ? `
-        <a href="/downloads/cemi-app-v2.apk" download="CEMI-v2.apk" style="
+        <button id="pwa-apk-download-btn" style="
           background: white;
           color: #1e3c72;
           border: none;
@@ -100,9 +125,7 @@ function showInstallBanner() {
           font-weight: 600;
           cursor: pointer;
           transition: transform 0.2s;
-          text-decoration: none;
-          display: inline-block;
-        ">Descargar APK v2</a>
+        ">APK v2</button>
       ` : `
         <button id="pwa-install-btn" style="
           background: white;
@@ -129,7 +152,13 @@ function showInstallBanner() {
   
   document.body.appendChild(banner);
   
-  // Botón de instalar (solo si no es Android)
+  // Botón de descargar APK (solo Android)
+  const apkBtn = document.getElementById('pwa-apk-download-btn');
+  if (apkBtn) {
+    apkBtn.addEventListener('click', downloadAPK);
+  }
+  
+  // Botón de instalar PWA (solo otros dispositivos)
   const installBtn = document.getElementById('pwa-install-btn');
   if (installBtn) {
     installBtn.addEventListener('click', installPWA);
