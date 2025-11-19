@@ -812,8 +812,8 @@ router.post("/upload-archivo", upload.single('archivo'), async (req, res) => {
       return res.status(400).json({ message: "No se ha enviado ningún archivo" });
     }
 
-    // Retornar la URL del archivo subido
-    const fileUrl = `${req.protocol}://${req.get('host')}/uploads/tareas/${req.file.filename}`;
+    // Retornar solo la ruta relativa para que funcione en cualquier entorno
+    const fileUrl = `/uploads/tareas/${req.file.filename}`;
     
     res.json({
       success: true,
