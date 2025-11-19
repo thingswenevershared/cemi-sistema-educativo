@@ -1249,7 +1249,7 @@ body {
   height: 32px;
   color: #2d3748;
   background: none !important;
-  animation: graduationCapSpin 2s ease-in-out 3s infinite;
+  animation: graduationCapSpin 5s ease-in-out infinite;
   transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
@@ -1259,16 +1259,14 @@ body {
 }
 
 @keyframes graduationCapSpin {
-  0% {
+  0%, 60% {
     transform: rotate(0deg) scale(1);
-    opacity: 1;
   }
-  50% {
+  70% {
     transform: rotate(180deg) scale(1.15);
   }
-  100% {
+  80%, 100% {
     transform: rotate(360deg) scale(1);
-    opacity: 1;
   }
 }
 
