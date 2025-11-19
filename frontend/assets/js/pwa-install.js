@@ -62,69 +62,6 @@ function isAndroid() {
   return /Android/i.test(navigator.userAgent);
 }
 
-// Función para descargar APK con cache busting
-async function downloadAPK() {
-  const timestamp = new Date().getTime();
-  const apkUrl = `/downloads/cemi-app-v3.apk?v=${timestamp}`;
-  
-  try {
-    // Mostrar mensaje de descarga
-    if (window.Swal) {
-      Swal.fire({
-        title: 'Descargando APK',
-        html: '<strong>Versión 3.0</strong><br>Espera un momento...',
-        icon: 'info',
-        showConfirmButton: false,
-        allowOutsideClick: false
-      });
-    }
-    
-    // Descargar como blob para evitar que Chrome lo interprete como PWA
-    const response = await fetch(apkUrl);
-    const blob = await response.blob();
-    
-    // Crear URL temporal del blob
-    const blobUrl = window.URL.createObjectURL(blob);
-    
-    // Crear link de descarga
-    const link = document.createElement('a');
-    link.href = blobUrl;
-    link.download = `CEMI-v3.0-${timestamp}.apk`;
-    link.style.display = 'none';
-    document.body.appendChild(link);
-    
-    // Forzar descarga
-    link.click();
-    
-    // Limpiar
-    setTimeout(() => {
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(blobUrl);
-      
-      if (window.Swal) {
-        Swal.fire({
-          title: '¡APK Descargado!',
-          html: '<strong>Versión 3.0</strong><br>Desinstala la versión anterior antes de instalar',
-          icon: 'success',
-          timer: 4000,
-          showConfirmButton: false
-        });
-      }
-    }, 100);
-    
-  } catch (error) {
-    console.error('Error descargando APK:', error);
-    if (window.Swal) {
-      Swal.fire({
-        title: 'Error',
-        text: 'No se pudo descargar el APK. Intenta desde el enlace directo.',
-        icon: 'error',
-        confirmButtonText: 'OK'
-      });
-    }
-  }
-}
-
 // Función para mostrar banner de instalación
 function showInstallBanner() {
   const isAndroidDevice = isAndroid();
@@ -154,7 +91,8 @@ function showInstallBanner() {
         <span style="font-size: 13px; opacity: 0.9;">Accede más rápido instalando la app</span>
       </div>
       ${isAndroidDevice ? `
-        <button id="pwa-apk-download-btn" style="
+        <a href="https://cemi-sistema-educativo-production.up.railway.app/downloads/cemi-app-v3.apk" 
+           style="
           background: white;
           color: #1e3c72;
           border: none;
@@ -163,7 +101,8 @@ function showInstallBanner() {
           font-weight: 600;
           cursor: pointer;
           transition: transform 0.2s;
-        ">APK v3.0</button>
+          text-decoration: none;
+        ">Descargar APK</a>
       ` : `
         <button id="pwa-install-btn" style="
           background: white;
@@ -189,12 +128,6 @@ function showInstallBanner() {
   `;
   
   document.body.appendChild(banner);
-  
-  // Botón de descargar APK (solo Android)
-  const apkBtn = document.getElementById('pwa-apk-download-btn');
-  if (apkBtn) {
-    apkBtn.addEventListener('click', downloadAPK);
-  }
   
   // Botón de instalar PWA (solo otros dispositivos)
   const installBtn = document.getElementById('pwa-install-btn');
