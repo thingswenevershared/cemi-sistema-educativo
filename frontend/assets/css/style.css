@@ -32,6 +32,16 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Prevenir scroll horizontal global */
+* {
+  max-width: 100%;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
 /* Smooth scroll */
 html {
   scroll-behavior: smooth;
@@ -2677,18 +2687,36 @@ footer i {
 }
 
 @media (max-width: 480px) {
+  /* Prevenir desbordamiento */
+  html, body {
+    overflow-x: hidden;
+    width: 100%;
+  }
+
+  /* Contenedores principales */
+  .container,
+  .main-container,
+  .content-wrapper {
+    padding: 0 15px;
+    width: 100%;
+    max-width: 100%;
+  }
+
   /* Register y Login */
   .register-box,
   .login-box {
-    padding: 24px 20px;
-    margin: 15px;
-    width: calc(100% - 30px);
+    padding: 20px 15px;
+    margin: 10px;
+    width: calc(100% - 20px);
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   .register-box h2,
   .login-box h2 {
-    font-size: 1.5rem;
+    font-size: 1.4rem;
     margin-bottom: 16px;
+    word-wrap: break-word;
   }
 
   .form-group {
@@ -2698,13 +2726,16 @@ footer i {
   .form-group input,
   .form-group select,
   .form-group textarea {
-    padding: 10px 14px;
+    padding: 10px 12px;
     font-size: 14px;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .form-group label {
     font-size: 13px;
     margin-bottom: 6px;
+    display: block;
   }
 
   .submit-btn,
@@ -2712,6 +2743,8 @@ footer i {
   .btn-secondary {
     padding: 12px 20px;
     font-size: 14px;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .login-footer,
@@ -2804,29 +2837,76 @@ footer i {
   }
 
   /* Contenedores generales */
-  .section-content {
-    padding: 40px 20px;
+  .section-content,
+  .product-section {
+    padding: 30px 15px;
   }
 
   .section-content h2 {
-    font-size: 1.8rem;
+    font-size: 1.6rem;
+    word-wrap: break-word;
   }
 
   .section-subtitle {
-    font-size: 0.95rem;
+    font-size: 0.9rem;
   }
 
-  /* Cards */
+  /* Cards y features */
   .card,
-  .feature-card {
-    padding: 20px 16px;
+  .feature-card,
+  .info-card {
+    padding: 16px;
+    margin: 10px 0;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Grids responsive */
+  .grid,
+  .features-grid,
+  .cards-grid {
+    grid-template-columns: 1fr !important;
+    gap: 15px;
+  }
+
+  /* Tablas responsive */
+  .table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  table {
+    min-width: 600px;
+    font-size: 12px;
+  }
+
+  table th,
+  table td {
+    padding: 8px 6px;
+    white-space: nowrap;
   }
 
   /* Modales */
-  .modal-content {
-    padding: 20px 16px;
-    margin: 15px;
-    width: calc(100% - 30px);
+  .modal-content,
+  .modal,
+  .popup {
+    padding: 16px;
+    margin: 10px;
+    width: calc(100% - 20px) !important;
+    max-width: calc(100% - 20px) !important;
+    box-sizing: border-box;
+  }
+
+  .modal-header h2,
+  .modal-title {
+    font-size: 1.2rem;
+  }
+
+  /* Botones en general */
+  button,
+  .btn {
+    padding: 10px 16px;
+    font-size: 13px;
   }
 }
 

@@ -8005,5 +8005,76 @@
   }
 }
 
+/* Mejoras adicionales para móviles pequeños */
+@media (max-width: 480px) {
+  /* Prevenir scroll horizontal */
+  body {
+    overflow-x: hidden;
+  }
+
+  .dashboard-container {
+    overflow-x: hidden;
+  }
+
+  .dashboard-main {
+    padding: 70px 10px 16px 10px;
+    overflow-x: hidden;
+  }
+
+  /* Paneles */
+  .panel,
+  .curso-panel,
+  .alumno-panel {
+    padding: 12px;
+    overflow-x: hidden;
+  }
+
+  /* Tablas responsivas */
+  .table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 -10px;
+    padding: 0 10px;
+  }
+
+  /* Cards más compactos */
+  .curso-card,
+  .alumno-card,
+  .profesor-card {
+    padding: 12px;
+  }
+
+  /* Formularios */
+  .form-row {
+    flex-direction: column;
+  }
+
+  .form-group {
+    width: 100% !important;
+  }
+
+  /* Botones */
+  .btn-group {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .btn-group .btn {
+    width: 100%;
+  }
+
+  /* Modales más pequeños */
+  .modal-content {
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  /* Grids a 1 columna */
+  .cursos-grid,
+  .alumnos-grid,
+  .profesores-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
 
 
