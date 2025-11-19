@@ -2669,11 +2669,14 @@ async function verDetalleEntrega(idTarea, idAlumno) {
                 <i data-lucide="paperclip" style="width: 16px; height: 16px; color: #667eea;"></i>
                 Archivo adjunto
               </div>
-              <a href="${entrega.archivo_url}" target="_blank" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 16px; background: #f0f4ff; border: 2px solid #667eea; border-radius: 8px; text-decoration: none; color: #667eea; font-weight: 600; font-size: 14px; transition: all 0.2s;">
+              <div style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 16px; background: #e9ecef; border: 2px solid #ced4da; border-radius: 8px; color: #6c757d; font-weight: 600; font-size: 14px; opacity: 0.6; cursor: not-allowed;">
                 <i data-lucide="file" style="width: 18px; height: 18px;"></i>
-                <span>Ver archivo</span>
-                <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
-              </a>
+                <span>Archivo entregado</span>
+                <i data-lucide="lock" style="width: 14px; height: 14px;"></i>
+              </div>
+              <div style="font-size: 12px; color: #6c757d; margin-top: 8px; font-style: italic;">
+                El archivo no está disponible para visualización
+              </div>
             </div>
           ` : ''}
           
