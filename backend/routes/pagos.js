@@ -81,21 +81,16 @@ router.get("/", async (req, res) => {
         AND archivado = 0
     `);
 
-    // Alumnos con más de 5 cuotas liberadas sin pagar
+    // Alumnos con 5 o más cuotas pendientes (simplificado)
     const [alumnosMora] = await pool.query(`
-      SELECT COUNT(DISTINCT p.id_alumno) AS total
-      FROM (
-        SELECT 
-          pa.id_alumno, 
-          COUNT(*) as cuotas_liberadas_impagas
+      SELECT COUNT(*) as total FROM (
+        SELECT pa.id_alumno
         FROM pagos pa
-        JOIN cursos c ON pa.id_curso = c.id_curso
         WHERE pa.estado_pago = 'en_proceso'
           AND pa.archivado = 0
-          AND JSON_CONTAINS(c.cuotas_habilitadas, CONCAT('"', pa.mes_cuota, '"'))
         GROUP BY pa.id_alumno
-        HAVING cuotas_liberadas_impagas >= 5
-      ) AS p
+        HAVING COUNT(*) >= 5
+      ) as alumnos_con_deuda
     `);
 
     // Promedio histórico de todos los pagos confirmados
