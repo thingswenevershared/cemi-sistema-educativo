@@ -710,7 +710,11 @@ router.post("/upload", uploadChatFile.single('file'), async (req, res) => {
     
     if (!id_conversacion || !tipo_remitente || !nombre_remitente) {
       // Eliminar archivo subido si falta información
-      fs.unlinkSync(req.file.path);
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (err) {
+        console.error('Error al eliminar archivo:', err);
+      }
       return res.status(400).json({
         success: false,
         message: "Faltan datos requeridos"
@@ -728,6 +732,22 @@ router.post("/upload", uploadChatFile.single('file'), async (req, res) => {
     
     // Ruta relativa del archivo (para guardar en BD y servir)
     const rutaArchivo = `/uploads/chat-files/${req.file.filename}`;
+    
+    // Verificar si las columnas existen
+    const [columns] = await pool.query(`
+      SHOW COLUMNS FROM chat_mensajes LIKE 'archivo_adjunto'
+    `);
+    
+    if (columns.length === 0) {
+      // Las columnas no existen, crear primero
+      console.log('⚠️ Creando columnas archivo_adjunto y tipo_archivo...');
+      await pool.query(`
+        ALTER TABLE chat_mensajes 
+        ADD COLUMN archivo_adjunto VARCHAR(500) NULL,
+        ADD COLUMN tipo_archivo VARCHAR(50) NULL
+      `);
+      console.log('✅ Columnas creadas exitosamente');
+    }
     
     // Insertar mensaje en la base de datos
     const [result] = await pool.query(`
