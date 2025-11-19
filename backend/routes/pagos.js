@@ -315,6 +315,56 @@ router.get("/alumno/:id/historial", async (req, res) => {
   }
 });
 
+// GET /pagos/:id - Obtener detalles de un pago específico
+router.get("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const [rows] = await pool.query(`
+      SELECT 
+        pa.id_pago,
+        pa.id_alumno,
+        CONCAT(p.nombre, ' ', p.apellido) AS alumno,
+        a.legajo,
+        p.dni,
+        cp.descripcion AS concepto,
+        mp.descripcion AS medio_pago,
+        pa.monto,
+        pa.fecha_pago,
+        pa.fecha_registro,
+        pa.periodo,
+        pa.mes_cuota,
+        pa.fecha_vencimiento,
+        pa.estado_pago,
+        pa.numero_comprobante,
+        c.nombre_curso AS curso,
+        ad.cargo AS administrativo
+      FROM pagos pa
+      JOIN alumnos a ON pa.id_alumno = a.id_alumno
+      JOIN personas p ON a.id_persona = p.id_persona
+      JOIN conceptos_pago cp ON pa.id_concepto = cp.id_concepto
+      JOIN medios_pago mp ON pa.id_medio_pago = mp.id_medio_pago
+      LEFT JOIN cursos c ON pa.id_curso = c.id_curso
+      LEFT JOIN administrativos ad ON pa.id_administrativo = ad.id_administrativo
+      WHERE pa.id_pago = ?
+    `, [id]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({ 
+        message: "Pago no encontrado" 
+      });
+    }
+
+    res.json(rows[0]);
+  } catch (error) {
+    console.error("Error al obtener pago:", error);
+    res.status(500).json({ 
+      message: "Error al obtener pago",
+      error: error.message 
+    });
+  }
+});
+
 // POST /pagos/realizar - Registrar un nuevo pago
 router.post("/realizar",
   // Validaciones
