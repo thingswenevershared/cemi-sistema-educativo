@@ -601,12 +601,46 @@ class UserChatManager {
       
       const avatarContent = this.renderAvatar(avatarParaMostrar, nombreMostrar);
       
+      // Renderizar contenido del mensaje (texto o archivo)
+      let mensajeContent = '';
+      if (msg.archivo_adjunto) {
+        // Es un archivo adjunto
+        if (msg.tipo_archivo === 'image') {
+          // Mostrar imagen
+          mensajeContent = `
+            <div class="chat-file-attachment">
+              <img src="${msg.archivo_adjunto}" alt="Imagen adjunta" class="chat-image-preview" onclick="window.open('${msg.archivo_adjunto}', '_blank')" />
+            </div>
+          `;
+        } else if (msg.tipo_archivo === 'pdf') {
+          // Mostrar enlace a PDF
+          const nombreArchivo = msg.archivo_adjunto.split('/').pop();
+          mensajeContent = `
+            <div class="chat-file-attachment pdf">
+              <div class="chat-pdf-icon">
+                <i data-lucide="file-text" style="width: 32px; height: 32px; color: #e53935;"></i>
+              </div>
+              <div class="chat-pdf-info">
+                <div class="chat-pdf-name">${nombreArchivo}</div>
+                <div class="chat-pdf-type">Documento PDF</div>
+              </div>
+              <a href="${msg.archivo_adjunto}" download class="chat-pdf-download" title="Descargar PDF">
+                <i data-lucide="download" style="width: 20px; height: 20px;"></i>
+              </a>
+            </div>
+          `;
+        }
+      } else {
+        // Mensaje de texto normal
+        mensajeContent = `<div class="user-chat-message-bubble">${this.escapeHtml(msg.mensaje)}</div>`;
+      }
+      
       return `
         <div class="user-chat-message ${isAdmin ? 'received' : 'sent'}">
           <div class="user-chat-message-avatar">${avatarContent}</div>
           <div class="user-chat-message-content">
             <div class="user-chat-message-sender">${nombreMostrar} <span class="user-chat-sender-type">(${tipoLabel})</span></div>
-            <div class="user-chat-message-bubble">${this.escapeHtml(msg.mensaje)}</div>
+            ${mensajeContent}
             <div class="user-chat-message-time">${time}</div>
           </div>
         </div>
@@ -697,6 +731,117 @@ class UserChatManager {
         icon: 'error',
         title: 'Error de conexión',
         text: 'No se pudo enviar el mensaje. Intenta de nuevo.'
+      });
+    }
+  }
+  
+  // Manejar selección de archivo
+  async handleFileSelect(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    // Validar tamaño (5MB máximo)
+    if (file.size > 5 * 1024 * 1024) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Archivo muy grande',
+        text: 'El archivo no debe superar los 5MB'
+      });
+      event.target.value = '';
+      return;
+    }
+    
+    // Validar tipo
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'application/pdf'];
+    if (!validTypes.includes(file.type)) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Tipo de archivo no válido',
+        text: 'Solo se permiten imágenes (JPG, PNG, WEBP) y archivos PDF'
+      });
+      event.target.value = '';
+      return;
+    }
+    
+    // Mostrar loading
+    Swal.fire({
+      title: 'Subiendo archivo...',
+      text: file.name,
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+    
+    // Subir archivo
+    await this.uploadFile(file);
+    
+    // Limpiar input
+    event.target.value = '';
+  }
+  
+  // Subir archivo al servidor
+  async uploadFile(file) {
+    try {
+      // Verificar que haya conversación activa
+      if (!this.activeConversation) {
+        // Intentar cargar conversación
+        await this.loadConversations();
+        
+        if (this.conversations && this.conversations.length > 0) {
+          await this.selectConversation(this.conversations[0].id_conversacion);
+        } else {
+          // Crear conversación antes de subir archivo
+          await this.startNewConversation('[Archivo adjunto]');
+          // Esperar un momento a que se cree la conversación
+          await new Promise(resolve => setTimeout(resolve, 500));
+          await this.loadConversations();
+          if (this.conversations.length > 0) {
+            await this.selectConversation(this.conversations[0].id_conversacion);
+          }
+        }
+      }
+      
+      if (!this.activeConversation) {
+        throw new Error('No se pudo establecer una conversación');
+      }
+      
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('id_conversacion', this.activeConversation.id_conversacion);
+      formData.append('tipo_remitente', this.userType);
+      formData.append('id_remitente', this.userInfo.id_especifico || '');
+      formData.append('nombre_remitente', this.userInfo.nombre);
+      
+      const API_URL = window.API_URL || 'http://localhost:3000/api';
+      const response = await fetch(`${API_URL}/chat/upload`, {
+        method: 'POST',
+        body: formData
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Archivo enviado',
+          text: 'El archivo se ha enviado correctamente',
+          timer: 2000,
+          showConfirmButton: false
+        });
+        
+        // Recargar mensajes para mostrar el archivo
+        await this.loadMessages(this.activeConversation.id_conversacion);
+      } else {
+        throw new Error(result.message || 'Error al subir archivo');
+      }
+      
+    } catch (error) {
+      console.error('❌ Error al subir archivo:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.message || 'No se pudo subir el archivo'
       });
     }
   }
@@ -916,6 +1061,16 @@ class UserChatManager {
           </div>
           
           <div class="user-chat-input-area" style="display: none;" id="userChatInputArea">
+            <input 
+              type="file" 
+              id="userChatFileInput" 
+              accept="image/*,.pdf"
+              style="display: none;"
+              onchange="userChatManager.handleFileSelect(event)"
+            >
+            <button class="user-chat-attach-btn" onclick="document.getElementById('userChatFileInput').click()" title="Adjuntar archivo">
+              <i data-lucide="paperclip" style="width: 20px; height: 20px;"></i>
+            </button>
             <input 
               type="text" 
               id="userChatMessageInput" 

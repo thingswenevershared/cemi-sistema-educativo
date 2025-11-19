@@ -4,8 +4,58 @@
 
 import express from "express";
 import pool from "../utils/db.js";
+import multer from "multer";
+import path from "path";
+import { fileURLToPath } from 'url';
+import fs from 'fs';
 
 const router = express.Router();
+
+// Configuración de __dirname para ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Configurar multer para archivos del chat
+const chatStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadPath = path.join(__dirname, '../../uploads/chat-files');
+    
+    // Crear directorio si no existe
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
+    }
+    
+    cb(null, uploadPath);
+  },
+  filename: function (req, file, cb) {
+    // Generar nombre único: timestamp-random-nombreoriginal
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    const nameWithoutExt = path.basename(file.originalname, ext);
+    cb(null, `${nameWithoutExt}-${uniqueSuffix}${ext}`);
+  }
+});
+
+// Filtro para aceptar solo imágenes y PDFs
+const fileFilter = (req, file, cb) => {
+  const allowedTypes = /jpeg|jpg|png|webp|pdf/;
+  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+  const mimetype = allowedTypes.test(file.mimetype);
+  
+  if (mimetype && extname) {
+    return cb(null, true);
+  } else {
+    cb(new Error('Solo se permiten archivos de imagen (JPEG, PNG, WEBP) y PDF'));
+  }
+};
+
+const uploadChatFile = multer({
+  storage: chatStorage,
+  fileFilter: fileFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB máximo
+  }
+});
 
 // =====================================================
 // INICIAR NUEVA CONVERSACIÓN
@@ -639,6 +689,110 @@ router.delete("/conversacion/:id", async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error al eliminar conversación"
+    });
+  }
+});
+
+// =====================================================
+// SUBIR ARCHIVO (IMAGEN O PDF)
+// =====================================================
+
+router.post("/upload", uploadChatFile.single('file'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "No se recibió ningún archivo"
+      });
+    }
+    
+    const { id_conversacion, tipo_remitente, id_remitente, nombre_remitente } = req.body;
+    
+    if (!id_conversacion || !tipo_remitente || !nombre_remitente) {
+      // Eliminar archivo subido si falta información
+      fs.unlinkSync(req.file.path);
+      return res.status(400).json({
+        success: false,
+        message: "Faltan datos requeridos"
+      });
+    }
+    
+    // Determinar tipo de archivo
+    const ext = path.extname(req.file.originalname).toLowerCase();
+    let tipoArchivo = 'file';
+    if (['.jpg', '.jpeg', '.png', '.webp'].includes(ext)) {
+      tipoArchivo = 'image';
+    } else if (ext === '.pdf') {
+      tipoArchivo = 'pdf';
+    }
+    
+    // Ruta relativa del archivo (para guardar en BD y servir)
+    const rutaArchivo = `/uploads/chat-files/${req.file.filename}`;
+    
+    // Insertar mensaje en la base de datos
+    const [result] = await pool.query(`
+      INSERT INTO chat_mensajes (
+        id_conversacion,
+        tipo_remitente,
+        id_remitente,
+        nombre_remitente,
+        mensaje,
+        archivo_adjunto,
+        tipo_archivo
+      ) VALUES (?, ?, ?, ?, ?, ?, ?)
+    `, [
+      id_conversacion,
+      tipo_remitente,
+      id_remitente || null,
+      nombre_remitente,
+      `[Archivo adjunto: ${req.file.originalname}]`, // Mensaje descriptivo
+      rutaArchivo,
+      tipoArchivo
+    ]);
+    
+    // Actualizar timestamp y contador de mensajes no leídos
+    const isAdmin = tipo_remitente === 'admin';
+    if (!isAdmin) {
+      await pool.query(`
+        UPDATE chat_conversaciones
+        SET mensajes_no_leidos_admin = mensajes_no_leidos_admin + 1,
+            ultima_actividad = CURRENT_TIMESTAMP
+        WHERE id_conversacion = ?
+      `, [id_conversacion]);
+    } else {
+      await pool.query(`
+        UPDATE chat_conversaciones
+        SET mensajes_no_leidos_usuario = mensajes_no_leidos_usuario + 1,
+            ultima_actividad = CURRENT_TIMESTAMP
+        WHERE id_conversacion = ?
+      `, [id_conversacion]);
+    }
+    
+    console.log(`📎 Archivo subido: ${req.file.originalname} (${tipoArchivo}) en conversación ${id_conversacion}`);
+    
+    res.json({
+      success: true,
+      message: "Archivo subido exitosamente",
+      data: {
+        id_mensaje: result.insertId,
+        archivo_adjunto: rutaArchivo,
+        tipo_archivo: tipoArchivo,
+        nombre_archivo: req.file.originalname,
+        tamano: req.file.size
+      }
+    });
+    
+  } catch (error) {
+    console.error("Error al subir archivo:", error);
+    
+    // Eliminar archivo si hubo error
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    
+    res.status(500).json({
+      success: false,
+      message: "Error al subir archivo"
     });
   }
 });

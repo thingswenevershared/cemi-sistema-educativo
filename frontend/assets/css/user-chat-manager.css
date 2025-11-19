@@ -478,3 +478,136 @@
     max-width: 80%;
   }
 }
+
+/* ===================================================== */
+/* ARCHIVOS ADJUNTOS EN CHAT */
+/* ===================================================== */
+
+/* Botón de adjuntar archivos */
+.user-chat-attach-btn {
+  background: #f3f4f6;
+  border: none;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  margin-right: 8px;
+}
+
+.user-chat-attach-btn:hover {
+  background: #e5e7eb;
+  color: #1976d2;
+  transform: scale(1.05);
+}
+
+.user-chat-attach-btn:active {
+  transform: scale(0.95);
+}
+
+/* Contenedor de archivo adjunto */
+.chat-file-attachment {
+  margin-top: 8px;
+  margin-bottom: 4px;
+}
+
+/* Imagen adjunta */
+.chat-image-preview {
+  max-width: 300px;
+  max-height: 400px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: block;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.chat-image-preview:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* PDF adjunto */
+.chat-file-attachment.pdf {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  max-width: 350px;
+  transition: all 0.2s ease;
+}
+
+.chat-file-attachment.pdf:hover {
+  border-color: #1976d2;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.1);
+}
+
+.chat-pdf-icon {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #fee2e2, #fecaca);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chat-pdf-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.chat-pdf-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 4px;
+}
+
+.chat-pdf-type {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.chat-pdf-download {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, #1976d2, #1565c0);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.chat-pdf-download:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+}
+
+.chat-pdf-download:active {
+  transform: scale(0.95);
+}
+
+/* Ajustes para mensajes con archivos */
+.user-chat-message.sent .chat-image-preview {
+  border: 2px solid rgba(25, 118, 210, 0.2);
+}
+
+.user-chat-message.received .chat-image-preview {
+  border: 2px solid rgba(107, 114, 128, 0.2);
+}
