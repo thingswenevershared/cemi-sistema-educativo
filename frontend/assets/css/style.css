@@ -3702,7 +3702,7 @@ footer i {
   width: 48px;
   height: 48px;
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.3);
@@ -3712,34 +3712,35 @@ footer i {
   justify-content: center;
   transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
   opacity: 0;
-  transform: translate(0, 0) scale(0);
+  transform: translateY(0) scale(0);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   position: absolute;
   bottom: 0;
   left: 0;
 }
 
-.floating-btn-sub i {
+.floating-btn-sub i,
+.floating-btn-sub svg {
   width: 20px;
   height: 20px;
 }
 
-/* Animación de aparición en forma de abanico circular hacia arriba-derecha */
+/* Animación de aparición vertical hacia arriba */
 .floating-menu-container.active .floating-btn-sub:nth-child(1) {
   opacity: 1;
-  transform: translate(40px, -85px) scale(1);
+  transform: translateY(-70px) scale(1);
   transition-delay: 0.05s;
 }
 
 .floating-menu-container.active .floating-btn-sub:nth-child(2) {
   opacity: 1;
-  transform: translate(80px, -40px) scale(1);
+  transform: translateY(-130px) scale(1);
   transition-delay: 0.1s;
 }
 
 .floating-menu-container.active .floating-btn-sub:nth-child(3) {
   opacity: 1;
-  transform: translate(90px, 20px) scale(1);
+  transform: translateY(-190px) scale(1);
   transition-delay: 0.15s;
 }
 
@@ -3856,21 +3857,22 @@ footer i {
     height: 44px;
   }
 
-  .floating-btn-sub i {
+  .floating-btn-sub i,
+  .floating-btn-sub svg {
     width: 18px;
     height: 18px;
   }
 
   .floating-menu-container.active .floating-btn-sub:nth-child(1) {
-    transform: translate(35px, -70px) scale(1);
+    transform: translateY(-65px) scale(1);
   }
 
   .floating-menu-container.active .floating-btn-sub:nth-child(2) {
-    transform: translate(65px, -35px) scale(1);
+    transform: translateY(-120px) scale(1);
   }
 
   .floating-menu-container.active .floating-btn-sub:nth-child(3) {
-    transform: translate(75px, 15px) scale(1);
+    transform: translateY(-175px) scale(1);
   }
   
   .faq-item.active .faq-answer {
