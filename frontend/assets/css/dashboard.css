@@ -7543,9 +7543,12 @@
 
 /* Mobile - Tablets pequeñas (max-width: 768px) */
 @media (max-width: 768px) {
-  /* Mostrar botón hamburguesa */
+  /* Mostrar botón hamburguesa a la derecha */
   .mobile-menu-toggle {
     display: flex;
+    right: 15px;
+    top: 15px;
+    left: auto;
   }
 
   /* Sidebar mobile */
@@ -7557,24 +7560,18 @@
   }
 
   .sidebar.collapsed {
-    transform: translateX(-260px);
+    transform: translateX(-100%);
   }
 
-  .sidebar.mobile-open {
+  /* Sidebar abierto en mobile - sin clase collapsed */
+  .sidebar:not(.collapsed) {
     transform: translateX(0);
     box-shadow: 4px 0 12px rgba(0,0,0,0.3);
   }
 
   /* Overlay cuando sidebar está abierto */
-  .sidebar.mobile-open::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 280px;
-    right: 0;
-    bottom: 0;
-    background: rgba(0,0,0,0.5);
-    z-index: -1;
+  .sidebar-overlay.active {
+    display: block;
   }
 
   /* Main content ocupa todo el ancho */
