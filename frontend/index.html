@@ -690,27 +690,31 @@
 
     // ===== MENÚ FLOTANTE EXPANDIBLE =====
     const floatingMenu = document.getElementById('floatingMenu');
-    const mainBtn = floatingMenu.querySelector('.floating-btn-main');
-    
-    // Toggle al hacer click
-    mainBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      floatingMenu.classList.toggle('active');
-    });
-    
-    // Cerrar al hacer click fuera
-    document.addEventListener('click', (e) => {
-      if (!floatingMenu.contains(e.target)) {
-        floatingMenu.classList.remove('active');
+    if (floatingMenu) {
+      const mainBtn = floatingMenu.querySelector('.floating-btn-main');
+      
+      if (mainBtn) {
+        // Toggle al hacer click
+        mainBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          floatingMenu.classList.toggle('active');
+        });
       }
-    });
-    
-    // Cerrar al hacer click en un botón secundario
-    floatingMenu.querySelectorAll('.floating-btn-sub').forEach(btn => {
-      btn.addEventListener('click', () => {
-        floatingMenu.classList.remove('active');
+      
+      // Cerrar al hacer click fuera
+      document.addEventListener('click', (e) => {
+        if (!floatingMenu.contains(e.target)) {
+          floatingMenu.classList.remove('active');
+        }
       });
-    });
+      
+      // Cerrar al hacer click en un botón secundario
+      floatingMenu.querySelectorAll('.floating-btn-sub').forEach(btn => {
+        btn.addEventListener('click', () => {
+          floatingMenu.classList.remove('active');
+        });
+      });
+    }
 
     // ===== ACORDEÓN FAQ =====
     document.querySelectorAll('.faq-question').forEach(question => {
