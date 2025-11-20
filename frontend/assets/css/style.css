@@ -1528,12 +1528,15 @@ footer i {
 /* ===== LOGIN PAGE - APPLE MINIMAL STYLE ===== */
 .login-body {
   min-height: 100vh;
+  width: 100%;
+  max-width: 100vw;
   display: flex;
   justify-content: center;
   align-items: center;
   background: linear-gradient(135deg, #e8eef3 0%, #d4dce6 100%);
   position: relative;
   overflow: hidden;
+  box-sizing: border-box;
 }
 
 /* Fondo animado con iconos flotantes */
@@ -1632,6 +1635,7 @@ footer i {
   animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   z-index: 1;
+  box-sizing: border-box;
 }
 
 @keyframes fadeInUp {
