@@ -1257,16 +1257,23 @@
       const mobileMenuToggle = document.getElementById('mobileMenuToggle');
       const sidebar = document.getElementById('sidebar');
       const sidebarOverlay = document.getElementById('sidebarOverlay');
+      const dashboardMain = document.querySelector('.dashboard-main');
+      
+      // Iniciar con sidebar colapsado
+      sidebar.classList.add('collapsed');
       
       if (mobileMenuToggle && sidebar && sidebarOverlay) {
         // Abrir/cerrar sidebar
         mobileMenuToggle.addEventListener('click', function() {
-          sidebar.classList.toggle('mobile-open');
+          sidebar.classList.toggle('collapsed');
           sidebarOverlay.classList.toggle('active');
+          if (dashboardMain) {
+            dashboardMain.classList.toggle('sidebar-open');
+          }
           
           // Cambiar icono
           const icon = this.querySelector('i');
-          if (sidebar.classList.contains('mobile-open')) {
+          if (!sidebar.classList.contains('collapsed')) {
             icon.setAttribute('data-lucide', 'x');
           } else {
             icon.setAttribute('data-lucide', 'menu');
@@ -1276,27 +1283,15 @@
         
         // Cerrar sidebar al hacer clic en overlay
         sidebarOverlay.addEventListener('click', function() {
-          sidebar.classList.remove('mobile-open');
+          sidebar.classList.add('collapsed');
           sidebarOverlay.classList.remove('active');
+          if (dashboardMain) {
+            dashboardMain.classList.remove('sidebar-open');
+          }
           
           const icon = mobileMenuToggle.querySelector('i');
           icon.setAttribute('data-lucide', 'menu');
           lucide.createIcons();
-        });
-        
-        // Cerrar sidebar al hacer clic en un botón del menú (solo en mobile)
-        const menuButtons = sidebar.querySelectorAll('.sidebar-menu button');
-        menuButtons.forEach(button => {
-          button.addEventListener('click', function() {
-            if (window.innerWidth <= 768) {
-              sidebar.classList.remove('mobile-open');
-              sidebarOverlay.classList.remove('active');
-              
-              const icon = mobileMenuToggle.querySelector('i');
-              icon.setAttribute('data-lucide', 'menu');
-              lucide.createIcons();
-            }
-          });
         });
       }
     });
