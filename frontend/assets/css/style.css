@@ -30,9 +30,19 @@ body {
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  width: 100%;
+  max-width: 100vw;
+  position: relative;
 }
 
 /* Prevenir scroll horizontal global */
+html {
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
+  position: relative;
+}
+
 * {
   max-width: 100%;
 }
@@ -45,6 +55,9 @@ img {
 /* Smooth scroll */
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
 }
 
 /* ===== NAVBAR MINIMAL ===== */
