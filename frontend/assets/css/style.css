@@ -3625,7 +3625,7 @@ footer i {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   z-index: 999;
 }
 
@@ -3679,9 +3679,9 @@ footer i {
 
 /* Botones secundarios */
 .floating-btn-sub {
-  width: 48px;
-  height: 48px;
-  border-radius: 14px;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -3698,7 +3698,7 @@ footer i {
 }
 
 .floating-btn-sub i {
-  font-size: 20px;
+  font-size: 16px;
 }
 
 /* Mostrar botones cuando está activo */
